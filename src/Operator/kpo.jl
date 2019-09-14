@@ -6,6 +6,13 @@ end
 
 KPO = KroneckerProductOperator
 
+function clean!(op ::KPO; tol=sqrt(eps(Float64)))
+  keys_to_delete = [k for (k, v) in op.operators if isapprox(v, I)]
+  for k in keys_to_delete
+    delete!(k, op)
+  end
+end
+
 import Base.*
 
 """
@@ -60,7 +67,6 @@ end
 <ψ'| = <ψ| O 
 """
 function *(lhs::SparseState{BinRep, SS1}, rhs ::KPO{OS}) where {OS<:Number, BinRep, SS1 <:Number}
-
   OutScalar = promote_type(OS, SS)
   SS = SparseState{BinRep, OutScalar}
 
@@ -71,32 +77,23 @@ function *(lhs::SparseState{BinRep, SS1}, rhs ::KPO{OS}) where {OS<:Number, BinR
   for (isite, site_op) in rhs.operators
     @assert 1 <= isite <= length(hs.sites)
     ψp = SS(lhs.hilbert_space)
-
     site_dim = dimension(hs.sites[isite])
-    for (row_binrep, amplitude) in ψ.components
-      #### TODO:HERE!!
-
-      site_row_index = indexarray[isite]
-      for site_col_index in 1:site_dim
-        value = site_op[site_row_index, site_col_index]
+    for (r ::BinRep, amplitude) in ψ.components
+      sri = get_state_index(hs, r, isite)
+      for sci in 1:site_dim
+        value = site_op[sri, sci]
         if ! isapprox(value, 0)
-          newindexarray = copy(indexarray)
-          newindexarray[isite] = site_col_index
-          compress(lhs.hilbert_space, newindexarray)
-          ψp[newindexarray] += value * amplitude
+          c = update(hs, r, isite, sci)
+          ψp[c] += value * amplitude
         end
       end
     end
     ψ = ψp
   end
+  for (k,v) in ψ.components
+    ψ.components[k] = v * rhs.amplitude
+  end
   return ψ
 end
 
 
-
-function clean!(op ::KPO; tol=sqrt(eps(Float64)))
-  keys_to_delete = [k for (k, v) in op.operators if isapprox(v, I)]
-  for k in keys_to_delete
-    delete!(k, op)
-  end
-end

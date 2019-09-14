@@ -2,6 +2,7 @@ using StaticArrays
 using DataStructures
 using LinearAlgebra
 using SparseArrays
+using Arpack
 
 include("src/util.jl")
 include("src/HilbertSpace.jl")
@@ -76,7 +77,7 @@ function main()
   dn = State{QN}("Dn",-1)
   spinsite = Site{QN}([up, dn])
 
-  (n1, n2) = (6, 6)
+  (n1, n2) = (4, 4)
   n_sites = n1 * n2
   
   hs = AbstractHilbertSpace{QN}()
@@ -117,30 +118,30 @@ function main()
     push!(j3_terms, J3 * sigma(i,3) * sigma(j,1) * sigma(k, 2))
   end
 
+  hamiltonian = vcat(j1_terms, j2_terms, j3_terms)
+  
   sectors = quantum_number_sectors(hs)
   for qn in sectors
     println("------------------------------")
     println("Sector = ", qn)
     println("Concretizing Hilbert Space")
     
-    qn != 0 && continue
+    chs = concretize(hs, Set([qn]))
 
-    chs = concretize2(hs, Set([qn]))
+    # println("Saving...")
+    # fp = open("basis.txt", "w")
+    # for b in chs.basis_list
+    #   #println(string(b, base=2; pad=n_sites))
+    #   write(fp, string(b, base=2; pad=n_sites))
+    #   write(fp, '\n')
+    # end
+    # close(fp)
+    # println("Done")
 
-    println("Saving...")
-    fp = open("basis.txt", "w")
-    for b in chs.basis_list
-      #println(string(b, base=2; pad=n_sites))
-      write(fp, string(b, base=2; pad=n_sites))
-      write(fp, '\n')
-    end
-    close(fp)
-    println("Done")
-
-    continue
+    # continue
     
     println("Materializing Hamiltonian")
-    H, ε = materialize(chs, j1_terms)
+    H, ε = materialize_parallel(chs, hamiltonian)
     @show size(H)
     @show ε
     if size(H)[1] <= 20

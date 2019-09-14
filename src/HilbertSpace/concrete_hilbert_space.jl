@@ -16,30 +16,30 @@ end
 dimension(chs ::ConcreteHilbertSpace) = length(chs.basis_list)
 dimension(chsb ::ConcreteHilbertSpaceBlock) = length(chsb.basis_list)
 
-function concretize(hs ::AbstractHilbertSpace{QN}; BinaryRepresentation ::DataType=UInt) where {QN}
-  basis_list = BinaryRepresentation[]
+function concretize(hs ::AbstractHilbertSpace{QN}; BR ::DataType=UInt) where {QN}
+  basis_list = BR[]
   for indexarray in Iterators.product((1:length(site.states) for site in hs.sites)...)
     indexarray = Int[indexarray...]
     push!(basis_list, compress(hs, indexarray))
   end
-  basis_lookup = Dict{BinaryRepresentation, Int}()
+  basis_lookup = Dict{BR, Int}()
   for (ibasis, basis) in enumerate(basis_list)
     basis_lookup[basis] = ibasis
   end
-  return ConcreteHilbertSpace{BinaryRepresentation, QN}(hs, basis_list, basis_lookup)
+  return ConcreteHilbertSpace{BR, QN}(hs, basis_list, basis_lookup)
 end
 
 
 function concretize_naive(
     hs ::AbstractHilbertSpace{QN},
     qn ::QN;
-    BinaryRepresentation ::DataType=UInt) where {QN}
+    BR ::DataType=UInt) where {QN}
   sectors = quantum_number_sectors(hs)
   if ! (qn in sectors)
     return ConcreteHilbertSpaceBlock{BinRep, QN}(hs, qn, [], Dict())
   end
 
-  basis_list = BinaryRepresentation[]
+  basis_list = BR[]
   for indexarray in Iterators.product((1:length(site.states) for site in hs.sites)...)
     indexarray = Int[indexarray...]
     q = get_quantum_number(hs, indexarray)
@@ -47,11 +47,11 @@ function concretize_naive(
       push!(basis_list, compress(hs, indexarray))
     end
   end
-  basis_lookup = Dict{BinaryRepresentation, Int}()
+  basis_lookup = Dict{BR, Int}()
   for (ibasis, basis) in enumerate(basis_list)
     basis_lookup[basis] = ibasis
   end
-  return ConcreteHilbertSpaceBlock{BinaryRepresentation, QN}(hs, qn, basis_list, basis_lookup)
+  return ConcreteHilbertSpaceBlock{BR, QN}(hs, qn, basis_list, basis_lookup)
 end
 
 
@@ -77,11 +77,11 @@ function concretize(
     push!(possible_quantum_numbers, pq)
   end
 
-  function generate(i ::Integer, allowed ::Set{QN})
+  function generate(i ::Integer, allowed ::AbstractSet{QN})
     if i == 0
       return (zero(QN) in allowed) ? Dict(zero(QN) => [BR(0x0)]) : Dict()
     end
-    @show "Starting Level", i
+    #@show "Starting Level", i
     
     allowed_prev = Set{QN}()
     for q1 in quantum_numbers[i], q2 in allowed
@@ -100,8 +100,8 @@ function concretize(
           append!(result[q], (s | (BR(i_state-1) << hs.bitoffsets[i])) for s in states_prev)
         end
       end
-    end  
-    @show "Finishing Level", i
+    end
+    #@show "Finishing Level", i
 
     return result
   end
@@ -110,7 +110,6 @@ function concretize(
   #basis_list = vcat((states for (q, states) in result) ...)
   #sort!(basis_list)
   basis_list = BR[]
-
   for (q, states) in result
     basis_list = union_vec(basis_list, states)
   end
@@ -123,10 +122,8 @@ function concretize(
 end
 
 
-
-
 function concretize(hs ::AbstractHilbertSpace{QN},
-                    basis_list::Vector{BR}) where {QN, BR}
+                    basis_list::AbstractArray{BR}) where {QN, BR}
   basis_lookup = Dict{BR, Int}()
   for (ibasis, basis) in enumerate(basis_list)
     basis_lookup[basis] = ibasis

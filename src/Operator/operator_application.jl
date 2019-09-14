@@ -73,7 +73,7 @@ end
 #   intermediate = apply(hs, op, extract(hs, binrep))
 #   out = Dict{U, OS}()
 #   for (k, v) in intermediate
-#     out[compress(hs, k; BinaryRepresentation=U)] = v
+#     out[compress(hs, k; BR=U)] = v
 #   end
 #   return out
 # end
@@ -85,7 +85,7 @@ end
 #   intermediate = apply(hs, ops, extract(hs, binrep))
 #   out = Dict{U, OS}()
 #   for (k, v) in intermediate
-#     out[compress(hs, k; BinaryRepresentation=U)] = v
+#     out[compress(hs, k; BR=U)] = v
 #   end
 #   return out
 # end
@@ -238,11 +238,59 @@ function materialize(
     end
   end
   
-  # if Scalar <:Complex
-  #   if isapprox( norm(imag.(vals)), 0)
-  #     vals = real.(vals)
-  #   end
-  # end
+  if Scalar <:Complex
+    if isapprox( maximum(abs.(imag.(vals))), 0)
+      vals = real.(vals)
+    end
+  end
+  n = dimension(hsb)
+  return (sparse(rows, cols, vals, n, n), err)
+end
+
+
+
+function materialize_parallel(
+        hsb ::ConcreteHilbertSpace{BinRep, QN},
+        ops ::AbstractArray{KroneckerProductOperator{OS}};
+        Scalar::DataType=OS) where {BinRep, QN, OS<:Number}
+  hs = hsb.hilbert_space
+  err = 0.0
+
+  nthreads = Threads.nthreads()
+  local_rows = [ Int[] for i in 1:nthreads]
+  local_cols = [ Int[] for i in 1:nthreads]
+  local_vals = [ Scalar[] for i in 1:nthreads]
+  local_err = [0.0 for i in 1:nthreads]
+
+  n_basis = length(hsb.basis_list)
+
+  Threads.@threads for irow in 1:n_basis
+    id = Threads.threadid()
+    row = hsb.basis_list[irow]
+    out = apply(hs, ops, row)
+    for (col, amplitude) in out
+      if ! isapprox(amplitude, 0)
+        if !haskey(hsb.basis_lookup, col)
+          local_err[id] += abs(amplitude)^2
+        else 
+          icol = hsb.basis_lookup[col]
+          push!(local_rows[id], irow)
+          push!(local_cols[id], icol)
+          push!(local_vals[id], amplitude)
+        end
+      end
+    end
+  end
+  rows = vcat(local_rows...)
+  cols = vcat(local_cols...)
+  vals = vcat(local_vals...)
+  err = sum(local_err)
+  
+  if Scalar <:Complex
+    if isapprox( norm(imag.(vals)), 0)
+      vals = real.(vals)
+    end
+  end
   n = dimension(hsb)
   return (sparse(rows, cols, vals, n, n), err)
 end

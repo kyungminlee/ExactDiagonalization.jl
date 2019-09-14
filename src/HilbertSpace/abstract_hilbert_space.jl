@@ -24,7 +24,7 @@ function quantum_number_sectors(hs ::AbstractHilbertSpace{QN}) where QN
     qns_next = Set{QN}()
     for state in site.states
       for q in qns
-        push!(qns_next, q .+ state.quantum_number)        
+        push!(qns_next, q + state.quantum_number)
       end
     end
     qns = qns_next
@@ -32,11 +32,11 @@ function quantum_number_sectors(hs ::AbstractHilbertSpace{QN}) where QN
   return sort(collect(qns))
 end
 
-function get_quantum_number(hs ::AbstractHilbertSpace{QN}, binrep ::Unsigned) where {BinRep, QN}
+function get_quantum_number(hs ::AbstractHilbertSpace{QN}, binrep ::BR) where {QN, BR}
   sum(
     let
-      b = extract_binrep(hs, isite, binrep)
-      site.states[b+1].quantum_number
+      i = get_state_index(hs, binrep, isite)
+      site.states[i].quantum_number
     end
     for (isite, site) in enumerate(hs.sites)
   )
@@ -73,8 +73,7 @@ end
 """
 Convert an array of indices (of states) to binary representation 
 """
-function compress(hs ::AbstractHilbertSpace{QN}, indexarray ::AbstractVector{I}; BinaryRepresentation::DataType=UInt) where {QN, I<:Integer}
-  BR = BinaryRepresentation
+function compress(hs ::AbstractHilbertSpace{QN}, indexarray ::AbstractVector{I}; BR::DataType=UInt) where {QN, I<:Integer}
   @assert length(indexarray) == length(hs.sites)
 
   binrep = zero(BR)
