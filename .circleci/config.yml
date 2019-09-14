@@ -1,0 +1,19 @@
+version: 2
+jobs:
+  build:
+    working_directory: ~/ExactDiagonaliation.jl
+    docker:
+      - image: julia:latest
+    steps:
+      - checkout
+      - run:
+          name: version
+          command: "julia -e 'versioninfo()'"
+      - run:
+          name: dependency
+          command: "julia --project -e 'import Pkg; Pkg.build()'"
+      - run:
+          name: test
+          command: |
+            julia --project --check-bounds=yes -e 'import Pkg; Pkg.test(; converage=false)'
+
