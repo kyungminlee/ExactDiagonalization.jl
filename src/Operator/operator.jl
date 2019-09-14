@@ -1,3 +1,5 @@
+export GenericOperator
+
 mutable struct GenericOperator
   hilbert_space ::AbstractHilbertSpace
   terms ::Vector{KPO}

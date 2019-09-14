@@ -1,3 +1,7 @@
+export KroneckerProductOperator
+export clean!
+
+
 struct KroneckerProductOperator{Scalar <:Number}
   hilbert_space ::AbstractHilbertSpace
   amplitude ::Scalar

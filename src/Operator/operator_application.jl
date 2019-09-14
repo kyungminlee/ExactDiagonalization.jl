@@ -1,3 +1,4 @@
+export apply
 
 """
 Returns dict

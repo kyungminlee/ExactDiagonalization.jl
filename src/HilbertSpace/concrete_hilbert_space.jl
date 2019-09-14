@@ -1,4 +1,5 @@
-using DataStructures
+export ConcreteHilbertSpace
+export dimension, concretize, materialize
 
 struct ConcreteHilbertSpace{BinRep, QN}
   hilbert_space ::AbstractHilbertSpace{QN}

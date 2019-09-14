@@ -1,3 +1,7 @@
+export AbstractHilbertSpace
+export add_site!, quantum_number_sectors, get_quantum_number, extract, compress, update, get_state, get_state_index
+
+
 mutable struct AbstractHilbertSpace{QN}
   sites ::Vector{Site{QN}}
   bitwidths ::Vector{UInt}

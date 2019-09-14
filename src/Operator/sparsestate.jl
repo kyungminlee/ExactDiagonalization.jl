@@ -1,3 +1,4 @@
+export SparseState
 
 mutable struct SparseState{BinRep, Scalar <: Number}
   hilbert_space ::AbstractHilbertSpace

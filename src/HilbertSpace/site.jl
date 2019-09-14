@@ -1,3 +1,6 @@
+export State, Site
+export bitwidth, get_state
+
 #QuantumNumber = Union{Int, SVector{Int}} ## TODO: Think about this
 
 struct State{QN}
