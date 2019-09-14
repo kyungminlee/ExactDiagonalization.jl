@@ -1,0 +1,18 @@
+name: CI
+
+on: [push]
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Setup Julia environment
+      uses: kyungminlee/setup-julia@v0.2
+      with:
+        julia-version: 1.2.0
+    - uses: actions/checkout@v1
+    - name: Check Julia version
+      run: julia --version
+    - name: Run a one-line script
+      run: julia -e 'println("Hello, World!")'
