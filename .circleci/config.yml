@@ -15,5 +15,5 @@ jobs:
       - run:
           name: test
           command: |
-            julia --project --check-bounds=yes -e 'import Pkg; Pkg.test(; converage=false)'
+            julia --project --check-bounds=yes -e 'import Pkg; Pkg.test(; coverage=false)'
 
