@@ -8,7 +8,7 @@ jobs:
       - checkout
       - run:
           name: version
-          command: "julia -e 'versioninfo()'"
+          command: "julia -e 'using InteractiveUtils; versioninfo()'"
       - run:
           name: dependency
           command: "julia --project -e 'import Pkg; Pkg.build()'"
