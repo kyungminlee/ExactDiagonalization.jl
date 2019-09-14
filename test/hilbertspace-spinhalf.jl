@@ -7,7 +7,7 @@ using ExactDiagonalization
   dn = State{QN}("Dn",-1)
   spin_site = Site{QN}([up, dn])
   n = 4
-  hs1 = AbstractHilbertSpace{QN}(repeat([spin_site], n))
+  hs1 = AbstractHilbertSpace(repeat([spin_site], n))
   hs2 = AbstractHilbertSpace{QN}()
   for i in 1:n
       add_site!(hs2, spin_site)
