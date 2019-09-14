@@ -1,5 +1,4 @@
 using Test
-
-using ExactDiagonlization
+using ExactDiagonalization
 
 include("hilbertspace-spinhalf.jl")
