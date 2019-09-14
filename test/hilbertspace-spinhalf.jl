@@ -1,4 +1,4 @@
-using Tests
+using Test
 using ExactDiagonalization
 
 @testset "SpinHalfHeisenbergChain" begin
