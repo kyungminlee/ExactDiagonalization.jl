@@ -3,6 +3,7 @@ using DataStructures
 using LinearAlgebra
 using SparseArrays
 using Arpack
+using JLD2
 
 include("src/util.jl")
 include("src/HilbertSpace.jl")
@@ -97,6 +98,10 @@ function main()
 
   (J1, J2, J3) = (1.0, 1.0, 1.0)
 
+
+  J2s = 0:0.1:2
+  J3s = 0:0.1:2
+
   j1_terms = KroneckerProductOperator{ComplexF64}[]
   for (i,j) in nearest_neighbor_pairs
     push!(j1_terms, 2 * sigma_plus(i) * sigma_minus(j))
@@ -104,53 +109,51 @@ function main()
     push!(j1_terms, J1 * sigma(i,3) * sigma(j,3))
   end
 
-  j2_terms = KroneckerProductOperator{ComplexF64}[]
-  for (i,j) in second_nearest_neighbor_pairs
-    push!(j2_terms, J2 * 2 * sigma_plus(i) * sigma_minus(j))
-    push!(j2_terms, J2 * 2 * sigma_minus(i) * sigma_plus(j))
-    push!(j2_terms, J2 * sigma(i,3) * sigma(j,3))
-  end
-
-  j3_terms = KroneckerProductOperator{ComplexF64}[]
-  for (i,j,k) in chiral_triplets
-    push!(j3_terms, J3 * sigma(i,1) * sigma(j,2) * sigma(k, 3))
-    push!(j3_terms, J3 * sigma(i,2) * sigma(j,3) * sigma(k, 1))
-    push!(j3_terms, J3 * sigma(i,3) * sigma(j,1) * sigma(k, 2))
-  end
-
-  hamiltonian = vcat(j1_terms, j2_terms, j3_terms)
-  
-  sectors = quantum_number_sectors(hs)
-  for qn in sectors
-    println("------------------------------")
-    println("Sector = ", qn)
-    println("Concretizing Hilbert Space")
-    
-    chs = concretize(hs, Set([qn]))
-
-    # println("Saving...")
-    # fp = open("basis.txt", "w")
-    # for b in chs.basis_list
-    #   #println(string(b, base=2; pad=n_sites))
-    #   write(fp, string(b, base=2; pad=n_sites))
-    #   write(fp, '\n')
-    # end
-    # close(fp)
-    # println("Done")
-
-    # continue
-    
-    println("Materializing Hamiltonian")
-    H, ε = materialize_parallel(chs, hamiltonian)
-    @show size(H)
-    @show ε
-    if size(H)[1] <= 20
-      @show eigvals(Hermitian(Matrix(H)))
-    else
-      (eigenvalues, eigenvectors) = eigs(H; which=:SR)
-      @show sort(real.(eigenvalues))
+  for J2 in J2s, J3 in J3s
+    j2_terms = KroneckerProductOperator{ComplexF64}[]
+    for (i,j) in second_nearest_neighbor_pairs
+      push!(j2_terms, J2 * 2 * sigma_plus(i) * sigma_minus(j))
+      push!(j2_terms, J2 * 2 * sigma_minus(i) * sigma_plus(j))
+      push!(j2_terms, J2 * sigma(i,3) * sigma(j,3))
     end
-  end
+
+    j3_terms = KroneckerProductOperator{ComplexF64}[]
+    for (i,j,k) in chiral_triplets
+      push!(j3_terms, J3 * sigma(i,1) * sigma(j,2) * sigma(k, 3))
+      push!(j3_terms, J3 * sigma(i,2) * sigma(j,3) * sigma(k, 1))
+      push!(j3_terms, J3 * sigma(i,3) * sigma(j,1) * sigma(k, 2))
+    end
+
+    hamiltonian = vcat(j1_terms, j2_terms, j3_terms)
+    
+    sectors = quantum_number_sectors(hs)
+    spectrum = Dict{Int, Vector{Float64}}()
+
+    for qn in sectors
+      println("------------------------------")
+      println("Sector = ", qn)
+      println("Concretizing Hilbert Space")
+      
+      chs = concretize(hs, Set([qn]))
+      
+      println("Materializing Hamiltonian")
+      H, ε = materialize_parallel(chs, hamiltonian)
+      @show size(H)
+      @show ε
+      println("Diagonlizating Hamiltonian")
+      if size(H)[1] <= 20
+        spectrum[qn] = sort(eigvals(Hermitian(Matrix(H))))
+      else
+        (eigenvalues, eigenvectors) = eigs(H; which=:SR)
+        spectrum[qn] = sort(real.(eigenvalues))
+      end
+
+    end # for qn
+    filename = "spectrum_$(n1)_$(n2)_$(J1)_$(J2)_$(J3).jld2"
+    @save filename spectrum
+  end # for J2, J3
+  exit()
+
 end
 
 main()
