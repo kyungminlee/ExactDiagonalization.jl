@@ -6,7 +6,7 @@ function make_bitmask(msb ::Integer;
   return mask ⊻ submask
 end
 
-function union_vec(x::Vector{T}, y::Vector{T})::Vector{T} where {T}
+function merge_vec(x::Vector{T}, y::Vector{T})::Vector{T} where {T}
   (nx, ny) = (1, 1)
   z = T[]
   while nx <= length(x) && ny <= length(y)

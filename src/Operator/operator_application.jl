@@ -5,15 +5,15 @@ Returns dict
 """
 function apply(hs ::AbstractHilbertSpace,
                op ::KroneckerProductOperator{OS},
-               binrep ::U) where {OS<:Number, U <:Unsigned}
+               binrep ::BR) where {OS<:Number, BR<:Unsigned}
   zero_scalar = zero(OS)
-  output = Dict{U, OS}(binrep => 1.0)
+  output = Dict{BR, OS}(binrep => 1.0)
 
   for (isite, siteop) in op.operators
     @assert 1 <= isite <= length(hs.sites)
-    nextoutput = DefaultDict{U, OS}(zero_scalar)
+    nextoutput = DefaultDict{BR, OS}(zero_scalar)
     sitedim = length(hs.sites[isite].states)
-    for (r ::U, amplitude ::OS) in output
+    for (r ::BR, amplitude ::OS) in output
       sri = get_state_index(hs, r, isite) # site row index
       for sci in 1:sitedim # site col index
         value = siteop[sri, sci]
@@ -36,9 +36,9 @@ end
 
 function apply(hs ::AbstractHilbertSpace,
                ops ::AbstractArray{KroneckerProductOperator{OS}},
-               binrep ::U) where {OS<:Number, U <:Unsigned}
+               binrep ::BR) where {OS<:Number, BR <:Unsigned}
   zero_scalar = zero(OS)
-  results = DefaultDict{U, OS}(zero_scalar)
+  results = DefaultDict{BR, OS}(zero_scalar)
   for op in ops
     output = apply(hs, op, binrep)
     for (row, amplitude) in output
@@ -51,10 +51,10 @@ end
 
 function apply(hs ::AbstractHilbertSpace,
                ops ::AbstractArray{KroneckerProductOperator{OS}},
-               psi ::AbstractDict{BinRep, SS}) where {OS<:Number, SS<:Number, BinRep}
+               psi ::AbstractDict{BR, SS}) where {OS<:Number, SS<:Number, BR<:Unsigned}
   OutScalar = promote_type(OS, SS)
   zero_scalar = zero(OutScalar)
-  results = DefaultDict{BinRep, OutScalar}(zero_scalar)
+  results = DefaultDict{BR, OutScalar}(zero_scalar)
 
   for (binrep, amplitude) in psi
     output = apply(hs, ops, binrep)
@@ -178,46 +178,47 @@ end
 #   return results
 # end
 
-function materialize(
-        hsb ::ConcreteHilbertSpaceBlock{BinRep, QN},
-        ops ::AbstractArray{KroneckerProductOperator{OS}};
-        Scalar::DataType=OS) where {BinRep, QN, OS<:Number}
-  hs = hsb.hilbert_space
-  rows = Int[]
-  cols = Int[]
-  vals = Scalar[]
-  err = 0.0
-  for (irow, row) in enumerate(hsb.basis_list)
-    out = apply(hs, ops, row)
-    for (col, amplitude) in out
-      if ! isapprox(amplitude, 0)
-        if !haskey(hsb.basis_lookup, col)
-          err += abs(amplitude)^2
-        else 
-          icol = hsb.basis_lookup[col]
-          push!(rows, irow)
-          push!(cols, icol)
-          push!(vals, amplitude)
-        end        
-      end
-    end
-  end
+
+# function materialize(
+#         hsb ::ConcreteHilbertSpaceBlock{BinRep, QN},
+#         ops ::AbstractArray{KroneckerProductOperator{OS}};
+#         Scalar::DataType=OS) where {BinRep, QN, OS<:Number}
+#   hs = hsb.hilbert_space
+#   rows = Int[]
+#   cols = Int[]
+#   vals = Scalar[]
+#   err = 0.0
+#   for (irow, row) in enumerate(hsb.basis_list)
+#     out = apply(hs, ops, row)
+#     for (col, amplitude) in out
+#       if ! isapprox(amplitude, 0)
+#         if !haskey(hsb.basis_lookup, col)
+#           err += abs(amplitude)^2
+#         else 
+#           icol = hsb.basis_lookup[col]
+#           push!(rows, irow)
+#           push!(cols, icol)
+#           push!(vals, amplitude)
+#         end        
+#       end
+#     end
+#   end
   
-  if Scalar <:Complex
-    if isapprox( norm(imag.(vals)), 0)
-      vals = real.(vals)
-    end
-  end
-  n = dimension(hsb)
-  return (sparse(rows, cols, vals, n, n), err)
-end
+#   if Scalar <:Complex
+#     if isapprox( norm(imag.(vals)), 0)
+#       vals = real.(vals)
+#     end
+#   end
+#   n = dimension(hsb)
+#   return (sparse(rows, cols, vals, n, n), err)
+# end
 
 
 
 function materialize(
-        hsb ::ConcreteHilbertSpace{BinRep, QN},
+        hsb ::ConcreteHilbertSpace{QN, BR},
         ops ::AbstractArray{KroneckerProductOperator{OS}};
-        Scalar::DataType=OS) where {BinRep, QN, OS<:Number}
+        Scalar::DataType=OS) where {QN, BR<:Unsigned, OS<:Number}
   hs = hsb.hilbert_space
   rows = Int[]
   cols = Int[]
@@ -251,9 +252,9 @@ end
 
 
 function materialize_parallel(
-        hsb ::ConcreteHilbertSpace{BinRep, QN},
+        hsb ::ConcreteHilbertSpace{QN, BR},
         ops ::AbstractArray{KroneckerProductOperator{OS}};
-        Scalar::DataType=OS) where {BinRep, QN, OS<:Number}
+        Scalar::DataType=OS) where {QN, BR<:Unsigned, OS<:Number}
   hs = hsb.hilbert_space
   err = 0.0
 

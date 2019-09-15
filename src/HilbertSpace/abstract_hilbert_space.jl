@@ -35,7 +35,7 @@ function quantum_number_sectors(hs ::AbstractHilbertSpace{QN}) where QN
     qns_next = Set{QN}()
     for state in site.states
       for q in qns
-        push!(qns_next, q + state.quantum_number)
+        push!(qns_next, q .+ state.quantum_number)
       end
     end
     qns = qns_next

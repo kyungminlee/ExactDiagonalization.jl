@@ -1,11 +1,43 @@
 export KroneckerProductOperator
 export clean!
 
-
-struct KroneckerProductOperator{Scalar <:Number}
+struct KroneckerProductOperator{Scalar<:Number} <:AbstractOperator{Scalar}
   hilbert_space ::AbstractHilbertSpace
   amplitude ::Scalar
   operators ::Dict{Int, Matrix{Scalar}}
+
+  function KroneckerProductOperator(
+      hs ::AbstractHilbertSpace,
+      am ::S1,
+      ops::AbstractDict{I, Matrix{S2}}) where {S1<:Number, I<:Integer, S2<:Number}
+      
+      S3 = promote_type(S1, S2)
+      n_sites = length(hs.sites)
+      
+      for (i_site, matrix) in ops
+        if !( 1 <= i_site <= n_sites)
+          throw(ArgumentError("site index $(i_site) is not within range"))
+        end
+      end
+
+      return new{S3}(hs, S3(am), Dict{Int, Matrix{S3}}(i=>m for (i,m) in ops))
+  end
+
+  function KroneckerProductOperator{S3}(
+    hs ::AbstractHilbertSpace,
+    am ::S1,
+    ops::AbstractDict{I, Matrix{S2}}) where {S1<:Number, I<:Integer, S2<:Number, S3<:Number}
+        
+    n_sites = length(hs.sites)
+    
+    for (i_site, matrix) in ops
+      if !( 1 <= i_site <= n_sites)
+        throw(ArgumentError("site index $(i_site) is not within range"))
+      end
+    end
+
+    return new{S3}(hs, S3(am), Dict{Int, Matrix{S3}}(i=>m for (i,m) in ops))
+end  
 end
 
 KPO = KroneckerProductOperator
@@ -70,9 +102,9 @@ end
 """
 <ψ'| = <ψ| O 
 """
-function *(lhs::SparseState{BinRep, SS1}, rhs ::KPO{OS}) where {OS<:Number, BinRep, SS1 <:Number}
-  OutScalar = promote_type(OS, SS)
-  SS = SparseState{BinRep, OutScalar}
+function *(lhs::SparseState{BR, SS1}, rhs ::KPO{OS}) where {OS<:Number, BR, SS1 <:Number}
+  OutScalar = promote_type(OS, SS1)
+  SS = SparseState{BR, OutScalar}
 
   @assert lhs.hilbert_space == rhs.hilbert_space
   hs = lhs.hilbert_space
@@ -82,7 +114,7 @@ function *(lhs::SparseState{BinRep, SS1}, rhs ::KPO{OS}) where {OS<:Number, BinR
     @assert 1 <= isite <= length(hs.sites)
     ψp = SS(lhs.hilbert_space)
     site_dim = dimension(hs.sites[isite])
-    for (r ::BinRep, amplitude) in ψ.components
+    for (r ::BR, amplitude) in ψ.components
       sri = get_state_index(hs, r, isite)
       for sci in 1:site_dim
         value = site_op[sri, sci]

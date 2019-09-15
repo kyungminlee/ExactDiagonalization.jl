@@ -1,14 +1,14 @@
 using Test
 using ExactDiagonalization
 
-@testset "SpinHalfHeisenbergChain" begin
+@testset "SpinHalf" begin
   # Set up
   QN = Int
 
   # Test State and Site
-  up = State{QN}("Up", 1)
-  dn = State{QN}("Dn",-1)
-  spin_site = Site{QN}([up, dn])
+  up = State("Up", 1)
+  dn = State("Dn",-1)
+  spin_site = Site([up, dn])
 
   @test up.quantum_number == 1
   @test dn.quantum_number == -1
@@ -58,6 +58,18 @@ using ExactDiagonalization
     @test chs1 != chs3
     @test !(chs1 == chs3)
   end
+  
+  PAULI_MATRICES = [ Float64[0 1.0; 1.0 0.0], ComplexF64[0.0 -1.0*im; 1.0*im 0.0], Float64[1.0 0.0; 0.0 -1.0]]
+
+  sigma(i ::Integer, j ::Integer) = KroneckerProductOperator(hs, 1.0, Dict(i=>PAULI_MATRICES[j]))
+  sigma_plus(i ::Integer) = KroneckerProductOperator(hs, 1.0, Dict(i=>[0.0 1.0; 0.0 0.0]))
+  sigma_minus(i ::Integer) = KroneckerProductOperator(hs, 1.0, Dict(i=>[0.0 0.0; 1.0 0.0]))
+
+  sigma(1, 1)
+  sigma(2, 1)
+  sigma(3, 1)
+  sigma(4, 1)
+  @test_throws ArgumentError sigma(5, 1)
 
 
 

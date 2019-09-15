@@ -1,4 +1,5 @@
 using Test
 using ExactDiagonalization
 
-include("hilbertspace-spinhalf.jl")
+include("hilbert_space.jl")
+include("spinhalf.jl")
