@@ -3,6 +3,8 @@ export bitwidth, get_state
 
 #QuantumNumber = Union{Int, SVector{Int}} ## TODO: Think about this
 
+import Base.==
+
 struct State{QN}
   name ::String
   quantum_number ::QN
@@ -11,12 +13,20 @@ struct State{QN}
   State{QN}(name ::AbstractString, quantum_number ::QN) where QN = new{QN}(name, quantum_number)
 end
 
+function ==(lhs ::State{Q1}, rhs ::State{Q2}) where {Q1, Q2}
+  return (Q1 == Q2) && (lhs.name == rhs.name) && (lhs.quantum_number == rhs.quantum_number)
+end
+
 struct Site{QN}
   states ::Array{State{QN}, 1}
 
   Site{QN}() where {QN} = new{QN}([])
   Site(states ::AbstractArray{State{QN}, 1}) where QN = new{QN}(states)
   Site{QN}(states ::AbstractArray{State{QN}, 1}) where QN = new{QN}(states)
+end
+
+function ==(lhs ::Site{Q1}, rhs ::Site{Q2}) where {Q1, Q2}
+  return (Q1 == Q2) && (lhs.states == rhs.states)
 end
 
 bitwidth(site ::Site) = Int(ceil(log2(length(site.states))))

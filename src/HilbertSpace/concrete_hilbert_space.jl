@@ -7,6 +7,13 @@ struct ConcreteHilbertSpace{BinRep, QN}
   basis_lookup ::Dict{BinRep, Int}
 end
 
+import Base.==
+
+function ==(lhs ::ConcreteHilbertSpace{B1, Q1}, rhs ::ConcreteHilbertSpace{B2, Q2}) where {B1, Q1, B2, Q2}
+  return (B1 == B2) && (Q1 == Q2) && (lhs.hilbert_space == rhs.hilbert_space) && (lhs.basis_list == rhs.basis_list)
+end
+
+
 struct ConcreteHilbertSpaceBlock{BinRep, QN}
   hilbert_space ::AbstractHilbertSpace{QN}
   quantum_number ::QN

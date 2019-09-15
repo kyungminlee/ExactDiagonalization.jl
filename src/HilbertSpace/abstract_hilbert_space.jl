@@ -15,6 +15,13 @@ mutable struct AbstractHilbertSpace{QN}
   end
 end
 
+import Base.==
+
+function ==(lhs ::AbstractHilbertSpace{Q1}, rhs ::AbstractHilbertSpace{Q2}) where {Q1, Q2}
+  return (Q1 == Q2) && (lhs.sites == rhs.sites) #&& (lhs.bitwidths == rhs.bitwidths) && (lhs.bitoffsets == rhs.bitoffsets)
+end
+
+
 function add_site!(hs ::AbstractHilbertSpace{QN}, site ::Site{QN}) where QN
   push!(hs.sites, site)
   bw = bitwidth(site)
