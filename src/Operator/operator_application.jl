@@ -1,4 +1,5 @@
 export apply
+export materialize, materialize_parallel
 
 """
 Returns dict
