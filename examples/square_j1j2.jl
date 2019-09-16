@@ -74,7 +74,7 @@ function main()
   dn = State{QN}("Dn",-1)
   spinsite = Site{QN}([up, dn])
 
-  (n1, n2) = (5, 5)
+  (n1, n2) = (4, 4)
   n_sites = n1 * n2
   
   hs = AbstractHilbertSpace{QN}()
@@ -113,9 +113,18 @@ function main()
 
   j3_terms = KroneckerProductOperator{ComplexF64}[]
   for (i,j,k) in chiral_triplets
-    push!(j3_terms, sigma(i,1) * sigma(j,2) * sigma(k, 3))
-    push!(j3_terms, sigma(i,2) * sigma(j,3) * sigma(k, 1))
-    push!(j3_terms, sigma(i,3) * sigma(j,1) * sigma(k, 2))
+    #push!(j3_terms, sigma(i,1) * sigma(j,2) * sigma(k, 3))
+    #push!(j3_terms, sigma(i,2) * sigma(j,3) * sigma(k, 1))
+    #push!(j3_terms, sigma(i,3) * sigma(j,1) * sigma(k, 2))
+    push!(j3_terms, 2*im * sigma(i,3)* sigma_plus(j) * sigma_minus(k))
+    push!(j3_terms,-2*im * sigma(i,3)* sigma_minus(j) * sigma_plus(k))
+
+    push!(j3_terms, 2*im * sigma(j,3)* sigma_plus(k) * sigma_minus(i))
+    push!(j3_terms,-2*im * sigma(j,3)* sigma_minus(k) * sigma_plus(i))
+    
+    push!(j3_terms, 2*im * sigma(k,3)* sigma_plus(i) * sigma_minus(j))
+    push!(j3_terms,-2*im * sigma(k,3)* sigma_minus(i) * sigma_plus(j))
+    
   end
 
 
@@ -132,9 +141,12 @@ function main()
     chs = concretize(hs, Set([qn]))
     println("Materializing Terms")
     flush(stdout)
-    j1_sparse, ε = materialize_parallel(chs, j1_terms)
-    j2_sparse, ε = materialize_parallel(chs, j2_terms)
-    j3_sparse, ε = materialize_parallel(chs, j3_terms)
+    j1_sparse, ϵ = materialize_parallel(chs, j1_terms)
+    @show "J1", ϵ
+    j2_sparse, ϵ = materialize_parallel(chs, j2_terms)
+    @show "J2", ϵ
+    j3_sparse, ϵ = materialize_parallel(chs, j3_terms)
+    @show "J3", ϵ
 
     spectrum = Dict()
     #spectrum ::Dict{Int, Vector{Float64}} = if size(H)[1] <= 20
