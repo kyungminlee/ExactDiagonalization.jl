@@ -6,15 +6,15 @@ mutable struct AbstractHilbertSpace{QN}
   sites ::Vector{Site{QN}}
   bitwidths ::Vector{UInt}
   bitoffsets ::Vector{UInt}
-  bitmasks ::Vector{UInt}
+  #bitmasks ::Vector{UInt}
 
   AbstractHilbertSpace{QN}() where {QN} = new{QN}([], [], [0])
   function AbstractHilbertSpace(sites ::AbstractArray{Site{QN}, 1}) where QN
       bitwidths = UInt[bitwidth(site) for site in sites]
       bitoffsets = UInt[0, cumsum(bitwidths)...]
-      bitmasks = UInt[make_bitmask(msb=bitoffset[i] + bitwidths[i]; lsb=bitoffset[i], dtype=UInt) for i in 1:length(sites)]
+      #bitmasks = UInt[make_bitmask(msb=bitoffset[i] + bitwidths[i]; lsb=bitoffset[i], dtype=UInt) for i in 1:length(sites)]
 
-      new{QN}(sites, bitwidths, bitoffsets, bitmasks)
+      new{QN}(sites, bitwidths, bitoffsets) #, bitmasks)
   end
 end
 
@@ -30,6 +30,7 @@ function add_site!(hs ::AbstractHilbertSpace{QN}, site ::Site{QN}) where QN
   bw = bitwidth(site)
   push!(hs.bitwidths, bw)
   push!(hs.bitoffsets, hs.bitoffsets[end] + bw)
+  #push!(hs.bitmasks, make_bitmask(hs.bitoffsets[end]; lsb=hs.bitoffsets[end-1], dtype=UInt))
 end
 
 function quantum_number_sectors(hs ::AbstractHilbertSpace{QN}) where QN
