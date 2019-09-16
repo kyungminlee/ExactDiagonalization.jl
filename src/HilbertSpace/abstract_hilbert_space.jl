@@ -10,12 +10,17 @@ mutable struct AbstractHilbertSpace{QN}
 
   AbstractHilbertSpace{QN}() where {QN} = new{QN}([], [], [0])
   function AbstractHilbertSpace(sites ::AbstractArray{Site{QN}, 1}) where QN
-      bitwidths = UInt[bitwidth(site) for site in sites]
-      bitoffsets = UInt[0, cumsum(bitwidths)...]
-      #bitmasks = UInt[make_bitmask(msb=bitoffset[i] + bitwidths[i]; lsb=bitoffset[i], dtype=UInt) for i in 1:length(sites)]
-
-      new{QN}(sites, bitwidths, bitoffsets) #, bitmasks)
+    bitwidths = UInt[bitwidth(site) for site in sites]
+    bitoffsets = UInt[0, cumsum(bitwidths)...]
+    #bitmasks = UInt[make_bitmask(msb=bitoffset[i] + bitwidths[i]; lsb=bitoffset[i], dtype=UInt) for i in 1:length(sites)]
+    new{QN}(sites, bitwidths, bitoffsets) #, bitmasks)
   end
+
+  function AbstractHilbertSpace{QN}(sites ::AbstractArray{Site{QN}, 1}) where QN
+    bitwidths = UInt[bitwidth(site) for site in sites]
+    bitoffsets = UInt[0, cumsum(bitwidths)...]
+    new{QN}(sites, bitwidths, bitoffsets) #, bitmasks)
+  end  
 end
 
 import Base.==
