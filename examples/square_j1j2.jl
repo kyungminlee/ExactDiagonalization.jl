@@ -1,13 +1,9 @@
-using StaticArrays
-using DataStructures
 using LinearAlgebra
 using SparseArrays
 using Arpack
 using JLD2
 
-include("src/util.jl")
-include("src/HilbertSpace.jl")
-include("src/Operator.jl")
+using ExactDiagonalization
 
 function make_square_lattice(n1 ::Integer, n2 ::Integer)
   n_sites = n1 * n2
@@ -78,7 +74,7 @@ function main()
   dn = State{QN}("Dn",-1)
   spinsite = Site{QN}([up, dn])
 
-  (n1, n2) = (4, 4)
+  (n1, n2) = (5, 5)
   n_sites = n1 * n2
   
   hs = AbstractHilbertSpace{QN}()
@@ -98,62 +94,68 @@ function main()
 
   (J1, J2, J3) = (1.0, 1.0, 1.0)
 
-
-  J2s = 0:0.1:2
-  J3s = 0:0.1:2
+  J2s = 0:0.2:2
+  J3s = 0:0.2:2
 
   j1_terms = KroneckerProductOperator{ComplexF64}[]
   for (i,j) in nearest_neighbor_pairs
     push!(j1_terms, 2 * sigma_plus(i) * sigma_minus(j))
     push!(j1_terms, 2 * sigma_minus(i) * sigma_plus(j))
-    push!(j1_terms, J1 * sigma(i,3) * sigma(j,3))
+    push!(j1_terms, sigma(i,3) * sigma(j,3))
   end
 
-  for J2 in J2s, J3 in J3s
-    j2_terms = KroneckerProductOperator{ComplexF64}[]
-    for (i,j) in second_nearest_neighbor_pairs
-      push!(j2_terms, J2 * 2 * sigma_plus(i) * sigma_minus(j))
-      push!(j2_terms, J2 * 2 * sigma_minus(i) * sigma_plus(j))
-      push!(j2_terms, J2 * sigma(i,3) * sigma(j,3))
-    end
+  j2_terms = KroneckerProductOperator{ComplexF64}[]
+  for (i,j) in second_nearest_neighbor_pairs
+    push!(j2_terms, 2 * sigma_plus(i) * sigma_minus(j))
+    push!(j2_terms, 2 * sigma_minus(i) * sigma_plus(j))
+    push!(j2_terms, sigma(i,3) * sigma(j,3))
+  end
 
-    j3_terms = KroneckerProductOperator{ComplexF64}[]
-    for (i,j,k) in chiral_triplets
-      push!(j3_terms, J3 * sigma(i,1) * sigma(j,2) * sigma(k, 3))
-      push!(j3_terms, J3 * sigma(i,2) * sigma(j,3) * sigma(k, 1))
-      push!(j3_terms, J3 * sigma(i,3) * sigma(j,1) * sigma(k, 2))
-    end
+  j3_terms = KroneckerProductOperator{ComplexF64}[]
+  for (i,j,k) in chiral_triplets
+    push!(j3_terms, sigma(i,1) * sigma(j,2) * sigma(k, 3))
+    push!(j3_terms, sigma(i,2) * sigma(j,3) * sigma(k, 1))
+    push!(j3_terms, sigma(i,3) * sigma(j,1) * sigma(k, 2))
+  end
 
-    hamiltonian = vcat(j1_terms, j2_terms, j3_terms)
+
+
+  sectors = quantum_number_sectors(hs)
+  sectors = [x for x in sectors if x >= 0]
+
+  for qn in sectors
+    println("------------------------------")
+    println("Sector = ", qn)
+    println("Concretizing Hilbert Space")
+    flush(stdout)
     
-    sectors = quantum_number_sectors(hs)
-    spectrum = Dict{Int, Vector{Float64}}()
+    chs = concretize(hs, Set([qn]))
+    println("Materializing Terms")
+    flush(stdout)
+    j1_sparse, ε = materialize_parallel(chs, j1_terms)
+    j2_sparse, ε = materialize_parallel(chs, j2_terms)
+    j3_sparse, ε = materialize_parallel(chs, j3_terms)
 
-    for qn in sectors
-      println("------------------------------")
-      println("Sector = ", qn)
-      println("Concretizing Hilbert Space")
-      
-      chs = concretize(hs, Set([qn]))
-      
-      println("Materializing Hamiltonian")
-      H, ε = materialize_parallel(chs, hamiltonian)
-      @show size(H)
-      @show ε
+    spectrum = Dict()
+    #spectrum ::Dict{Int, Vector{Float64}} = if size(H)[1] <= 20
+    for J2 in J2s, J3 in J3s
+      @show (J1, J2, J3)
+
+      H = J1 * j1_sparse + J2 * j2_sparse + J3 * j3_sparse
       println("Diagonlizating Hamiltonian")
+      flush(stdout)
+
       if size(H)[1] <= 20
-        spectrum[qn] = sort(eigvals(Hermitian(Matrix(H))))
+        spectrum[(J1, J2, J3)] = sort(eigvals(Hermitian(Matrix(H))))
       else
         (eigenvalues, eigenvectors) = eigs(H; which=:SR)
-        spectrum[qn] = sort(real.(eigenvalues))
+        spectrum[(J1, J2, J3)] = sort(real.(eigenvalues))
       end
 
-    end # for qn
-    filename = "spectrum_$(n1)_$(n2)_$(J1)_$(J2)_$(J3).jld2"
-    @save filename spectrum
-  end # for J2, J3
-  exit()
-
+    end # for J2, J3
+    filename = "spectrum_$(n1)_$(n2)_$(qn).jld2"
+    @save filename n1, n2, qn, spectrum
+  end # for qn
 end
 
 main()
