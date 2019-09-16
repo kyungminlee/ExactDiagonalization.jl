@@ -143,7 +143,6 @@ end
 
 function main()
   main_logger = Memento.config!("info"; fmt="[{date} | {level} | {name}]: {msg}")
-
   args = parse_commandline()
 
   QN = Int
@@ -191,6 +190,9 @@ function main()
   info(main_logger, "Number of nonzero values = $(length(j3_sparse.nzval))")
   info(main_logger, "Bound for error = $ϵ")
 
+  J1 = 1.0
+  J2s = 0:0.2:2
+  J3s = 0:0.2:2
   spectrum = Dict()
   for J2 in J2s, J3 in J3s
     info(main_logger, "Starting (J1, J2, J3) = ($J1, $J2, $J3)")
