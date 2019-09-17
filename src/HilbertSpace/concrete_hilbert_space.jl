@@ -67,6 +67,15 @@ function concretize(
   return concretize(hs, Set(allowed); BR=BR)
 end
 
+
+function concretize(
+  hs::AbstractHilbertSpace{QN},
+  qn::QN;
+  BR::DataType=UInt) where {QN}
+  return concretize(hs, Set([qn]); BR=BR)
+end
+
+
 function concretize(
     hs::AbstractHilbertSpace{QN},
     allowed::AbstractSet{QN};

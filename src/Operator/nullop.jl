@@ -26,8 +26,3 @@ isless(lhs ::NullOperator, rhs ::NullOperator) = false
 isless(lhs ::NullOperator, rhs ::AbstractOperator) = true
 isless(lhs ::AbstractOperator, rhs ::NullOperator) = false
 
-export prettyprintln
-
-function prettyprintln(op::NullOperator)
-  println("NullOperator")
-end

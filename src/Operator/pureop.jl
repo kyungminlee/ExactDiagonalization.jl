@@ -27,7 +27,6 @@ export PureOperator
 export pure_operator
 export OptionalPureOperator
 
-
 struct PureOperator{Scalar<:Number, BR<:Unsigned} <:AbstractOperator
   hilbert_space ::AbstractHilbertSpace
   bitmask ::BR
@@ -47,12 +46,6 @@ struct PureOperator{Scalar<:Number, BR<:Unsigned} <:AbstractOperator
   end
 end
 
-function prettyprintln(op::PureOperator{S, BR}; prefix::AbstractString="") where {S, BR}
-  println(prefix, "PureOperator")
-  println(prefix, "M: ", string(op.bitmask, base=2, pad=op.hilbert_space.bitoffsets[end]))
-  println(prefix, "S: ", string(op.bitsource, base=2, pad=op.hilbert_space.bitoffsets[end]))
-  println(prefix, "T: ", string(op.bittarget, base=2, pad=op.hilbert_space.bitoffsets[end]))
-end
 
 const OptionalPureOperator{Scalar, BR} = Union{PureOperator{Scalar, BR}, NullOperator} where {Scalar, BR}
 
@@ -69,6 +62,9 @@ function (*)(lhs ::PureOperator{S1, BR}, rhs ::S2) where {S1<:Number, S2<:Number
 end
 
 function (*)(lhs ::PureOperator{S1, BR}, rhs ::PureOperator{S2, BR}) where {S1<:Number, S2<:Number, BR}
+  if lhs.hilbert_space !== rhs.hilbert_space
+    throw(ArgumentError("Hilbert spaces don't match"))
+  end
   S3 = promote_type(S1, S2)
 
   onlylhs_bitmask   =   lhs.bitmask  & (~rhs.bitmask)
