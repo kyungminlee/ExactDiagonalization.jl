@@ -6,6 +6,8 @@ using ExactDiagonalization
 using ArgParse
 using Memento
 
+main_logger = Memento.config!("info"; fmt="[{date} | {level} | {name}]: {msg}")
+
 function make_square_lattice(n1 ::Integer, n2 ::Integer)
   n_sites = n1 * n2
   
@@ -69,8 +71,17 @@ function make_square_lattice(n1 ::Integer, n2 ::Integer)
   return (nearest_neighbor_pairs, second_nearest_neighbor_pairs, chiral_triplets)
 end
 
-function make_J1J2J3_hamiltonian(hs::AbstractHilbertSpace, n1::Integer, n2::Integer)
-  
+function make_J1J2J3_hamiltonian(n1::Integer, n2::Integer)
+  QN = Int
+  up = State{QN}("Up", 1)
+  dn = State{QN}("Dn",-1)
+  spin_site = Site{QN}([up, dn])
+
+  n_sites = n1 * n2
+  info(main_logger, "Building AbstractHilbertSpace")
+  hs = AbstractHilbertSpace([spin_site for i in 1:n_sites])
+
+
   PAULI_MATRICES = [ Float64[0 1.0; 1.0 0.0],
                      ComplexF64[0.0 -1.0*im; 1.0*im 0.0],
                      Float64[1.0 0.0; 0.0 -1.0] ]
@@ -118,10 +129,94 @@ function make_J1J2J3_hamiltonian(hs::AbstractHilbertSpace, n1::Integer, n2::Inte
     push!(j3_terms, 2*im * σ(k, :z) * σ(i, :+) * σ(j, :-))
     push!(j3_terms,-2*im * σ(k, :z) * σ(i, :-) * σ(j, :+))
   end
-  return (j1_terms, j2_terms, j3_terms)
+  return (hs, j1_terms, j2_terms, j3_terms)
 end
 
+function make_J1J2J3_hamiltonian2(n1::Integer, n2::Integer)
 
+  QN = Int
+  up = State{QN}("Up", 1)
+  dn = State{QN}("Dn",-1)
+  spin_site = Site{QN}([up, dn])
+
+  n_sites = n1 * n2
+  info(main_logger, "Building AbstractHilbertSpace")
+  hs = AbstractHilbertSpace([spin_site for i in 1:n_sites])
+  
+  PAULI_MATRICES = [ Float64[0 1.0; 1.0 0.0],
+                     ComplexF64[0.0 -1.0*im; 1.0*im 0.0],
+                     Float64[1.0 0.0; 0.0 -1.0] ]
+
+  function σraw(i ::Integer, j::Symbol) ::KroneckerProductOperator{ComplexF64}
+    if j == :x
+      return KroneckerProductOperator{ComplexF64}(hs, 1.0, Dict(i=>PAULI_MATRICES[1]))
+    elseif j == :y
+      return KroneckerProductOperator{ComplexF64}(hs, 1.0, Dict(i=>PAULI_MATRICES[2]))
+    elseif j == :z
+      return KroneckerProductOperator{ComplexF64}(hs, 1.0, Dict(i=>PAULI_MATRICES[3]))
+    elseif j == :+
+      return KroneckerProductOperator{ComplexF64}(hs, 1.0, Dict(i=>[0.0 1.0; 0.0 0.0]))
+    elseif j == :-
+      return KroneckerProductOperator{ComplexF64}(hs, 1.0, Dict(i=>[0.0 0.0; 1.0 0.0]))
+    else
+      throw(ArgumentError("pauli matrix of type $(j) not supported"))
+    end
+  end
+
+  function σ(i ::Integer, j ::Symbol)
+    return convert(SumOperator{ComplexF64, UInt}, σraw(i,j))
+  end
+  (nearest_neighbor_pairs, second_nearest_neighbor_pairs, chiral_triplets) = make_square_lattice(n1, n2)
+
+  j1 = NullOperator()
+  j1_terms = []
+  for (i,j) in nearest_neighbor_pairs
+    # j1 += 2 * σ(i, :+) * σ(j, :-)
+    # j1 += 2 * σ(i, :-) * σ(j, :+)
+    # j1 += σ(i, :z) * σ(j, :z)
+    push!(j1_terms, 2 * σ(i, :+) * σ(j, :-))
+    push!(j1_terms, 2 * σ(i, :-) * σ(j, :+))
+    push!(j1_terms, σ(i, :z) * σ(j, :z))
+  end
+
+  j2 = NullOperator()
+  j2_terms = []
+  for (i,j) in second_nearest_neighbor_pairs
+    #j2 += 2 * σ(i, :+) * σ(j, :-)
+    #j2 += 2 * σ(i, :-) * σ(j, :+)
+    #j2 += σ(i, :z) * σ(j, :z)
+    push!(j2_terms, 2 * σ(i, :+) * σ(j, :-))
+    push!(j2_terms, 2 * σ(i, :-) * σ(j, :+))
+    push!(j2_terms, σ(i, :z) * σ(j, :z))
+  end
+
+  j3 = NullOperator()
+  j3_terms  =[]
+  for (i,j,k) in chiral_triplets
+    # j3 += 2*im * σ(i, :z) * σ(j, :+) * σ(k, :-)
+    # j3 += -2*im * σ(i, :z) * σ(j, :-) * σ(k, :+)
+
+    # j3 += 2*im * σ(j, :z) * σ(k, :+) * σ(i, :-)
+    # j3 += -2*im * σ(j, :z) * σ(k, :-) * σ(i, :+)
+    
+    # j3 += 2*im * σ(k, :z) * σ(i, :+) * σ(j, :-)
+    # j3 += -2*im * σ(k, :z) * σ(i, :-) * σ(j, :+)
+
+    push!(j3_terms, 2*im * σ(i, :z) * σ(j, :+) * σ(k, :-))
+    push!(j3_terms,-2*im * σ(i, :z) * σ(j, :-) * σ(k, :+))
+
+    push!(j3_terms, 2*im * σ(j, :z) * σ(k, :+) * σ(i, :-))
+    push!(j3_terms,-2*im * σ(j, :z) * σ(k, :-) * σ(i, :+))
+    
+    push!(j3_terms, 2*im * σ(k, :z) * σ(i, :+) * σ(j, :-))
+    push!(j3_terms,-2*im * σ(k, :z) * σ(i, :-) * σ(j, :+))
+  end
+  j1 = sum(j1_terms)
+  j2 = sum(j2_terms)
+  j3 = sum(j3_terms)
+
+  return (hs, j1, j2, j3)
+end
 
 
 function parse_commandline()
@@ -142,30 +237,22 @@ end
 
 
 function main()
-  main_logger = Memento.config!("info"; fmt="[{date} | {level} | {name}]: {msg}")
   args = parse_commandline()
-
-  QN = Int
-  up = State{QN}("Up", 1)
-  dn = State{QN}("Dn",-1)
-  spinsite = Site{QN}([up, dn])
 
   #(n1, n2) = (4, 4)
   n1 = args["n1"]
   n2 = args["n2"]
   qn = args["sz"]
-  
-  n_sites = n1 * n2
+
   info(main_logger, "Parameteters : n1 = $n1, n2 = $n2, sz = $qn")
   
-  info(main_logger, "Building AbstractHilbertSpace")
-  hs = AbstractHilbertSpace([spinsite for i in 1:n_sites])
-  #for i in 1:n_sites
-  #  add_site!(hs, spinsite)
-  #end
-
   info(main_logger, "Making J1, J2, J3 terms")
-  (j1_terms, j2_terms, j3_terms) = make_J1J2J3_hamiltonian(hs, n1, n2)
+  #(hs, j1_terms, j2_terms, j3_terms) = make_J1J2J3_hamiltonian(n1, n2)
+  (hs, j1, j2, j3) = make_J1J2J3_hamiltonian2(n1, n2)
+
+
+
+
 
   #sectors = quantum_number_sectors(hs)
   #sectors = [x for x in sectors if x >= 0]
@@ -214,4 +301,6 @@ function main()
   #end # for qn
 end
 
-main()
+if PROGRAM_FILE == @__FILE__ 
+  main()
+end

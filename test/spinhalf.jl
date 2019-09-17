@@ -25,14 +25,12 @@ using ExactDiagonalization
   # Test AbstractHilbertSpace
   n = 4
   hs = AbstractHilbertSpace(repeat([spin_site], n))
-  hs2 = AbstractHilbertSpace{QN}()
-  for i in 1:n
-    add_site!(hs2, spin_site)
-  end
+  hs2 = AbstractHilbertSpace([spin_site, spin_site, spin_site, spin_site])
 
   @test length(hs.sites) == length(hs2.sites)
   @test hs.bitwidths == hs2.bitwidths
   @test hs.bitoffsets == hs2.bitoffsets
+  @test hs == hs2
 
   # Test ConcreteHilbertSpace
   chs = concretize(hs; BR=UInt64)
@@ -59,6 +57,7 @@ using ExactDiagonalization
     @test !(chs1 == chs3)
   end
   
+  #=
   PAULI_MATRICES = [ Float64[0 1.0; 1.0 0.0], ComplexF64[0.0 -1.0*im; 1.0*im 0.0], Float64[1.0 0.0; 0.0 -1.0]]
 
   sigma(i ::Integer, j ::Integer) = KroneckerProductOperator(hs, 1.0, Dict(i=>PAULI_MATRICES[j]))
@@ -70,7 +69,7 @@ using ExactDiagonalization
   sigma(3, 1)
   sigma(4, 1)
   @test_throws ArgumentError sigma(5, 1)
-
+  =#
 
 
 end
