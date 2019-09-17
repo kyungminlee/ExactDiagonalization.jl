@@ -1,25 +1,38 @@
 export AbstractHilbertSpace
 export add_site!, quantum_number_sectors, get_quantum_number, extract, compress, update, get_state, get_state_index
+export get_bitmask
 
 
-mutable struct AbstractHilbertSpace{QN}
+"""
+    AbstractHilbertSpace{QN}
+
+Abstract Hilbert space with quantum number type `QN`.
+
+# Examples
+```jldoctest
+julia> spin_site = Site{Int64}([State{Int64}("Up", +1), State{Int64}("Dn", -1)])
+Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)])
+
+julia> hs = AbstractHilbertSpace{Int64}([spin_site, spin_site])
+AbstractHilbertSpace{Int64}(Site{Int64}[Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)]), Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)])], [1, 1], [0, 1, 2])
+```
+"""
+struct AbstractHilbertSpace{QN}
   sites ::Vector{Site{QN}}
-  bitwidths ::Vector{UInt}
-  bitoffsets ::Vector{UInt}
-  #bitmasks ::Vector{UInt}
+  bitwidths ::Vector{Int}
+  bitoffsets ::Vector{Int}
 
   AbstractHilbertSpace{QN}() where {QN} = new{QN}([], [], [0])
   function AbstractHilbertSpace(sites ::AbstractArray{Site{QN}, 1}) where QN
-    bitwidths = UInt[bitwidth(site) for site in sites]
-    bitoffsets = UInt[0, cumsum(bitwidths)...]
-    #bitmasks = UInt[make_bitmask(msb=bitoffset[i] + bitwidths[i]; lsb=bitoffset[i], dtype=UInt) for i in 1:length(sites)]
-    new{QN}(sites, bitwidths, bitoffsets) #, bitmasks)
+    bitwidths = Int[bitwidth(site) for site in sites]
+    bitoffsets = Int[0, cumsum(bitwidths)...]
+    new{QN}(sites, bitwidths, bitoffsets)
   end
 
   function AbstractHilbertSpace{QN}(sites ::AbstractArray{Site{QN}, 1}) where QN
-    bitwidths = UInt[bitwidth(site) for site in sites]
-    bitoffsets = UInt[0, cumsum(bitwidths)...]
-    new{QN}(sites, bitwidths, bitoffsets) #, bitmasks)
+    bitwidths = Int[bitwidth(site) for site in sites]
+    bitoffsets = Int[0, cumsum(bitwidths)...]
+    new{QN}(sites, bitwidths, bitoffsets)
   end  
 end
 
@@ -29,14 +42,16 @@ function ==(lhs ::AbstractHilbertSpace{Q1}, rhs ::AbstractHilbertSpace{Q2}) wher
   return (Q1 == Q2) && (lhs.sites == rhs.sites) #&& (lhs.bitwidths == rhs.bitwidths) && (lhs.bitoffsets == rhs.bitoffsets)
 end
 
-
-function add_site!(hs ::AbstractHilbertSpace{QN}, site ::Site{QN}) where QN
-  push!(hs.sites, site)
-  bw = bitwidth(site)
-  push!(hs.bitwidths, bw)
-  push!(hs.bitoffsets, hs.bitoffsets[end] + bw)
-  #push!(hs.bitmasks, make_bitmask(hs.bitoffsets[end]; lsb=hs.bitoffsets[end-1], dtype=UInt))
+function get_bitmask(hs ::AbstractHilbertSpace, isite ::Integer; dtype ::DataType=UInt)
+  return make_bitmask(hs.bitoffsets[isite+1], hs.bitoffsets[isite]; dtype=dtype)
 end
+
+# function add_site!(hs ::AbstractHilbertSpace{QN}, site ::Site{QN}) where QN
+#   push!(hs.sites, site)
+#   bw = bitwidth(site)
+#   push!(hs.bitwidths, bw)
+#   push!(hs.bitoffsets, hs.bitoffsets[end] + bw)
+# end
 
 function quantum_number_sectors(hs ::AbstractHilbertSpace{QN}) where QN
   qns = Set{QN}([zero(QN)])
@@ -76,6 +91,12 @@ end
 
 """
 Convert binary representation to an array of indices (of states)
+
+Examples
+≡≡≡≡≡≡≡≡≡≡
+
+```
+```
 """
 function extract(hs ::AbstractHilbertSpace{QN}, binrep ::U) where {QN, U <:Unsigned}
   out = Int[]
@@ -105,7 +126,7 @@ end
 
 
 function update(hs ::AbstractHilbertSpace, binrep ::U, isite ::Integer, new_state_index ::Integer) where {U <:Unsigned}
-  mask = make_bitmask(hs.bitoffsets[isite+1]; lsb=hs.bitoffsets[isite], dtype=U)
+  mask = make_bitmask(hs.bitoffsets[isite+1], hs.bitoffsets[isite]; dtype=U)
   return (binrep & (~mask)) | (U(new_state_index-1) << hs.bitoffsets[isite] )
 end
 

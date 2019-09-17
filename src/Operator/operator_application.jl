@@ -67,6 +67,32 @@ function apply(hs ::AbstractHilbertSpace,
 end
 
 
+function apply(pureop ::PureOperator{S1, BR}, psi::SparseState{S2, BR}) where {S1, S2, BR}
+  S3 = promote_type(S1, S2)
+  if pureop.hilbert_space != psi.hilbert_space
+    throw(ArgumentError("Hilbert spaces of lhs and rhs of + should match"))
+  end
+  out = SparseState{S3, BR}(psi.hilbert_space)
+  for (b, v) in psi.components
+    if (b & pureop.bitmask) == pureop.bitsource
+      b2 = (b & ~pureop.bitmask) | pureop.bittarget
+      out[b2] += pureop.amplitude * v
+    end
+  end
+  return out
+end
+
+function apply(sumop ::SumOperator{S1, BR}, psi::SparseState{S2, BR}) where {S1, S2, BR}
+  S3 = promote_type(S1, S2)
+  if sumop.hilbert_space != psi.hilbert_space
+    throw(ArgumentError("Hilbert spaces of lhs and rhs of + should match"))
+  end
+  out = SparseState{S3, BR}(psi.hilbert_space)
+  for t in sumop.terms
+    out += apply(t, psi)
+  end
+  return out
+end
 
 # # TODO: Replace with more efficient
 # function apply_naive(hs ::AbstractHilbertSpace,
@@ -295,5 +321,42 @@ function materialize_parallel(
     end
   end
   n = dimension(hsb)
+  return (sparse(rows, cols, vals, n, n), err)
+end
+
+
+function materialize(
+  chs ::ConcreteHilbertSpace{QN, BR},
+  sumop ::SumOperator{S, BR}) where {QN, BR<:Unsigned, S<:Number}
+  hs = chs.hilbert_space
+  rows = Int[]
+  cols = Int[]
+  vals = S[]
+  
+  err = 0.0
+  
+  for (irow, row) in enumerate(chs.basis_list)
+    ψrow = SparseState{S, BR}(hs, row)
+    ψcol = apply(sumop, ψrow)
+    for (col, amplitude) in ψcol.components
+      if ! isapprox(amplitude, 0)
+        if !haskey(chs.basis_lookup, col)
+          err += abs(amplitude)^2
+        else 
+          icol = chs.basis_lookup[col]
+          push!(rows, irow)
+          push!(cols, icol)
+          push!(vals, amplitude)
+        end
+      end
+    end
+  end
+
+  if S <:Complex
+    if isapprox( maximum(abs.(imag.(vals))), 0)
+      vals = real.(vals)
+    end
+  end
+  n = dimension(chs)
   return (sparse(rows, cols, vals, n, n), err)
 end

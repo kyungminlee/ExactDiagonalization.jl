@@ -1,7 +1,7 @@
 export KroneckerProductOperator
 export clean!
 
-struct KroneckerProductOperator{Scalar<:Number} <:AbstractOperator{Scalar}
+struct KroneckerProductOperator{Scalar<:Number} <:AbstractOperator
   hilbert_space ::AbstractHilbertSpace
   amplitude ::Scalar
   operators ::Dict{Int, Matrix{Scalar}}
@@ -104,7 +104,7 @@ end
 """
 function *(lhs::SparseState{BR, SS1}, rhs ::KPO{OS}) where {OS<:Number, BR, SS1 <:Number}
   OutScalar = promote_type(OS, SS1)
-  SS = SparseState{BR, OutScalar}
+  SS = SparseState{OutScalar, BR}
 
   @assert lhs.hilbert_space == rhs.hilbert_space
   hs = lhs.hilbert_space
@@ -133,3 +133,43 @@ function *(lhs::SparseState{BR, SS1}, rhs ::KPO{OS}) where {OS<:Number, BR, SS1 
 end
 
 
+import Base.convert
+
+function convert(type::Type{SumOperator{S, BR}}, obj::KroneckerProductOperator{S}) where {S, BR}
+  hs = obj.hilbert_space
+  bm = zero(BR)
+  for (i, op) in obj.operators
+    bm = bm | make_bitmask(hs.bitoffsets[i+1], hs.bitoffsets[i]; dtype=BR)
+  end
+  isites = sort(collect(keys(obj.operators)))
+
+  nonzeros = Vector{Tuple{Int, Int, S}}[ [] for i in isites]
+  for (i, isite) in enumerate(isites)
+    mat = obj.operators[isite]
+    n = size(mat)[1]
+    for irow in 1:n, icol in 1:n
+      if ! isapprox(mat[irow, icol], 0)
+        push!(nonzeros[i], (irow, icol, mat[irow, icol]))
+      end
+    end
+  end
+
+  terms = PureOperator{S, BR}[]
+  for pairs in Iterators.product(nonzeros...)
+    #@show p
+    bm = zero(BR)
+    bs = zero(BR)
+    bt = zero(BR)
+    am = obj.amplitude
+    for (isite, p) in zip(isites, pairs)
+      bm |= make_bitmask(hs.bitoffsets[isite+1], hs.bitoffsets[isite]; dtype=BR)
+      bs |= BR(p[1]-1) << hs.bitoffsets[isite]
+      bt |= BR(p[2]-1) << hs.bitoffsets[isite]
+      am *= p[3]
+    end
+    push!(terms, PureOperator{S, BR}(hs, bm, bs, bt, am))
+  end
+
+  return SumOperator{S, BR}(hs, terms)
+
+end

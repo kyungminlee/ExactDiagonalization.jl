@@ -2,15 +2,15 @@ export ConcreteHilbertSpace
 export dimension, concretize, materialize
 
 struct ConcreteHilbertSpace{QN, BR}
-  hilbert_space ::AbstractHilbertSpace{QN}
+  hilbert_space :: AbstractHilbertSpace{QN}
   basis_list ::Vector{BR}
   basis_lookup ::Dict{BR, Int}
 end
 
 import Base.==
 
-function ==(lhs ::ConcreteHilbertSpace{Q1, B1}, rhs ::ConcreteHilbertSpace{Q2, B2}) where {Q1, B1, Q2, B2}
-  return (Q1 == Q2) && (B1 == B2) && (lhs.hilbert_space == rhs.hilbert_space) && (lhs.basis_list == rhs.basis_list)
+function ==(lhs ::ConcreteHilbertSpace{H1, B1}, rhs ::ConcreteHilbertSpace{H2, B2}) where {H1, B1, H2, B2}
+  return (H1 == H2) && (B1 == B2) && (lhs.hilbert_space == rhs.hilbert_space) && (lhs.basis_list == rhs.basis_list)
 end
 
 # struct ConcreteHilbertSpaceBlock{QN, BR}
@@ -36,7 +36,6 @@ function concretize(hs ::AbstractHilbertSpace{QN}; BR ::DataType=UInt) where {QN
   return ConcreteHilbertSpace{QN, BR}(hs, basis_list, basis_lookup)
 end
 
-
 function concretize_naive(
     hs ::AbstractHilbertSpace{QN},
     qn ::QN;
@@ -61,6 +60,12 @@ function concretize_naive(
   return ConcreteHilbertSpace{QN, BR}(hs, basis_list, basis_lookup)
 end
 
+function concretize(
+  hs::AbstractHilbertSpace{QN},
+  allowed::AbstractArray{QN};
+  BR::DataType=UInt) where {QN}
+  return concretize(hs, Set(allowed); BR=BR)
+end
 
 function concretize(
     hs::AbstractHilbertSpace{QN},
