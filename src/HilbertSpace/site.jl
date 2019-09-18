@@ -15,6 +15,8 @@ State with quantum number type `QN`.
 
 # Examples
 ```jldoctest
+julia> using ExactDiagonalization, StaticArrays
+
 julia> up = State{Int}("Up", 1)
 State{Int64}("Up", 1)
 
@@ -42,6 +44,8 @@ A site with quantum number type `QN`.
 
 # Examples
 ```jldoctest
+julia> using ExactDiagonalization
+
 julia> up = State{Int}("Up", 1); dn = State{Int}("Dn", -1);
 
 julia> Site([up, dn])

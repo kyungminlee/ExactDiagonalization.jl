@@ -10,6 +10,8 @@ Abstract Hilbert space with quantum number type `QN`.
 
 # Examples
 ```jldoctest
+julia> using ExactDiagonalization
+
 julia> spin_site = Site{Int64}([State{Int64}("Up", +1), State{Int64}("Dn", -1)])
 Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)])
 
