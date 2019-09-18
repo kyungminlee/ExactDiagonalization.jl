@@ -103,8 +103,8 @@ function extract(hs ::AbstractHilbertSpace{QN}, binrep ::U) where {QN, U <:Unsig
   for (isite, site) in enumerate(hs.sites)
     mask = make_bitmask(hs.bitwidths[isite]; dtype=U)
     index = Int(binrep & mask) + 1
-    if !(1 <= index <= length(site.states))
-      throw(BoundsError("undefined binary representation"))
+    @boundscheck if !(1 <= index <= length(site.states))
+      throw(BoundsError(1:length(site.states), index))
     end
     push!(out, index)
     binrep = binrep >> hs.bitwidths[isite]
@@ -123,8 +123,8 @@ function compress(hs ::AbstractHilbertSpace{QN}, indexarray ::AbstractVector{I};
 
   binrep = zero(BR)
   for (isite, site) in enumerate(hs.sites)
-    if !(1 <= indexarray[isite] <= dimension(site))
-      throw(BoundsError("indexarray not within bound"))
+    @boundscheck if !(1 <= indexarray[isite] <= dimension(site))
+      throw(BoundsError(1:dimension(site), indexarray[isite]))
     end
     binrep |= (BR(indexarray[isite] - 1) << hs.bitoffsets[isite] )
   end
@@ -133,8 +133,8 @@ end
 
 
 function update(hs ::AbstractHilbertSpace, binrep ::U, isite ::Integer, new_state_index ::Integer) where {U <:Unsigned}
-  if !(1 <= new_state_index <= dimension(hs.sites[isite]))
-    throw(BoundsError("bound error"))
+  @boundscheck if !(1 <= new_state_index <= dimension(hs.sites[isite]))
+    throw(BoundsError(1:dimension(hs.sites[isite]), new_state_index))
   end
   mask = make_bitmask(hs.bitoffsets[isite+1], hs.bitoffsets[isite]; dtype=U)
   return (binrep & (~mask)) | (U(new_state_index-1) << hs.bitoffsets[isite])

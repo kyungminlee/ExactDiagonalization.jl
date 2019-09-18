@@ -80,9 +80,9 @@ dimension(site ::Site) ::Int = length(site.states)
 Returns the state of `site` represented by the bits `binrep`.
 """
 function get_state(site ::Site{QN}, binrep ::BR) where {QN, BR<:Unsigned}
-  if !(binrep < length(site.states))
-    throw(BoundsError("binrep exceeds dimension"))
-  end
+  # @boundscheck if !(binrep < length(site.states))
+  #   throw(BoundsError(0:(length(site.states)-1), binrep))
+  # end
   return site.states[Int(binrep) + 1]
 end
 
