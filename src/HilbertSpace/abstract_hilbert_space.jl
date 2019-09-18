@@ -103,7 +103,9 @@ function extract(hs ::AbstractHilbertSpace{QN}, binrep ::U) where {QN, U <:Unsig
   for (isite, site) in enumerate(hs.sites)
     mask = make_bitmask(hs.bitwidths[isite]; dtype=U)
     index = Int(binrep & mask) + 1
-    @assert (1 <= index <= length(site.states))
+    if !(1 <= index <= length(site.states))
+      throw(BoundsError("undefined binary representation"))
+    end
     push!(out, index)
     binrep = binrep >> hs.bitwidths[isite]
   end
@@ -115,10 +117,15 @@ end
 Convert an array of indices (of states) to binary representation 
 """
 function compress(hs ::AbstractHilbertSpace{QN}, indexarray ::AbstractVector{I}; BR::DataType=UInt) where {QN, I<:Integer}
-  @assert length(indexarray) == length(hs.sites)
+  if length(indexarray) != length(hs.sites)
+    throw(ArgumentError("length of indexarray should be the number of sites"))
+  end
 
   binrep = zero(BR)
   for (isite, site) in enumerate(hs.sites)
+    if !(1 <= indexarray[isite] <= dimension(site))
+      throw(BoundsError("indexarray not within bound"))
+    end
     binrep |= (BR(indexarray[isite] - 1) << hs.bitoffsets[isite] )
   end
   return binrep
