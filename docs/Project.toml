@@ -1,0 +1,3 @@
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+ExactDiagonalization = "cf149b0a-e8f7-4f00-9ab4-03e4f5ec5cff"
