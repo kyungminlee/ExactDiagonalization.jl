@@ -112,6 +112,8 @@ function transpose(arg ::PureOperator{S, BR}) where {S, BR}
                              arg.amplitude)
 end
 
+import Base.<
+
 function (<)(lhs ::PureOperator{S1, BR}, rhs ::PureOperator{S2, BR}) where {S1, S2, BR}
   if lhs.bitmask < rhs.bitmask
     return true
