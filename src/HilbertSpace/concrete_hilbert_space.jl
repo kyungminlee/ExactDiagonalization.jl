@@ -111,7 +111,7 @@ function concretize(
     end
     result_prev = generate(i-1, allowed_prev)
 
-    result = DefaultDict{Int, Vector{BR}}(Vector{BR})
+    result = DefaultDict{QN, Vector{BR}}(Vector{BR})
     for (i_state, q_curr) in enumerate(quantum_numbers[i])
       for (q_prev, states_prev) in result_prev
         q = q_prev + q_curr
