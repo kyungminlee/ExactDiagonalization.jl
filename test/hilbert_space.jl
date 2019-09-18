@@ -21,10 +21,9 @@ using StaticArrays
 
     site = Site([em, up, dn])
     @test_throws MethodError Site([em, up, dn, State("X", 1)])
-
-    @show State("X", 1)
-    @show State("UpDn", QN( 0, 2))
-  
+    
+    #@show State("X", 1)
+    #@show State("UpDn", QN( 0, 2))
   end
 
 
