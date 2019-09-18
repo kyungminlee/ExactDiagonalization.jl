@@ -66,6 +66,9 @@ function apply(hs ::AbstractHilbertSpace,
   return results
 end
 
+import Base.isempty
+isempty(psi::SparseState{S2, BR}) where {S2, BR} = isempty(psi.components)
+
 function apply(pureop ::NullOperator, psi::SparseState{S2, BR}) where {S2, BR}
   return SparseState{S2, BR}(psi.hilbert_space)
 end
