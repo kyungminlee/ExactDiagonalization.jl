@@ -8,5 +8,3 @@ include("Operator/kpo.jl")
 
 include("Operator/operator_application.jl")
 include("Operator/operator_simplify.jl")
-
-include("Operator/prettyprintln.jl")

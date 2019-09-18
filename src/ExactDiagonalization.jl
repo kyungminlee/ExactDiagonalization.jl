@@ -9,5 +9,6 @@ using Arpack
 include("util.jl")
 include("HilbertSpace.jl")
 include("Operator.jl")
+include("prettyprintln.jl")
 
 end

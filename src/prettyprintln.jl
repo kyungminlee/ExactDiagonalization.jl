@@ -4,7 +4,6 @@ function prettyprintln(op::NullOperator)
   println("NullOperator")
 end
 
-
 function prettyprintln(op::PureOperator{S, BR}; prefix::AbstractString="") where {S, BR}
   println(prefix, "PureOperator")
   println(prefix, "| M: ", string(op.bitmask, base=2, pad=op.hilbert_space.bitoffsets[end]))
@@ -13,12 +12,17 @@ function prettyprintln(op::PureOperator{S, BR}; prefix::AbstractString="") where
   println(prefix, "| A: ", op.amplitude) 
 end
 
-
-export prettyprintln
-
 function prettyprintln(op::SumOperator{S, BR}; prefix::AbstractString="") where {S, BR}
   println(prefix, "SumOperator")
   for t in op.terms
     prettyprintln(t; prefix=string(prefix, "| "))
+  end
+end
+
+function prettyprintln(psi::SparseState{S, BR}; prefix::AbstractString="") where {S, BR}
+  println(prefix, "SparseState")
+  bs = sort(collect(keys(psi.components)))
+  for b in bs
+    println(prefix, "  ", string(b, base=2, pad=psi.hilbert_space.bitoffsets[end]), " : ", psi.components[b])
   end
 end

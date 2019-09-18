@@ -146,12 +146,3 @@ function (/)(lhs ::SparseState{S1, BR}, rhs ::S2) where {S1, S2<:Number, BR}
   end
   return out
 end
-
-
-function prettyprintln(psi::SparseState{S, BR}; prefix::AbstractString="") where {S, BR}
-  println(prefix, "SparseState")
-  bs = sort(collect(keys(psi.components)))
-  for b in bs
-    println(prefix, "  ", string(b, base=2, pad=psi.hilbert_space.bitoffsets[end]), " : ", psi.components[b])
-  end
-end
