@@ -50,7 +50,7 @@ workflows:
               only: master
       - makedoc:
           requires:
-            - build
+            - test
           filters:
             branches:
               only: master
