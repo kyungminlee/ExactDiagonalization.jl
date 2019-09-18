@@ -36,42 +36,41 @@ function concretize(hs ::AbstractHilbertSpace{QN}; BR ::DataType=UInt) where {QN
   return ConcreteHilbertSpace{QN, BR}(hs, basis_list, basis_lookup)
 end
 
-function concretize_naive(
-    hs ::AbstractHilbertSpace{QN},
-    qn ::QN;
-    BR ::DataType=UInt) where {QN}
-  sectors = quantum_number_sectors(hs)
-  if ! (qn in sectors)
-    return ConcreteHilbertSpace{QN, BR}(hs, [], Dict())
-  end
-
-  basis_list = BR[]
-  for indexarray in Iterators.product((1:length(site.states) for site in hs.sites)...)
-    indexarray = Int[indexarray...]
-    q = get_quantum_number(hs, indexarray)
-    if q == qn
-      push!(basis_list, compress(hs, indexarray))
-    end
-  end
-  basis_lookup = Dict{BR, Int}()
-  for (ibasis, basis) in enumerate(basis_list)
-    basis_lookup[basis] = ibasis
-  end
-  return ConcreteHilbertSpace{QN, BR}(hs, basis_list, basis_lookup)
-end
+# function concretize_naive(
+#     hs ::AbstractHilbertSpace{QN},
+#     qn ::QN;
+#     BR ::DataType=UInt) where {QN}
+#   sectors = quantum_number_sectors(hs)
+#   if ! (qn in sectors)
+#     return ConcreteHilbertSpace{QN, BR}(hs, [], Dict())
+#   end
+#   basis_list = BR[]
+#   for indexarray in Iterators.product((1:length(site.states) for site in hs.sites)...)
+#     indexarray = Int[indexarray...]
+#     q = get_quantum_number(hs, indexarray)
+#     if q == qn
+#       push!(basis_list, compress(hs, indexarray))
+#     end
+#   end
+#   basis_lookup = Dict{BR, Int}()
+#   for (ibasis, basis) in enumerate(basis_list)
+#     basis_lookup[basis] = ibasis
+#   end
+#   return ConcreteHilbertSpace{QN, BR}(hs, basis_list, basis_lookup)
+# end
 
 function concretize(
-  hs::AbstractHilbertSpace{QN},
-  allowed::AbstractArray{QN};
-  BR::DataType=UInt) where {QN}
+    hs::AbstractHilbertSpace{QN},
+    allowed::AbstractArray{QN};
+    BR::DataType=UInt) where {QN}
   return concretize(hs, Set(allowed); BR=BR)
 end
 
 
 function concretize(
-  hs::AbstractHilbertSpace{QN},
-  qn::QN;
-  BR::DataType=UInt) where {QN}
+    hs::AbstractHilbertSpace{QN},
+    qn::QN;
+    BR::DataType=UInt) where {QN}
   return concretize(hs, Set([qn]); BR=BR)
 end
 
