@@ -243,7 +243,9 @@ end
   @testset "unary" begin
     @testset "real" begin
       ψ1 = SparseState{Float64, UInt}(hs)
+      @test isempty(ψ1)
       ψ1[UInt(0b0000001)] = 3.0
+      @test !isempty(ψ1)
       
       @test +ψ1 == ψ1
       @test -ψ1 != ψ1
@@ -258,8 +260,10 @@ end
 
     @testset "complex" begin
       ψ1 = SparseState{ComplexF64, UInt}(hs)
+      @test isempty(ψ1)
       ψ1[UInt(0b0000001)] = 3.0 + im
-      
+      @test !isempty(ψ1)
+
       @test +ψ1 == ψ1
       @test -ψ1 != ψ1
       @test (-ψ1).components == Dict(UInt(0b0000001) => -3.0 - im)

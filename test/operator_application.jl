@@ -23,10 +23,17 @@ end
   dn = State("Dn", QN(-1))
   spin_site = Site([up, dn])
   hs = AbstractHilbertSpace([spin_site, spin_site, spin_site, spin_site])
+  hs2 = AbstractHilbertSpace([spin_site, spin_site, spin_site,])
   chs = concretize(hs, 0)
   psi = SparseState{Float64, UInt}(hs, UInt(0b0011) => 2.0, UInt(0b0101) => 10.0)
   
   σ(i::Integer, j::Symbol) = pauli_matrix(hs, i, j)
+  
+  @testset "hilbert" begin
+    psi2 = SparseState{Float64, UInt}(hs2, UInt(0b0011) => 2.0, UInt(0b0101) => 10.0)
+    @test_throws ArgumentError apply(σ(1, :+), psi2)
+    @test_throws ArgumentError apply(σ(1, :x), psi2)
+  end
   
   @test apply(σ(1, :+), psi) == SparseState{Float64, UInt}(hs)
   @test apply(σ(1, :-), psi) == SparseState{Float64, UInt}(hs, UInt(0b0010) => 2.0, UInt(0b0100) => 10.0)
