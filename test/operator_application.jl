@@ -57,10 +57,13 @@ end
     heisenberg = sum(2 * σ(i, :+) * σ( mod(i, n) + 1, :-) for i in 1:n)
     heisenberg += sum(2 * σ(i, :-) * σ( mod(i, n) + 1, :+) for i in 1:n)
     heisenberg += sum(σ(i, :z) * σ( mod(i, n) + 1, :z) for i in 1:n)
+    field_x = sum(σ(i, :x) for i in 1:n)
+    field_y = sum(σ(i, :y) for i in 1:n)
+    field_z = sum(σ(i, :z) for i in 1:n)
     @testset "zerosector" begin
       chs = concretize(hs, 0)
       H, ϵ = materialize(chs, heisenberg)
-      @test H ≈ [  0  2  0  0  2  0;
+      @test H ≈ [ 0  2  0  0  2  0;
                   2 -4  2  2  0  2;
                   0  2  0  0  2  0;
                   0  2  0  0  2  0;
@@ -69,16 +72,34 @@ end
       Hp, ϵp = materialize_parallel(chs, heisenberg)
       @test Hp ≈ H
 
-      heisenberg2 = sum(σ(i, j) * σ( mod(i, n) + 1, j) for i in 1:n, j in [:x, :y, :z])
-      H2, ϵ2 = materialize_parallel(chs, heisenberg2)
+      heisenberg2 = sum(σ(i, j) * σ(mod(i,n)+1, j) for i in 1:n, j in [:x, :y, :z])
+      H2, ϵ2 = materialize(chs, heisenberg2)
       @test H2 ≈ H
+      H3, ϵ3 = materialize_parallel(chs, heisenberg2)
+      @test H3 ≈ H
+
+      let
+        Bx, ϵx = materialize(chs, field_x)
+        By, ϵy = materialize(chs, field_y)
+        Bz, ϵz = materialize(chs, field_z)
+        Bxp, ϵxp = materialize_parallel(chs, field_x)
+        Byp, ϵyp = materialize_parallel(chs, field_y)
+        Bzp, ϵzp = materialize_parallel(chs, field_z)
+        @test ϵx > 0
+        @test ϵy > 0
+        @test ϵz ≈ 0
+        @test ϵx ≈ ϵxp
+        @test ϵy ≈ ϵyp
+        @test ϵz ≈ ϵzp
+      end
+
     end
 
-    PAULI_MATRIX = [
-      [0.0 1.0; 1.0 0.0], [0.0 -1.0im; 1.0im 0.0], [1.0 0.0; 0.0 -1.0], [1.0 0.0; 0.0 1.0]
-    ]
 
     @testset "allsector" begin
+      PAULI_MATRIX = [
+        [0.0 1.0; 1.0 0.0], [0.0 -1.0im; 1.0im 0.0], [1.0 0.0; 0.0 -1.0], [1.0 0.0; 0.0 1.0]
+      ]
       chs = concretize(hs)
       H, ϵ = materialize(chs, heisenberg)
       H2  = sum( kron(PAULI_MATRIX[i], PAULI_MATRIX[i], PAULI_MATRIX[4], PAULI_MATRIX[4]) for i in 1:3)
@@ -87,9 +108,6 @@ end
       H2 += sum( kron(PAULI_MATRIX[i], PAULI_MATRIX[4], PAULI_MATRIX[4], PAULI_MATRIX[i]) for i in 1:3)
       @test H ≈ H2
 
-      field_x = sum(σ(i, :x) for i in 1:n)
-      field_y = sum(σ(i, :y) for i in 1:n)
-      field_z = sum(σ(i, :z) for i in 1:n)
       let
         Bx, _ = materialize(chs, field_x)
         By, _ = materialize(chs, field_y)
