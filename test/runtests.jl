@@ -3,4 +3,6 @@ using ExactDiagonalization
 
 include("hilbert_space.jl")
 include("operator.jl")
+
+include("concrete_hilbert_space.jl")
 #include("spinhalf.jl")
