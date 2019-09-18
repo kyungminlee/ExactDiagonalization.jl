@@ -364,3 +364,54 @@ function materialize(
   n = dimension(chs)
   return (sparse(rows, cols, vals, n, n), err)
 end
+
+
+
+
+function materialize_parallel(
+  chs ::ConcreteHilbertSpace{QN, BR},
+  sumop ::SumOperator{S, BR}) where {QN, BR<:Unsigned, S<:Number}
+
+  hs = chs.hilbert_space
+
+  nthreads = Threads.nthreads()
+  local_rows = [ Int[] for i in 1:nthreads]
+  local_cols = [ Int[] for i in 1:nthreads]
+  local_vals = [ S[] for i in 1:nthreads]
+  local_err = [0.0 for i in 1:nthreads]
+
+  n_basis = length(chs.basis_list)
+
+  Threads.@threads for irow in 1:n_basis
+    id = Threads.threadid()
+    row = chs.basis_list[irow]
+
+    ψrow = SparseState{S, BR}(hs, row)
+    ψcol = apply(sumop, ψrow)
+    for (col, amplitude) in ψcol.components
+      if ! isapprox(amplitude, 0)
+        if !haskey(chs.basis_lookup, col)
+          local_err[id] += abs(amplitude)^2
+        else 
+          icol = chs.basis_lookup[col]
+          push!(local_rows[id], irow)
+          push!(local_cols[id], icol)
+          push!(local_vals[id], amplitude)
+        end
+      end
+    end
+  end
+  
+  rows = vcat(local_rows...)
+  cols = vcat(local_cols...)
+  vals = vcat(local_vals...)
+  err = sum(local_err)
+
+  if isempty(vals)
+    vals = Float64[]
+  elseif S <:Complex && isapprox(maximum(abs.(imag.(vals))), 0)
+    vals = real.(vals)
+  end
+  n = dimension(chs)
+  return (sparse(rows, cols, vals, n, n), err)
+end
