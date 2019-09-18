@@ -9,6 +9,7 @@ using StaticArrays
 
   @test isa(nop, NullOperator)
   @test nop == nop2
+  @test (nop < nop) == false
 
   @testset "unary" begin
     @test -nop == nop
@@ -52,6 +53,12 @@ end
     end
   end
 
+  @testset "constructor" begin
+    PureOperator{Float64, UInt}(hs, 0b0010, 0b0010, 0b0010, 1.0)
+    @test_throws ArgumentError PureOperator{Float64, UInt}(hs, 0b0010, 0b0011, 0b0010, 1.0)
+    @test_throws ArgumentError PureOperator{Float64, UInt}(hs, 0b0010, 0b0010, 0b0011, 1.0)
+  end
+
   @testset "equality" begin
     pop1 = PureOperator{ComplexF64, UInt}(hs, 0b0010, 0b0000, 0b0000, 2.0 + 3.0im)
     pop2 = PureOperator{ComplexF64, UInt}(hs, 0b0010, 0b0000, 0b0000, 2.0 + 3.0im)
@@ -77,6 +84,16 @@ end
 
     # different hilbert space
     @test pop2 != PureOperator{Float64, UInt}(hs2, 0b0010, 0b0000, 0b0000, 2.0)
+  end
+
+  @testset "inequality" begin
+    pop1 = PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0000, 2.0)
+    pop2 = PureOperator{Float64, UInt}(hs, 0b0100, 0b0000, 0b0000, 1.0)
+    pop3 = PureOperator{Float64, UInt}(hs, 0b0010, 0b0010, 0b0000, 1.0)
+    pop4 = PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0010, 1.0)
+    @test pop1 < pop2
+    @test pop1 < pop3
+    @test pop1 < pop4
   end
 
   @testset "unary" begin
@@ -128,6 +145,14 @@ end
         end
       end
 
+      @testset "scalar" begin
+        pop = PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0010, 2.0)
+        @test pop * 3.0 == PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0010, 6.0)
+        @test pop * (3.0 + 1.0im) == PureOperator{ComplexF64, UInt}(hs, 0b0010, 0b0000, 0b0010, 6.0 + 2.0im)        
+        @test 3.0 * pop == PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0010, 6.0)
+        @test (3.0 + 1.0im) * pop == PureOperator{ComplexF64, UInt}(hs, 0b0010, 0b0000, 0b0010, 6.0 + 2.0im)        
+      end
+    
       @testset "nullop" begin
         pop = PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0010, 2.0)
         nop = NullOperator()
@@ -136,6 +161,14 @@ end
         @test nop * pop == nop
         @test pop + nop == pop
         @test nop + pop == pop
+      end
+      
+      @testset "hilbert" begin
+        pop1 = PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0010, 2.0)
+        pop2 = PureOperator{Float64, UInt}(hs, 0b1000, 0b1000, 0b0000, 3.0)        
+        pop3 = PureOperator{Float64, UInt}(hs2, 0b1000, 0b1000, 0b0000, 3.0)        
+        pop1 * pop2
+        @test_throws ArgumentError pop1 * pop3
       end
 
       @testset "disjoint" begin
