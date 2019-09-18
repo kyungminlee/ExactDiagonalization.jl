@@ -1,7 +1,7 @@
 version: 2
 jobs:
   build:
-    working_directory: ~/ExactDiagonaliation.jl
+    working_directory: ~/ExactDiagonalization.jl
     docker:
       - image: julia:latest
     steps:
@@ -15,5 +15,14 @@ jobs:
       - run:
           name: test
           command: |
-            julia --project --check-bounds=yes -e 'import Pkg; Pkg.test(; coverage=false)'
-
+            julia --project --check-bounds=yes -e 'import Pkg; Pkg.test(; coverage=true)'
+      - run:
+          name: coverage
+          command: |
+            julia --project -e 'import Pkg; cd(Pkg.dir("ExactDiagonalization")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
+      - run:
+          name: makedoc
+          command: |
+            julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
+            julia --project=docs/ docs/make.jl
+            
