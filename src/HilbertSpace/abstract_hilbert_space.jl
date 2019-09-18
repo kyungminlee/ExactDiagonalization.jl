@@ -145,5 +145,5 @@ function get_state_index(hs ::AbstractHilbertSpace, binrep ::U, isite ::Integer)
 end
 
 function get_state(hs ::AbstractHilbertSpace, binrep ::U, isite ::Integer) where {U<:Unsigned}
-  return hs.sites[get_state_index(hs, binrep, isite)]
+  return hs.sites[isite].states[get_state_index(hs, binrep, isite)]
 end
