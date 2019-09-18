@@ -112,7 +112,7 @@ function transpose(arg ::PureOperator{S, BR}) where {S, BR}
                              arg.amplitude)
 end
 
-function isless(lhs ::PureOperator{S, BR}, rhs ::PureOperator{S, BR}) where {S, BR}
+function isless(lhs ::PureOperator{S1, BR}, rhs ::PureOperator{S2, BR}) where {S1, S2, BR}
   if lhs.bitmask < rhs.bitmask
     return true
   elseif lhs.bitmask > rhs.bitmask
