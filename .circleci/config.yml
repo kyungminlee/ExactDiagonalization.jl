@@ -19,7 +19,7 @@ jobs:
       - run:
           name: coverage
           command: |
-            julia --project -e 'import ExactDiagonalization; import Pkg; cd(joinpath(dirname(pathof(ExactDiagonalization)), "..")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
+            julia --project -e 'import ExactDiagonalization; import Pkg; cd(joinpath(dirname(pathof(ExactDiagonalization)), "..")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder()); Coveralls.submit(process_folder())'
       - run:
           name: makedoc
           command: |
