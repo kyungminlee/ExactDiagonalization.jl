@@ -167,10 +167,12 @@ end
         pop = PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0010, 2.0)
         nop = NullOperator()
 
-        @test pop * nop == nop
-        @test nop * pop == nop
         @test pop + nop == pop
         @test nop + pop == pop
+        @test pop - nop == pop
+        @test nop - pop == -pop
+        @test pop * nop == nop
+        @test nop * pop == nop
       end
       
       @testset "hilbert" begin
@@ -198,7 +200,6 @@ end
         pop2 = PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0000, 3.0)
         @test pop1 * pop2 == NullOperator()
       end
-
     end
   end
 end

@@ -77,7 +77,7 @@ function get_quantum_number(hs ::AbstractHilbertSpace{QN}, binrep ::BR) where {Q
   )
 end
 
-function get_quantum_number(hs ::AbstractHilbertSpace{QN}, indexarray ::AbstractArray{I, 1}) where {BinRep, QN, I <:Integer}
+function get_quantum_number(hs ::AbstractHilbertSpace{QN}, indexarray ::AbstractArray{I, 1}) where {QN, I <:Integer}
     sum(
         site.states[indexarray[isite]].quantum_number
         for (isite, site) in enumerate(hs.sites)
@@ -126,8 +126,11 @@ end
 
 
 function update(hs ::AbstractHilbertSpace, binrep ::U, isite ::Integer, new_state_index ::Integer) where {U <:Unsigned}
+  if !(1 <= new_state_index <= dimension(hs.sites[isite]))
+    throw(BoundsError("bound error"))
+  end
   mask = make_bitmask(hs.bitoffsets[isite+1], hs.bitoffsets[isite]; dtype=U)
-  return (binrep & (~mask)) | (U(new_state_index-1) << hs.bitoffsets[isite] )
+  return (binrep & (~mask)) | (U(new_state_index-1) << hs.bitoffsets[isite])
 end
 
 function get_state_index(hs ::AbstractHilbertSpace, binrep ::U, isite ::Integer) where {U<:Unsigned}

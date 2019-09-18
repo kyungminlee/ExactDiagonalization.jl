@@ -80,13 +80,10 @@ dimension(site ::Site) ::Int = length(site.states)
 Returns the state of `site` represented by the bits `binrep`.
 """
 function get_state(site ::Site{QN}, binrep ::BR) where {QN, BR<:Unsigned}
-  @assert let
-    nd = bitwidth(site)
-    mask = make_bitmask(nd; dtype=BR)
-    mask & binrep == binrep
+  if !(binrep < length(site.states))
+    throw(BoundsError("binrep exceeds dimension"))
   end
-  @assert binrep < length(site.states)
-  return site.states[binrep + 1]
+  return site.states[Int(binrep) + 1]
 end
 
 # function get_state(site ::Site{QN}, bitrep ::BitArray{1}) where QN
