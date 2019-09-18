@@ -20,9 +20,9 @@ jobs:
           name: coverage
           command: |
             julia --project -e 'import Pkg; cd(Pkg.dir("ExactDiagonalization")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
-      - run:
-          name: makedoc
-          command: |
-            julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
-            julia --project=docs/ docs/make.jl
+      # - run:
+      #     name: makedoc
+      #     command: |
+      #       julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
+      #       julia --project=docs/ docs/make.jl
             
