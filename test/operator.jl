@@ -53,6 +53,7 @@ end
       for t2 in types
         t3 = promote_type(t1, t2)
         @test promote_type(PureOperator{t1, UInt}, PureOperator{t2, UInt}) == PureOperator{t3, UInt}
+        @test promote_rule(PureOperator{t1, UInt}, PureOperator{t2, UInt}) == PureOperator{t3, UInt}
       end
     end
   end
