@@ -66,6 +66,10 @@ function apply(hs ::AbstractHilbertSpace,
   return results
 end
 
+function apply(pureop ::NullOperator, psi::SparseState{S2, BR}) where {S2, BR}
+  return SparseState{S2, BR}(psi.hilbert_space)
+end
+
 
 function apply(pureop ::PureOperator{S1, BR}, psi::SparseState{S2, BR}) where {S1, S2, BR}
   S3 = promote_type(S1, S2)
