@@ -356,10 +356,10 @@ function materialize(
     end
   end
 
-  if S <:Complex
-    if isapprox( maximum(abs.(imag.(vals))), 0)
-      vals = real.(vals)
-    end
+  if isempty(vals)
+    vals = Float64[]
+  elseif S <:Complex && isapprox( maximum(abs.(imag.(vals))), 0)
+    vals = real.(vals)
   end
   n = dimension(chs)
   return (sparse(rows, cols, vals, n, n), err)
@@ -378,7 +378,7 @@ function materialize_parallel(
   local_rows = [ Int[] for i in 1:nthreads]
   local_cols = [ Int[] for i in 1:nthreads]
   local_vals = [ S[] for i in 1:nthreads]
-  local_err = [0.0 for i in 1:nthreads]
+  local_err =  Float64[0.0 for i in 1:nthreads]
 
   n_basis = length(chs.basis_list)
 
@@ -402,10 +402,10 @@ function materialize_parallel(
     end
   end
   
-  rows = vcat(local_rows...)
-  cols = vcat(local_cols...)
-  vals = vcat(local_vals...)
-  err = sum(local_err)
+  rows ::Vector{Int} = vcat(local_rows...) 
+  cols ::Vector{Int} = vcat(local_cols...) 
+  vals ::Vector{S} = vcat(local_vals...) 
+  err ::Float64 = sum(local_err) 
 
   if isempty(vals)
     vals = Float64[]
