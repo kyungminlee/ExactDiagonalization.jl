@@ -367,6 +367,22 @@ end
 
 
 
+function materialize(
+  chs ::ConcreteHilbertSpace{QN, BR},
+  nop ::NullOperator) where {QN, BR<:Unsigned, S<:Number}
+  n = dimension(chs)
+  return (sparse([], [], Float64[], n, n), 0.0)
+end
+
+
+function materialize_parallel(
+  chs ::ConcreteHilbertSpace{QN, BR},
+  nop ::NullOperator) where {QN, BR<:Unsigned, S<:Number}
+
+  n = dimension(chs)
+  return (sparse([], [], Float64[], n, n), 0.0)
+end
+
 
 function materialize_parallel(
   chs ::ConcreteHilbertSpace{QN, BR},
