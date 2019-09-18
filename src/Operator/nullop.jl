@@ -29,9 +29,8 @@ conj(arg::NullOperator) = arg
 transpose(arg::NullOperator) = arg
 
 
-import Base.isless
+import Base.<
 # null operator is smaller than any other operators
-isless(lhs ::NullOperator, rhs ::NullOperator) = false
-isless(lhs ::NullOperator, rhs ::AbstractOperator) = true
-isless(lhs ::AbstractOperator, rhs ::NullOperator) = false
-
+(<)(lhs ::NullOperator, rhs ::NullOperator) = false
+(<)(lhs ::NullOperator, rhs ::AbstractOperator) = true
+(<)(lhs ::AbstractOperator, rhs ::NullOperator) = false

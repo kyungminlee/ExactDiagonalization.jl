@@ -101,7 +101,6 @@ end
     @test !(pop1 > pop2)
     @test !(pop1 > pop3)
     @test !(pop1 > pop4)
-    @test isless(pop1, pop2)
   end
 
   @testset "unary" begin
