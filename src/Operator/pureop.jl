@@ -41,12 +41,12 @@ end
 
 function (*)(lhs ::S1, rhs ::PureOperator{S2, BR}) where {S1<:Number, S2<:Number, BR}
   S = promote_type(S1, S2)
-  PureOperator{S, BR}(rhs.hilbert_space, rhs.bitmask, rhs.bitsource, rhs.bittarget, lhs * rhs.amplitude)
+  return PureOperator{S, BR}(rhs.hilbert_space, rhs.bitmask, rhs.bitsource, rhs.bittarget, lhs * rhs.amplitude)
 end
 
 function (*)(lhs ::PureOperator{S1, BR}, rhs ::S2) where {S1<:Number, S2<:Number, BR}
   S = promote_type(S1, S2)
-  PureOperator{S, BR}(lhs.hilbert_space, lhs.bitmask, lhs.bitsource, lhs.bittarget, lhs.amplitude * rhs)
+  return PureOperator{S, BR}(lhs.hilbert_space, lhs.bitmask, lhs.bitsource, lhs.bittarget, lhs.amplitude * rhs)
 end
 
 function (*)(lhs ::PureOperator{S1, BR}, rhs ::PureOperator{S2, BR}) where {S1<:Number, S2<:Number, BR}
@@ -67,15 +67,11 @@ function (*)(lhs ::PureOperator{S1, BR}, rhs ::PureOperator{S2, BR}) where {S1<:
     new_bitsource = lhs.bitsource | (rhs.bitsource & onlyrhs_bitmask)
     new_bittarget = rhs.bittarget | (lhs.bittarget & onlylhs_bitmask)
     new_amplitude = lhs.amplitude * rhs.amplitude
-    if isapprox(new_amplitude, 0)
-      return NullOperator()
-    else
-      return PureOperator{S3, BR}(lhs.hilbert_space, 
-                                  new_bitmask,
-                                  new_bitsource,
-                                  new_bittarget,
-                                  new_amplitude)
-    end
+    return PureOperator{S3, BR}(lhs.hilbert_space, 
+                                new_bitmask,
+                                new_bitsource,
+                                new_bittarget,
+                                new_amplitude)
   end
 end
 
@@ -135,7 +131,7 @@ function isless(lhs ::PureOperator{S, BR}, rhs ::PureOperator{S, BR}) where {S, 
     return false
   end
 
-  return false
+  return abs(lhs.amplitude) < abs(rhs.amplitude)
 end
 
 import Base.promote_rule
