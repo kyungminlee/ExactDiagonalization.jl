@@ -29,7 +29,7 @@ function simplify(so ::SumOperator{S, BR}; tol::AbstractFloat=sqrt(eps(Float64))
     return NullOperator()
   end
   
-  sort!(terms)
+  sort!(terms; lt=(<))
   new_terms = PureOperator{S, BR}[]
 
   hs ::AbstractHilbertSpace = terms[1].hilbert_space
