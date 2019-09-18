@@ -1,31 +1,10 @@
 #abstract type AbstractOperator end
 #struct AbstractHilbertSpace end
 
-#=
- UNARY OPERATORS
- +    NO PO SO
- -    NO PO SO
- real NO PO SO
- imag NO PO SO
-=#
-
-
-#=
- Binary operators
-
- +/- NO PO SO
- NO  NO PO SO
- PO  PO SO SO
- SO  SO SO SO
-
-  *  NO PO SO
- NO  NO PO SO
- PO  PO PO SO
- SO  SO SO SO
-=#
 export PureOperator
+#export OptionalPureOperator
+
 export pure_operator
-export OptionalPureOperator
 
 struct PureOperator{Scalar<:Number, BR<:Unsigned} <:AbstractOperator
   hilbert_space ::AbstractHilbertSpace
@@ -46,8 +25,17 @@ struct PureOperator{Scalar<:Number, BR<:Unsigned} <:AbstractOperator
   end
 end
 
+#const OptionalPureOperator{Scalar, BR} = Union{PureOperator{Scalar, BR}, NullOperator} where {Scalar, BR}
 
-const OptionalPureOperator{Scalar, BR} = Union{PureOperator{Scalar, BR}, NullOperator} where {Scalar, BR}
+import Base.==
+
+function (==)(lhs ::PureOperator{S1, BR}, rhs::PureOperator{S2, BR}) where {S1, S2, BR}
+  return ((lhs.hilbert_space == rhs.hilbert_space) &&
+          (lhs.bitmask == rhs.bitmask) &&
+          (lhs.bitsource == rhs.bitsource) &&
+          (lhs.bittarget == rhs.bittarget) &&
+          (lhs.amplitude == rhs.amplitude))
+end
 
 (-)(op ::PureOperator{S, BR}) where {S, BR} = PureOperator{S, BR}(op.hilbert_space, op.bitmask, op.bitsource, op.bittarget, -op.amplitude)
 
@@ -91,8 +79,10 @@ function (*)(lhs ::PureOperator{S1, BR}, rhs ::PureOperator{S2, BR}) where {S1<:
   end
 end
 
+import Base.real, Base.imag, Base.conj, Base.transpose
+
 real(arg ::PureOperator{S, BR}) where {S<:Real, BR} = arg
-imag(arg ::PureOperator{S, BR}) where {S<:Real, BR} = NullOperator()
+imag(arg ::PureOperator{S, BR}) where {S<:Real, BR} = PureOperator{S, BR}(arg.hilbert_space, arg.bitmask, arg.bitsource, arg.bittarget, zero(S))
 
 function real(arg ::PureOperator{Complex{R}, BR}) where {R<:Real, BR}
   return PureOperator{R, BR}(arg.hilbert_space,
@@ -110,6 +100,21 @@ function imag(arg ::PureOperator{Complex{R}, BR}) where {R<:Real, BR}
                              imag(arg.amplitude))
 end
 
+function conj(arg ::PureOperator{S, BR}) where {S, BR}
+  return PureOperator{S, BR}(arg.hilbert_space,
+                             arg.bitmask,
+                             arg.bitsource,
+                             arg.bittarget,
+                             conj(arg.amplitude))
+end
+
+function transpose(arg ::PureOperator{S, BR}) where {S, BR}
+  return PureOperator{S, BR}(arg.hilbert_space,
+                             arg.bitmask,
+                             arg.bittarget, # switch
+                             arg.bitsource, # order
+                             arg.amplitude)
+end
 
 function isless(lhs ::PureOperator{S, BR}, rhs ::PureOperator{S, BR}) where {S, BR}
   if lhs.bitmask < rhs.bitmask

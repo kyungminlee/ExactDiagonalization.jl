@@ -11,6 +11,8 @@ struct KroneckerProductOperator{Scalar<:Number} <:AbstractOperator
       am ::S1,
       ops::AbstractDict{I, Matrix{S2}}) where {S1<:Number, I<:Integer, S2<:Number}
       
+      @warn "KroneckerProductOperator is deprecated"
+
       S3 = promote_type(S1, S2)
       n_sites = length(hs.sites)
       
@@ -27,7 +29,9 @@ struct KroneckerProductOperator{Scalar<:Number} <:AbstractOperator
     hs ::AbstractHilbertSpace,
     am ::S1,
     ops::AbstractDict{I, Matrix{S2}}) where {S1<:Number, I<:Integer, S2<:Number, S3<:Number}
-        
+    
+    @warn "KroneckerProductOperator is deprecated"
+
     n_sites = length(hs.sites)
     
     for (i_site, matrix) in ops
@@ -42,12 +46,12 @@ end
 
 KPO = KroneckerProductOperator
 
-function clean!(op ::KPO; tol=sqrt(eps(Float64)))
-  keys_to_delete = [k for (k, v) in op.operators if isapprox(v, I)]
-  for k in keys_to_delete
-    delete!(k, op)
-  end
-end
+# function clean!(op ::KPO; tol=sqrt(eps(Float64)))
+#   keys_to_delete = [k for (k, v) in op.operators if isapprox(v, I)]
+#   for k in keys_to_delete
+#     delete!(k, op)
+#   end
+# end
 
 import Base.*
 
