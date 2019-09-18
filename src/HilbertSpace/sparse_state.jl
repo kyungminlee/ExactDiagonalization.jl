@@ -1,5 +1,10 @@
 export SparseState
 
+"""
+    struct SparseState{Scalar<:Number, BR}
+
+Represents a row vector?
+"""
 mutable struct SparseState{Scalar<:Number, BR}
   hilbert_space ::AbstractHilbertSpace
   components ::DefaultDict{BR, Scalar, Scalar}
@@ -19,7 +24,7 @@ mutable struct SparseState{Scalar<:Number, BR}
     for (cf, cs) in rest
       components[cf] = cs
     end
-          
+
     return new{Scalar, BR}(hs, components)
   end
 

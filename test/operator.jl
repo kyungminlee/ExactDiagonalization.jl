@@ -91,11 +91,14 @@ end
   end
 
   @testset "inequality" begin
+    nop = NullOperator()
     pop1 = PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0000, 2.0)
     pop2 = PureOperator{Float64, UInt}(hs, 0b0100, 0b0000, 0b0000, 1.0)
     pop3 = PureOperator{Float64, UInt}(hs, 0b0010, 0b0010, 0b0000, 1.0)
     pop4 = PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0010, 1.0)
     pop5 = PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0000, 10.0)
+    @test nop < pop1
+    @test !(pop1 < nop)
     @test pop1 < pop2
     @test pop1 < pop3
     @test pop1 < pop4
