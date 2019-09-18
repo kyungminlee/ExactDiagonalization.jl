@@ -53,7 +53,7 @@ end
 #   push!(hs.bitoffsets, hs.bitoffsets[end] + bw)
 # end
 
-function quantum_number_sectors(hs ::AbstractHilbertSpace{QN}) where QN
+function quantum_number_sectors(hs ::AbstractHilbertSpace{QN})::Vector{QN} where QN
   qns = Set{QN}([zero(QN)])
   for site in hs.sites
     qns_next = Set{QN}()
