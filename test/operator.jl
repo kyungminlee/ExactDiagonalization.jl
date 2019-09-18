@@ -47,10 +47,15 @@ end
 
   @testset "type" begin
     types = [Int32, Int64, Float32, Float64, ComplexF32, ComplexF64]
-    for t1 in types, t2 in types
+    for t1 in types
       pop = PureOperator{t1, UInt}(hs, 0b0010, 0b0000, 0b0000, t1(2))
       pop.amplitude == t1(2)
+      for t2 in types
+        t3 = promote_type(t1, t2)
+        @test promote_type(PureOperator{t1, UInt}, PureOperator{t2, UInt}) == PureOperator{t3, UInt}
+      end
     end
+
   end
 
   @testset "constructor" begin
@@ -94,6 +99,9 @@ end
     @test pop1 < pop2
     @test pop1 < pop3
     @test pop1 < pop4
+    @test !(pop1 > pop2)
+    @test !(pop1 > pop3)
+    @test !(pop1 > pop4)
   end
 
   @testset "unary" begin
