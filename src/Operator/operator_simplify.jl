@@ -60,10 +60,6 @@ function simplify(so ::SumOperator{S, BR}; tol::AbstractFloat=sqrt(eps(Float64))
     return NullOperator()
   end
 
-  if length(new_terms) == 1
-    return new_terms[1]
-  end
-
   if S <: Complex && isapprox(maximum(abs(imag(t.amplitude)) for t in new_terms), 0; atol=tol, rtol=tol)
     R = real(S)
     if length(new_terms) == 1
