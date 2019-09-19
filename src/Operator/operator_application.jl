@@ -1,5 +1,5 @@
-export apply
-export materialize, materialize_parallel
+export apply, apply!
+export materialize, materialize_parallel, materialize2
 
 # """
 # Returns dict
@@ -73,7 +73,7 @@ end
 
 function apply(pureop ::PureOperator{S1, BR}, psi::SparseState{S2, BR}) where {S1, S2, BR}
   S3 = promote_type(S1, S2)
-  if pureop.hilbert_space != psi.hilbert_space
+  @boundscheck if pureop.hilbert_space !== psi.hilbert_space
     throw(ArgumentError("Hilbert spaces of lhs and rhs of + should match"))
   end
   out = SparseState{S3, BR}(psi.hilbert_space)
@@ -88,7 +88,7 @@ end
 
 function apply(sumop ::SumOperator{S1, BR}, psi::SparseState{S2, BR}) where {S1, S2, BR}
   S3 = promote_type(S1, S2)
-  if sumop.hilbert_space != psi.hilbert_space
+  @boundscheck if sumop.hilbert_space !== psi.hilbert_space
     throw(ArgumentError("Hilbert spaces of lhs and rhs of + should match"))
   end
   out = SparseState{S3, BR}(psi.hilbert_space)
@@ -97,6 +97,42 @@ function apply(sumop ::SumOperator{S1, BR}, psi::SparseState{S2, BR}) where {S1,
   end
   return out
 end
+
+
+
+
+function apply!(out::SparseState{S1, BR}, pureop ::NullOperator, psi::SparseState{S2, BR}) where {S1, S2, BR}
+end
+
+
+function apply!(out::SparseState{S1, BR}, pureop ::PureOperator{S2, BR}, psi::SparseState{S3, BR}) where {S1, S2, S3, BR}
+  # @boundscheck if pureop.hilbert_space !== psi.hilbert_space
+  #   throw(ArgumentError("Hilbert spaces of lhs and rhs of + should match"))
+  # end
+  # out = SparseState{S3, BR}(psi.hilbert_space)
+  for (b, v) in psi.components
+    if (b & pureop.bitmask) == pureop.bitsource
+      b2 = (b & ~pureop.bitmask) | pureop.bittarget
+      out[b2] += pureop.amplitude * v
+    end
+  end
+end
+
+function apply!(out::SparseState{S1, BR}, sumop ::SumOperator{S1, BR}, psi::SparseState{S2, BR}) where {S1, S2, S3, BR}
+  # S3 = promote_type(S1, S2)
+  # @boundscheck if sumop.hilbert_space !== psi.hilbert_space
+  #   throw(ArgumentError("Hilbert spaces of lhs and rhs of + should match"))
+  # end
+  # out = SparseState{S3, BR}(psi.hilbert_space)
+  for t in sumop.terms
+    apply!(out, t, psi)
+    # out += apply(t, psi)
+  end
+  # return out
+end
+
+
+
 
 # # TODO: Replace with more efficient
 # function apply_naive(hs ::AbstractHilbertSpace,
@@ -328,8 +364,25 @@ end
 #   return (sparse(rows, cols, vals, n, n), err)
 # end
 
-
 function materialize(
+  chs ::ConcreteHilbertSpace{QN, BR},
+  nop ::NullOperator) where {QN, BR<:Unsigned, S<:Number}
+  n = dimension(chs)
+  return (sparse([], [], Float64[], n, n), 0.0)
+end
+
+
+function materialize_parallel(
+  chs ::ConcreteHilbertSpace{QN, BR},
+  nop ::NullOperator) where {QN, BR<:Unsigned, S<:Number}
+
+  n = dimension(chs)
+  return (sparse([], [], Float64[], n, n), 0.0)
+end
+
+
+
+function materialize_naive(
   chs ::ConcreteHilbertSpace{QN, BR},
   sumop ::SumOperator{S, BR}) where {QN, BR<:Unsigned, S<:Number}
   hs = chs.hilbert_space
@@ -367,24 +420,103 @@ end
 
 
 
+
 function materialize(
   chs ::ConcreteHilbertSpace{QN, BR},
-  nop ::NullOperator) where {QN, BR<:Unsigned, S<:Number}
+  sumop ::SumOperator{S, BR}) where {QN, BR<:Unsigned, S<:Number}
+  hs = chs.hilbert_space
+  rows = Int[]
+  cols = Int[]
+  vals = S[]
+  
+  err = 0.0
+  
+  for (irow, row) in enumerate(chs.basis_list)
+    ψrow = SparseState{S, BR}(hs, row)
+    ψcol = SparseState{S, BR}(hs)
+    apply!(ψcol, sumop, ψrow)
+    
+    #ψcol = apply(sumop, ψrow)
+    for (col, amplitude) in ψcol.components
+      if ! isapprox(amplitude, 0)
+        if !haskey(chs.basis_lookup, col)
+          err += abs(amplitude)^2
+        else 
+          icol = chs.basis_lookup[col]
+          push!(rows, irow)
+          push!(cols, icol)
+          push!(vals, amplitude)
+        end
+      end
+    end
+  end
+
+  if isempty(vals)
+    vals = Float64[]
+  elseif S <:Complex && isapprox( maximum(abs.(imag.(vals))), 0)
+    vals = real.(vals)
+  end
   n = dimension(chs)
-  return (sparse([], [], Float64[], n, n), 0.0)
+  return (sparse(rows, cols, vals, n, n), err)
 end
+
+
 
 
 function materialize_parallel(
   chs ::ConcreteHilbertSpace{QN, BR},
-  nop ::NullOperator) where {QN, BR<:Unsigned, S<:Number}
+  sumop ::SumOperator{S, BR}) where {QN, BR<:Unsigned, S<:Number}
+  hs = chs.hilbert_space
 
+  nthreads = Threads.nthreads()
+  local_rows = [ Int[] for i in 1:nthreads]
+  local_cols = [ Int[] for i in 1:nthreads]
+  local_vals = [ S[] for i in 1:nthreads]
+  local_err =  Float64[0.0 for i in 1:nthreads]
+
+  n_basis = length(chs.basis_list)
+
+  Threads.@threads for irow in 1:n_basis
+    id = Threads.threadid()
+    row = chs.basis_list[irow]
+
+    ψrow = SparseState{S, BR}(hs, row)
+    ψcol = SparseState{S, BR}(hs)
+    apply!(ψcol, sumop, ψrow)
+    
+    #ψcol = apply(sumop, ψrow)
+    for (col, amplitude) in ψcol.components
+      if ! isapprox(amplitude, 0)
+        if !haskey(chs.basis_lookup, col)
+          local_err[id] += abs(amplitude)^2
+        else 
+          icol = chs.basis_lookup[col]
+          push!(local_rows[id], irow)
+          push!(local_cols[id], icol)
+          push!(local_vals[id], amplitude)
+        end
+      end
+    end
+  end
+  
+  rows ::Vector{Int} = vcat(local_rows...) 
+  cols ::Vector{Int} = vcat(local_cols...) 
+  vals ::Vector{S} = vcat(local_vals...) 
+  err ::Float64 = sum(local_err) 
+
+  if isempty(vals)
+    vals = Float64[]
+  elseif S <:Complex && isapprox( maximum(abs.(imag.(vals))), 0)
+    vals = real.(vals)
+  end
   n = dimension(chs)
-  return (sparse([], [], Float64[], n, n), 0.0)
+  return (sparse(rows, cols, vals, n, n), err)
 end
 
 
-function materialize_parallel(
+
+
+function materialize_naive_parallel(
   chs ::ConcreteHilbertSpace{QN, BR},
   sumop ::SumOperator{S, BR}) where {QN, BR<:Unsigned, S<:Number}
 
