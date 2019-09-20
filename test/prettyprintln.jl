@@ -1,4 +1,5 @@
 using Test
+using Suppressor
 using ExactDiagonalization
 
 @testset "prettyprintln" begin
@@ -28,32 +29,48 @@ using ExactDiagonalization
 
     buf = IOBuffer()
     
-    prettyprintln(buf, NullOperator())
-    @test String(take!(buf)) == "NullOperator\n"
+    val = NullOperator()
+    result1 = @capture_out prettyprintln(val)
+    prettyprintln(buf, val)
+    result2 = String(take!(buf))
+    @test result1 == result2
+    @test result1 == "NullOperator\n"
 
-    prettyprintln(buf, σ(1, :+))
-    @test String(take!(buf)) == join(["PureOperator",
-                                      "| M: 0001",
-                                      "| S: 0000",
-                                      "| T: 0001",
-                                      "| A: 1.0", ""], "\n")
-    prettyprintln(buf, σ(2, :x))
-    @test String(take!(buf)) == join(["SumOperator",
-                                      "| PureOperator",
-                                      "| | M: 0010",
-                                      "| | S: 0000",
-                                      "| | T: 0010",
-                                      "| | A: 1.0",
-                                      "| PureOperator",
-                                      "| | M: 0010",
-                                      "| | S: 0010",
-                                      "| | T: 0000",
-                                      "| | A: 1.0",
-                                      ""], "\n")
+    val = σ(1, :+)
+    result1 = @capture_out prettyprintln(val)
+    prettyprintln(buf, val)
+    result2 = String(take!(buf))
+    @test result1 == result2
+    @test result1 == join(["PureOperator",
+                           "| M: 0001",
+                           "| S: 0000",
+                           "| T: 0001",
+                           "| A: 1.0", ""], "\n")
+    val = σ(2, :x)
+    result1 = @capture_out prettyprintln(val)
+    prettyprintln(buf, val)
+    result2 = String(take!(buf))
+    @test result1 == result2
+    @test result1 == join(["SumOperator",
+                           "| PureOperator",
+                           "| | M: 0010",
+                           "| | S: 0000",
+                           "| | T: 0010",
+                           "| | A: 1.0",
+                           "| PureOperator",
+                           "| | M: 0010",
+                           "| | S: 0010",
+                           "| | T: 0000",
+                           "| | A: 1.0",
+                           ""], "\n")
                                       
-    prettyprintln(buf, SparseState{Float64, UInt}(hs, UInt(0b0010)=>0.2, UInt(0b100) => 0.3 ))
-    @test String(take!(buf)) == join(["SparseState",
-                                      "| 0010 : 0.2",
-                                      "| 0100 : 0.3", ""], "\n")
+    val = SparseState{Float64, UInt}(hs, UInt(0b0010)=>0.2, UInt(0b100) => 0.3 )
+    result1 = @capture_out prettyprintln(val)
+    prettyprintln(buf, val)
+    result2 = String(take!(buf))
+    @test result1 == result2
+    @test result1 == join(["SparseState",
+                           "| 0010 : 0.2",
+                           "| 0100 : 0.3", ""], "\n")
   end
 end
