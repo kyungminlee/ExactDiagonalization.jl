@@ -11,6 +11,6 @@ makedocs(
   )
 
 deploydocs(
-    deps=Deps.pip("pygments", "mkdocs", "python-markdown-math"),
+    #deps=Deps.pip("pygments", "mkdocs", "python-markdown-math"),
     repo = "github.com/kyungminlee/ExactDiagonalization.jl.git",
   )

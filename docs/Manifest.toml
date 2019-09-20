@@ -41,17 +41,13 @@ git-tree-sha1 = "1b6ae3796f60311e39cd1770566140d2c056e87f"
 uuid = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 version = "0.23.3"
 
-[[DocumenterTools]]
-deps = ["Base64", "DocStringExtensions", "LibGit2"]
-git-tree-sha1 = "4c311de5cf6f8fe7a0489b9e3b02fbe3148dde15"
-uuid = "35a29f4d-8980-5a13-9543-d66fff28ecb8"
-version = "0.1.1"
-
 [[ExactDiagonalization]]
 deps = ["DataStructures", "JLD2", "LinearAlgebra", "Memento", "SparseArrays", "StaticArrays", "Test"]
-path = "C:\\Users\\klee\\Dropbox\\Code\\ExactDiagonalization.jl"
+git-tree-sha1 = "01d0b108730422f591a7a5ad0d0fc2ba37750e9e"
+repo-rev = "master"
+repo-url = "https://github.com/kyungminlee/ExactDiagonalization.jl.git"
 uuid = "cf149b0a-e8f7-4f00-9ab4-03e4f5ec5cff"
-version = "0.1.0"
+version = "0.2.0"
 
 [[EzXML]]
 deps = ["BinaryProvider", "Libdl", "Printf"]
