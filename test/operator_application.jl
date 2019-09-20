@@ -26,18 +26,19 @@ using ExactDiagonalization
     hs = AbstractHilbertSpace([spin_site, spin_site, spin_site, spin_site])
     σ(i::Integer, j::Symbol) = pauli_matrix(hs, i, j)
 
-    @testset "apply" begin
-      chs = concretize(hs, 0)
-      psi = SparseState{Float64, UInt}(hs, UInt(0b0011) => 2.0, UInt(0b0101) => 10.0)
-      
+    chs = concretize(hs, 0)
+    psi = SparseState{Float64, UInt}(hs, UInt(0b0011) => 2.0, UInt(0b0101) => 10.0)
+    
+    @testset "hilbert" begin
+      hs2 = AbstractHilbertSpace([spin_site, spin_site, spin_site,])
+      psi2 = SparseState{Float64, UInt}(hs2, UInt(0b0011) => 2.0, UInt(0b0101) => 10.0)
+      @test_throws ArgumentError apply(σ(1, :+), psi2)
+      @test_throws ArgumentError apply(σ(1, :x), psi2)
+    end
 
-      @testset "hilbert" begin
-        hs2 = AbstractHilbertSpace([spin_site, spin_site, spin_site,])
-        psi2 = SparseState{Float64, UInt}(hs2, UInt(0b0011) => 2.0, UInt(0b0101) => 10.0)
-        @test_throws ArgumentError apply(σ(1, :+), psi2)
-        @test_throws ArgumentError apply(σ(1, :x), psi2)
-      end
-      
+    @testset "apply" begin
+      @test apply(NullOperator(), psi) == SparseState{Float64, UInt}(hs)
+    
       @test apply(σ(1, :+), psi) == SparseState{Float64, UInt}(hs)
       @test apply(σ(1, :-), psi) == SparseState{Float64, UInt}(hs, UInt(0b0010) => 2.0, UInt(0b0100) => 10.0)
 
@@ -51,7 +52,58 @@ using ExactDiagonalization
           @test ϕ1 == ϕ2
         end
       end
+
     end
+
+    @testset "apply!" begin
+      let
+        psi2 = SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
+        apply!(psi2, NullOperator(), psi)
+        @test psi2 == SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
+      end
+
+      let
+        psi2 = SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
+        apply!(psi2, σ(1, :+), psi)
+        @test psi2 == SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
+      end
+
+      let
+        psi2 = SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
+        apply!(psi2, σ(1, :-), psi)
+        @test psi2 == SparseState{Float64, UInt}(hs, UInt(0b0010) => 2.25, UInt(0b0100) => 10.0)
+      end
+
+      let
+        psi2 = SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
+        apply!(psi2, σ(2, :+), psi)
+        @test psi2 == SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25, UInt(0b0111) => 10.0)
+      end
+
+      let
+        psi2 = SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
+        apply!(psi2, σ(2, :-), psi)
+        @test psi2 == SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25, UInt(0b0001) => 2.0)
+      end
+
+      for i1 in 1:4, j1 in [:x, :y, :z, :+, :-]
+        ϕ1 = apply(σ(i1, j1), psi)
+        ϕ2 = SparseState{ComplexF64, UInt}(hs)
+        apply!(ϕ2, σ(i1, j1), psi)
+        @test ϕ1 == ϕ2
+        ϕ3 = SparseState{Float64, UInt}(hs)
+      end
+
+      let
+        psi2 = SparseState{ComplexF64, UInt}(hs, UInt(0b0010) => 0.25)
+        psi3 = apply(σ(2, :y), psi2)
+        psi4 = SparseState{Float64, UInt}(hs)
+        @test_throws InexactError apply!(psi4, σ(2, :y), psi2)
+        # TODO more
+      end
+
+    end
+
 
     @testset "materialize" begin
       n = 4
@@ -93,9 +145,7 @@ using ExactDiagonalization
           @test ϵy ≈ ϵyp
           @test ϵz ≈ ϵzp
         end
-
       end
-
 
       @testset "allsector" begin
         PAULI_MATRIX = [
@@ -130,19 +180,6 @@ using ExactDiagonalization
       # H3, ϵ3 = materialize_parallel(chs, xy)
       # @show ϵ3
       # @show H3
-
     end
   end
 end
-
-# @testset "apply" begin
-#   QN = SVector{2, Int}
-#   em = State("Em", QN( 0, 0))  # charge and spin
-#   up = State("Up", QN( 1, 1))
-#   dn = State("Dn", QN( 1,-1))
-#   spin_site = Site([up, dn])
-#   site = Site([em, up, dn])
-#   hs = AbstractHilbertSpace([site, spin_site, spin_site]) # f s s
-
-#   chs = concretize(hs, QN([3, 1]))
-# end
