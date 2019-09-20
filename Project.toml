@@ -9,3 +9,9 @@ JLD2 = "033835bb-8acc-5ee8-8aae-3f567f8a3819"
 Memento = "f28f55f0-a522-5efc-85c2-fe41dfb9b2d9"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
