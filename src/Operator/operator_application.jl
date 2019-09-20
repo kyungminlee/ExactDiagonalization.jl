@@ -57,7 +57,8 @@ function apply!(out::SparseState{S1, BR}, pureop ::PureOperator{S2, BR}, psi::Sp
   end
 end
 
-function apply!(out::SparseState{S1, BR}, sumop ::SumOperator{S1, BR}, psi::SparseState{S2, BR}) where {S1, S2, S3, BR}
+function apply!(out::SparseState{S1, BR}, sumop ::SumOperator{S2, BR}, psi::SparseState{S3, BR}) where {S1, S2, S3, BR}
+  # TODO ADD TYPE CHECKS
   # S3 = promote_type(S1, S2)
   # @boundscheck if sumop.hilbert_space !== psi.hilbert_space
   #   throw(ArgumentError("Hilbert spaces of lhs and rhs of + should match"))
