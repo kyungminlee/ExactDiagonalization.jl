@@ -1,8 +1,7 @@
 module ExactDiagonalization
 
-using StaticArrays
 using DataStructures
-using LinearAlgebra
+using StaticArrays
 using SparseArrays
 
 include("util.jl")
