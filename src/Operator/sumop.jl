@@ -112,4 +112,9 @@ end
 
 
 
+import Base.convert
+function convert(type ::Type{SumOperator{S1, BR}}, obj::SumOperator{S2, BR}) where {S1, S2, BR}
+  return SumOperator{S1, BR}(obj.hilbert_space, [convert(PureOperator{S1, BR}, t) for t in obj.terms])
+end
+
 

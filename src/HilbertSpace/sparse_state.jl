@@ -145,3 +145,17 @@ function (/)(lhs ::SparseState{S1, BR}, rhs ::S2) where {S1, S2<:Number, BR}
   end
   return out
 end
+
+import Base.convert
+function convert(type ::Type{SparseState{S1, BR}}, obj::SparseState{S2, BR}) where {S1, S2, BR}
+  # hilbert_space ::AbstractHilbertSpace
+  # components ::DefaultDict{BR, Scalar, Scalar}
+  # function SparseState{Scalar, BR}(hs ::AbstractHilbertSpace) where {Scalar, BR}
+  #   return new{Scalar, BR}(hs, DefaultDict{BR, Scalar, Scalar}(zero(Scalar)))
+  # end
+  
+  state = SparseState{S1, BR}(obj.hilbert_space)
+  for (k, v) in obj.components
+    state[k] = v
+  end
+end
