@@ -9,7 +9,7 @@ end
 
 
 function apply!(out::SparseState{S1, BR}, pureop ::PureOperator{S2, BR}, psi::SparseState{S3, BR}) where {S1, S2, S3, BR}
-  if pureop.hilbert_space !== psi.hilbert_space
+  if pureop.hilbert_space !== psi.hilbert_space || out.hilbert_space !== psi.hilbert_space
     throw(ArgumentError("Hilbert spaces of lhs and rhs of + should match"))
   end
   apply_unsafe!(out, pureop, psi)
@@ -17,8 +17,8 @@ end
 
 
 function apply!(out::SparseState{S1, BR}, sumop ::SumOperator{S2, BR}, psi::SparseState{S3, BR}) where {S1, S2, S3, BR}
-  if sumop.hilbert_space !== psi.hilbert_space
-    throw(ArgumentError("Hilbert spaces of lhs and rhs of + should match"))
+  if sumop.hilbert_space !== psi.hilbert_space || out.hilbert_space !== psi.hilbert_space 
+    throw(ArgumentError("Hilbert spaces should match"))
   end
   return apply_unsafe!(out, sumop, psi)
 end
