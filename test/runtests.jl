@@ -1,6 +1,8 @@
 using Test
 using ExactDiagonalization
 
+include("util.jl")
+
 include("hilbert_space.jl")
 include("operator.jl")
 
