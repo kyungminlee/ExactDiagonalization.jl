@@ -63,6 +63,12 @@ using ExactDiagonalization
       end
 
       let
+        psi2 = SparseState{Float64, UInt}(hs2, UInt(0b0011) => 2.0, UInt(0b0101) => 10.0)
+        @test_throws ArgumentError apply!(psi2, σ(1, :+), psi)
+        @test_throws ArgumentError apply!(psi2, σ(1, :x), psi)
+      end
+
+      let
         psi2 = SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
         apply!(psi2, σ(1, :+), psi)
         @test psi2 == SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
