@@ -59,33 +59,30 @@ imag(arg ::SparseState{R, BR}) where {R<:Real, BR} = SparseState{R, BR}(arg.hilb
 conj(arg ::SparseState{R, BR}) where {R<:Real, BR} = arg
 
 function real(arg ::SparseState{Complex{R}, BR}) where {R<:Real, BR}
-  kv = [(k, real(v)) for (k, v) in arg.components]
-  components = DefaultDict{BR, R, R}(zero(R), kv)
+  components = DefaultDict{BR, R, R}(zero(R), [(k, real(v)) for (k, v) in arg.components])
   return SparseState{R, BR}(arg.hilbert_space, components)
 end
 
 function imag(arg ::SparseState{Complex{R}, BR}) where {R<:Real, BR}
-  kv = [(k, imag(v)) for (k, v) in arg.components]
-  components = DefaultDict{BR, R, R}(zero(R), kv)
+  components = DefaultDict{BR, R, R}(zero(R), [(k, imag(v)) for (k, v) in arg.components])
   return SparseState{R, BR}(arg.hilbert_space, components)
 end
 
 function conj(arg ::SparseState{Complex{R}, BR}) where {R<:Real, BR}
-  kv = [(k, conj(v)) for (k, v) in arg.components]
-  components = DefaultDict{BR, Complex{R}, Complex{R}}(zero(Complex{R}), kv)
+  components = DefaultDict{BR, Complex{R}, Complex{R}}(zero(Complex{R}), [(k, conj(v)) for (k, v) in arg.components])
   return SparseState{Complex{R}, BR}(arg.hilbert_space, components)
 end
 
 import Base.-, Base.+, Base.*, Base./
 
-(+)(arg ::SparseState{S, BR}) where {S, BR} = arg
+(+)(arg ::SparseState{S, BR}) where {S, BR} = copy(arg)
 
 function (-)(arg ::SparseState{S, BR}) where {S, BR}
-  out = SparseState{S, BR}(arg.hilbert_space, )
+  out = SparseState{S, BR}(arg.hilbert_space)
   for (b, v) in arg.components
-    out[b] -= v
+    out[b] = -v
   end
-  out
+  return out
 end
 
 function (+)(lhs ::SparseState{S1, BR}, rhs ::SparseState{S2, BR}) where {S1, S2, BR}
@@ -95,7 +92,7 @@ function (+)(lhs ::SparseState{S1, BR}, rhs ::SparseState{S2, BR}) where {S1, S2
   end
   out = SparseState{S3, BR}(lhs.hilbert_space)
   for (b, v) in lhs.components
-    out[b] += v
+    out[b] = v
   end
   for (b, v) in rhs.components
     out[b] += v
@@ -110,7 +107,7 @@ function (-)(lhs ::SparseState{S1, BR}, rhs ::SparseState{S2, BR}) where {S1, S2
   end
   out = SparseState{S3, BR}(lhs.hilbert_space)
   for (b, v) in lhs.components
-    out[b] += v
+    out[b] = v
   end
   for (b, v) in rhs.components
     out[b] -= v
@@ -122,7 +119,7 @@ function (*)(lhs ::SparseState{S1, BR}, rhs ::S2) where {S1, S2<:Number, BR}
   S3 = promote_type(S1, S2)
   out = SparseState{S3, BR}(lhs.hilbert_space)
   for (b, v) in lhs.components
-    out[b] += v * rhs
+    out[b] = v * rhs
   end
   return out
 end
@@ -131,7 +128,7 @@ function (*)(lhs ::S1, rhs ::SparseState{S2, BR}) where {S1<:Number, S2<:Number,
   S3 = promote_type(S1, S2)
   out = SparseState{S3, BR}(rhs.hilbert_space)
   for (b, v) in rhs.components
-    out[b] += lhs * v
+    out[b] = lhs * v
   end
   return out
 end
@@ -140,7 +137,7 @@ function (/)(lhs ::SparseState{S1, BR}, rhs ::S2) where {S1, S2<:Number, BR}
   S3 = promote_type(S1, S2)
   out = SparseState{S3, BR}(lhs.hilbert_space)
   for (b, v) in lhs.components
-    out[b] += v / rhs
+    out[b] = v / rhs
   end
   return out
 end

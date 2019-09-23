@@ -39,6 +39,7 @@ function concretize(hs ::AbstractHilbertSpace{QN}; BR ::DataType=UInt) where {QN
     push!(basis_list, compress(hs, indexarray))
   end
   basis_lookup = Dict{BR, Int}()
+  sizehint!(basis_lookup, length(basis_list))
   for (ibasis, basis) in enumerate(basis_list)
     basis_lookup[basis] = ibasis
   end
@@ -140,6 +141,7 @@ function concretize(
   result = nothing
 
   basis_lookup = Dict{BR, Int}()
+  sizehint!(basis_lookup, length(basis_list))
   for (ibasis, basis) in enumerate(basis_list)
     basis_lookup[basis] = ibasis
   end
@@ -150,6 +152,7 @@ end
 function concretize(hs ::AbstractHilbertSpace{QN},
                     basis_list ::AbstractArray{BR}) where {QN, BR<:Unsigned}
   basis_lookup = Dict{BR, Int}()
+  sizehint!(basis_lookup, length(basis_list))
   for (ibasis, basis) in enumerate(basis_list)
     basis_lookup[basis] = ibasis
   end
