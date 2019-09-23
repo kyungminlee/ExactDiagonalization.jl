@@ -176,10 +176,6 @@ using ExactDiagonalization
           @test isa(Bz.nzval, Array{Float64, 1})
         end
       end
-      # xy = sum(σ(i, j) * σ( mod(i, n) + 1, j) for i in 1:n, j in [:x, :y])
-      # H3, ϵ3 = materialize_parallel(chs, xy)
-      # @show ϵ3
-      # @show H3
     end
   end
 end

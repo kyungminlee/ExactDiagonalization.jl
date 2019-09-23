@@ -1,7 +1,6 @@
 export AbstractHilbertSpace
-export add_site!, quantum_number_sectors, get_quantum_number, extract, compress, update, get_state, get_state_index
+export quantum_number_sectors, get_quantum_number, extract, compress, update, get_state, get_state_index
 export get_bitmask
-
 
 """
     AbstractHilbertSpace{QN}
@@ -134,7 +133,7 @@ function compress(hs ::AbstractHilbertSpace{QN}, indexarray ::AbstractVector{I};
 end
 
 
-function update(hs ::AbstractHilbertSpace, binrep ::U, isite ::Integer, new_state_index ::Integer) where {U <:Unsigned}
+function update(hs ::AbstractHilbertSpace, binrep ::U, isite ::Integer, new_state_index ::Integer) where {U<:Unsigned}
   @boundscheck if !(1 <= new_state_index <= dimension(hs.sites[isite]))
     throw(BoundsError(1:dimension(hs.sites[isite]), new_state_index))
   end

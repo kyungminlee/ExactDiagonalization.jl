@@ -1,3 +1,5 @@
+export make_bitmask
+
 function make_bitmask(msb ::Integer,
                       lsb ::Integer=0;
                       dtype ::DataType=UInt)

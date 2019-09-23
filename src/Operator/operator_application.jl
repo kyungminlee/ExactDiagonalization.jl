@@ -1,5 +1,5 @@
 export apply, apply!
-export materialize, materialize_parallel, materialize2
+export materialize, materialize_parallel
 
 
 import Base.isempty
