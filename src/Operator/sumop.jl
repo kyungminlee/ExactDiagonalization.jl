@@ -3,8 +3,7 @@ export SumOperator
 
 struct SumOperator{Scalar<:Number, BR <:Unsigned} <:AbstractOperator
   hilbert_space ::AbstractHilbertSpace
-  #terms ::Vector{OptionalPureOperator{Scalar, BR}} # SumOperator{Scalar, BR}, 
-  terms ::Vector{PureOperator{Scalar, BR}} # SumOperator{Scalar, BR}, 
+  terms ::Vector{PureOperator{Scalar, BR}}
 
   function SumOperator{S, BR}(hs ::AbstractHilbertSpace, terms) where {S, BR}
     if any(!isa(t,  NullOperator) && t.hilbert_space !== hs for t in terms)
