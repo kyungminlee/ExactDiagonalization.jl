@@ -52,6 +52,10 @@ function (==)(lhs ::SparseState{S1, BR}, rhs::SparseState{S2, BR}) where {S1, S2
   return (lhs.hilbert_space == rhs.hilbert_space) && (lhs.components == rhs.components)
 end
 
+import Base.copy
+function copy(arg ::SparseState{S, BR}) where {S, BR}
+  return SparseState{S, BR}(arg.hilbert_space, copy(arg.components))
+end
 
 import Base.real, Base.imag, Base.conj
 real(arg ::SparseState{R, BR}) where {R<:Real, BR} = arg
@@ -59,18 +63,27 @@ imag(arg ::SparseState{R, BR}) where {R<:Real, BR} = SparseState{R, BR}(arg.hilb
 conj(arg ::SparseState{R, BR}) where {R<:Real, BR} = arg
 
 function real(arg ::SparseState{Complex{R}, BR}) where {R<:Real, BR}
-  components = DefaultDict{BR, R, R}(zero(R), [(k, real(v)) for (k, v) in arg.components])
-  return SparseState{R, BR}(arg.hilbert_space, components)
+  return SparseState{R, BR}(arg.hilbert_space,
+                            DefaultDict{BR, R, R}(zero(R),
+                                                  [(k, real(v)) for (k, v) in arg.components]
+                                                 )
+                           )
 end
 
 function imag(arg ::SparseState{Complex{R}, BR}) where {R<:Real, BR}
-  components = DefaultDict{BR, R, R}(zero(R), [(k, imag(v)) for (k, v) in arg.components])
-  return SparseState{R, BR}(arg.hilbert_space, components)
+  return SparseState{R, BR}(arg.hilbert_space,
+                            DefaultDict{BR, R, R}(zero(R),
+                                                  [(k, imag(v)) for (k, v) in arg.components]
+                                                 )
+                           )
 end
 
 function conj(arg ::SparseState{Complex{R}, BR}) where {R<:Real, BR}
-  components = DefaultDict{BR, Complex{R}, Complex{R}}(zero(Complex{R}), [(k, conj(v)) for (k, v) in arg.components])
-  return SparseState{Complex{R}, BR}(arg.hilbert_space, components)
+  return SparseState{Complex{R}, BR}(arg.hilbert_space,
+                                     DefaultDict{BR, Complex{R}, Complex{R}}(zero(Complex{R}),
+                                                                             [(k, conj(v)) for (k, v) in arg.components]
+                                                                            )
+                                    )
 end
 
 import Base.-, Base.+, Base.*, Base./
