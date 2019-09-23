@@ -138,6 +138,16 @@ using ExactDiagonalization
         @test H3 ≈ H
 
         let
+          A, ϵ = materialize(chs, NullOperator())
+          Ap, ϵp = materialize_parallel(chs, NullOperator())
+          n = dimension(chs)
+          @test isempty(A.nzval)
+          @test size(A) == (n, n)
+          @test isempty(Ap.nzval)
+          @test size(Ap) == (n, n)
+        end
+
+        let
           Bx, ϵx = materialize(chs, field_x)
           By, ϵy = materialize(chs, field_y)
           Bz, ϵz = materialize(chs, field_z)
