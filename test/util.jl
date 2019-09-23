@@ -67,6 +67,13 @@ using ExactDiagonalization
       @test c == [1,2,3,4,5,6,7]
     end
 
+    let
+      a = Int[1,1,1,1]
+      b = Int[1,1,1,1,1]
+      c = ExactDiagonalization.merge_vec(a, b)
+      @test c == [1,1,1,1,1,1,1,1,1]
+    end
+
   end
 
 end

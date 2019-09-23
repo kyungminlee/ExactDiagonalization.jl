@@ -20,6 +20,7 @@ function merge_vec(x::Vector{T}, y::Vector{T})::Vector{T} where {T}
       ny += 1
     else
       push!(z, x[nx])
+      push!(z, y[ny])
       nx += 1
       ny += 1
     end
