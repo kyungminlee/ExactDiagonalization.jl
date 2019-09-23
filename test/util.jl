@@ -45,6 +45,28 @@ using ExactDiagonalization
       c = ExactDiagonalization.merge_vec(a, b)
       @test c == [1,2,3,4,5,6,7]
     end
+
+    let
+      a = Int[1,2,3]
+      b = Int[4,5,6,7]
+      c = ExactDiagonalization.merge_vec(a, b)
+      @test c == [1,2,3,4,5,6,7]
+    end
+
+    let
+      a = Int[1,2,3,4]
+      b = Int[5,6,7]
+      c = ExactDiagonalization.merge_vec(a, b)
+      @test c == [1,2,3,4,5,6,7]
+    end
+
+    let
+      a = Int[1,2,3]
+      b = Int[4,5,6,7]
+      c = ExactDiagonalization.merge_vec(a, b)
+      @test c == [1,2,3,4,5,6,7]
+    end
+
   end
 
 end

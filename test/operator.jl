@@ -58,6 +58,24 @@ end
     end
   end
 
+  @testset "convert" begin
+    @test_throws InexactError convert(PureOperator{Float64, UInt}, PureOperator{ComplexF64, UInt}(hs, 0b0010, 0b0000, 0b0000, 2.0 + 1.0im))
+
+    t1 = PureOperator{Float64, UInt}(hs,  0b0010, 0b0000, 0b0000, 2.0)
+    t2 = PureOperator{ComplexF64, UInt}(hs,  0b0010, 0b0000, 0b0000, 2.0 + 0.0im)
+    t3 = convert(PureOperator{ComplexF64, UInt}, t1)
+    t4 = convert(PureOperator{Float64, UInt}, t2)
+
+    @test typeof(t2) == typeof(t3)
+    @test t2 == t3
+    @test typeof(t1) == typeof(t4)
+    @test t1 == t4
+    arr1 = PureOperator{ComplexF64, UInt}[]
+    push!(arr1, t1)
+    arr2 = PureOperator{Float64, UInt}[]
+    push!(arr2, t2)
+  end
+
   @testset "constructor" begin
     PureOperator{Float64, UInt}(hs, 0b0010, 0b0010, 0b0010, 1.0)
     @test_throws ArgumentError PureOperator{Float64, UInt}(hs, 0b0010, 0b0011, 0b0010, 1.0)
@@ -251,6 +269,28 @@ end
     sop3 = SumOperator{ComplexF64, UInt}(hs, [pop1, pop4])
     @test sop1 == sop3
   end
+
+
+  @testset "convert" begin
+    @test_throws InexactError convert(PureOperator{Float64, UInt}, PureOperator{ComplexF64, UInt}(hs, 0b0010, 0b0000, 0b0000, 2.0 + 1.0im))
+
+    pop1 = PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0000, 2.0)
+    pop2 = PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0010, 3.0)
+    sop1 = SumOperator{Float64, UInt}(hs, [pop1, pop2])
+    sop2 = SumOperator{ComplexF64, UInt}(hs, [pop1, pop2])
+    sop3 = convert(SumOperator{ComplexF64, UInt}, sop1)
+    sop4 = convert(SumOperator{Float64, UInt}, sop2)
+
+    @test typeof(sop2) == typeof(sop3)
+    @test sop2 == sop3
+    @test typeof(sop1) == typeof(sop4)
+    @test sop1 == sop4
+    arr1 = SumOperator{ComplexF64, UInt}[]
+    push!(arr1, sop1)
+    arr2 = SumOperator{Float64, UInt}[]
+    push!(arr2, sop2)
+  end
+
   
   @testset "unary" begin
     @testset "real" begin
