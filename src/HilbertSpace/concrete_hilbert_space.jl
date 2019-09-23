@@ -68,6 +68,13 @@ end
 #   return ConcreteHilbertSpace{QN, BR}(hs, basis_list, basis_lookup)
 # end
 
+function concretize(
+    hs::AbstractHilbertSpace{QN},
+    qn::QN;
+    BR::DataType=UInt) where {QN}
+  return concretize(hs, [qn]; BR=BR)
+end
+
 """
     concretize(hs; BR ::DataType=UInt)
 
@@ -80,25 +87,9 @@ Make a ConcreteHilbertSpace with all the basis vectors of the specified Abstract
 """
 function concretize(
     hs::AbstractHilbertSpace{QN},
-    allowed::AbstractArray{QN};
+    allowed::Union{AbstractSet{QN}, AbstractVector{QN}};
     BR::DataType=UInt) where {QN}
-  return concretize(hs, Set(allowed); BR=BR)
-end
-
-
-function concretize(
-    hs::AbstractHilbertSpace{QN},
-    qn::QN;
-    BR::DataType=UInt) where {QN}
-  return concretize(hs, Set([qn]); BR=BR)
-end
-
-
-function concretize(
-    hs::AbstractHilbertSpace{QN},
-    allowed::AbstractSet{QN};
-    BR::DataType=UInt) where {QN}
-
+  allowed = Set(allowed)
   sectors = Set(quantum_number_sectors(hs))
   if isempty(intersect(allowed, sectors))
     return ConcreteHilbertSpace{QN, BR}(hs, [], Dict())
