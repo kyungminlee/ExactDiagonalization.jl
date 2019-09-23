@@ -126,12 +126,14 @@ function concretize(
     return result
   end
 
-  basis_list = BR[]
-  result = generate(n_sites, allowed)
-  for (q, states) in result
-    basis_list = merge_vec(basis_list, states)
+  basis_list ::Vector{BR} = let
+    basis_list = BR[]
+    result = generate(n_sites, allowed)
+    for (q, states) in result
+      basis_list = merge_vec(basis_list, states)
+    end
+    basis_list
   end
-  result = nothing
 
   basis_lookup = Dict{BR, Int}(basis => ibasis for (ibasis, basis) in enumerate(basis_list))
   return ConcreteHilbertSpace{QN, BR}(hs, basis_list, basis_lookup)
