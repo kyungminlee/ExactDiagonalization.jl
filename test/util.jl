@@ -12,8 +12,8 @@ using ExactDiagonalization
   end
 
   @testset "bitcount" begin
-    @test ExactDiagonalization.bitcount(0b0110101) == 4
-    @test ExactDiagonalization.bitcount(0b0100001) == 2
+    @test ExactDiagonalization.bitcount(UInt(0b0110101)) == 4
+    @test ExactDiagonalization.bitcount(UInt(0b0100001)) == 2
   end
 
   @testset "merge_vec" begin
@@ -30,6 +30,7 @@ using ExactDiagonalization
       c = ExactDiagonalization.merge_vec(a, b)
       @test c == [1,2,3,4,5,6,7]
     end
+    
     let
       a = Int[4,5,6,7]
       b = Int[1,2,3]
