@@ -63,6 +63,7 @@ using ExactDiagonalization
       end
 
       let
+        hs2 = AbstractHilbertSpace([spin_site, spin_site, spin_site,])
         psi2 = SparseState{Float64, UInt}(hs2, UInt(0b0011) => 2.0, UInt(0b0101) => 10.0)
         @test_throws ArgumentError apply!(psi2, σ(1, :+), psi)
         @test_throws ArgumentError apply!(psi2, σ(1, :x), psi)
