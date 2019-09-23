@@ -8,20 +8,16 @@ struct ConcreteHilbertSpace{QN, BR}
 end
 
 import Base.==
-
 function (==)(lhs ::ConcreteHilbertSpace{H1, B1}, rhs ::ConcreteHilbertSpace{H2, B2}) where {H1, B1, H2, B2}
   return (H1 == H2) && (B1 == B2) && (lhs.hilbert_space == rhs.hilbert_space) && (lhs.basis_list == rhs.basis_list)
 end
 
-# struct ConcreteHilbertSpaceBlock{QN, BR}
-#   hilbert_space ::AbstractHilbertSpace{QN}
-#   quantum_number ::QN
-#   basis_list ::Vector{BR}
-#   basis_lookup ::Dict{BR, Int}
-# end
+"""
+    dimension
 
+Dimension of the Concrete Hilbert space, i.e. number of basis vectors.
+"""
 dimension(chs ::ConcreteHilbertSpace) = length(chs.basis_list)
-#dimension(chsb ::ConcreteHilbertSpaceBlock) = length(chsb.basis_list)
 
 """
     concretize(hs; BR ::DataType=UInt)
@@ -111,10 +107,10 @@ function concretize(
   function generate(i ::Int, allowed ::AbstractSet{QN})
     if i == 0
       return (zero(QN) in allowed) ? Dict(zero(QN) => [BR(0x0)]) : Dict()
-    end    
+    end
     allowed_prev = Set{QN}()
     for q1 in quantum_numbers[i], q2 in allowed
-      q = q2 .- q1
+      q = q2 - q1
       if q in possible_quantum_numbers[i]
         push!(allowed_prev, q)
       end
