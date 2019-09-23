@@ -23,11 +23,10 @@ import Base.real, Base.imag, Base.conj, Base.transpose
 
 real(arg ::SumOperator{S, BR}) where {S<:Real, BR} = arg
 imag(arg ::SumOperator{S, BR}) where {S<:Real, BR} = SumOperator{S, BR}(arg.hilbert_space, [])
+conj(arg ::SumOperator{S, BR}) where {S<:Real, BR} = arg
 
 real(arg ::SumOperator{Complex{S}, BR}) where {S<:Real, BR} = SumOperator{S, BR}(arg.hilbert_space, real.(arg.terms))
 imag(arg ::SumOperator{Complex{S}, BR}) where {S<:Real, BR} = SumOperator{S, BR}(arg.hilbert_space, imag.(arg.terms))
-
-conj(arg ::SumOperator{S, BR}) where {S<:Real, BR} = arg
 conj(arg ::SumOperator{Complex{S}, BR}) where {S<:Real, BR} = SumOperator{Complex{S}, BR}(arg.hilbert_space, conj.(arg.terms))
 
 transpose(arg ::SumOperator{S, BR}) where {S, BR} = SumOperator{S, BR}(arg.hilbert_space, transpose.(arg.terms))

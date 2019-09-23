@@ -79,6 +79,7 @@ import Base.real, Base.imag, Base.conj, Base.transpose
 
 real(arg ::PureOperator{S, BR}) where {S<:Real, BR} = arg
 imag(arg ::PureOperator{S, BR}) where {S<:Real, BR} = PureOperator{S, BR}(arg.hilbert_space, arg.bitmask, arg.bitsource, arg.bittarget, zero(S))
+conj(arg ::PureOperator{S, BR}) where {S<:Real, BR} = arg
 
 function real(arg ::PureOperator{Complex{R}, BR}) where {R<:Real, BR}
   return PureOperator{R, BR}(arg.hilbert_space,
