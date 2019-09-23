@@ -2,7 +2,43 @@ export apply, apply!
 
 
 import Base.isempty
-isempty(psi::SparseState{S2, BR}) where {S2, BR} = isempty(psi.components)
+isempty(psi::SparseState{S, BR}) where {S, BR} = isempty(psi.components)
+
+function apply!(out::SparseState{S1, BR}, nullop ::NullOperator, psi::SparseState{S2, BR}) where {S1, S2, BR}
+end
+
+
+function apply!(out::SparseState{S1, BR}, pureop ::PureOperator{S2, BR}, psi::SparseState{S3, BR}) where {S1, S2, S3, BR}
+  if pureop.hilbert_space !== psi.hilbert_space
+    throw(ArgumentError("Hilbert spaces of lhs and rhs of + should match"))
+  end
+  apply_unsafe!(out, pureop, psi)
+end
+
+
+function apply!(out::SparseState{S1, BR}, sumop ::SumOperator{S2, BR}, psi::SparseState{S3, BR}) where {S1, S2, S3, BR}
+  if sumop.hilbert_space !== psi.hilbert_space
+    throw(ArgumentError("Hilbert spaces of lhs and rhs of + should match"))
+  end
+  return apply_unsafe!(out, sumop, psi)
+end
+
+
+function apply_unsafe!(out::SparseState{S1, BR}, pureop ::PureOperator{S2, BR}, psi::SparseState{S3, BR}) where {S1, S2, S3, BR}
+  for (b, v) in psi.components
+    if (b & pureop.bitmask) == pureop.bitsource
+      b2 = (b & ~pureop.bitmask) | pureop.bittarget
+      out[b2] += pureop.amplitude * v
+    end
+  end
+end
+
+function apply_unsafe!(out::SparseState{S1, BR}, sumop ::SumOperator{S2, BR}, psi::SparseState{S3, BR}) where {S1, S2, S3, BR}
+  for t in sumop.terms
+    apply!(out, t, psi)
+  end
+end
+
 
 function apply(pureop ::NullOperator, psi::SparseState{S2, BR}) where {S2, BR}
   return SparseState{S2, BR}(psi.hilbert_space)
@@ -11,64 +47,27 @@ end
 
 function apply(pureop ::PureOperator{S1, BR}, psi::SparseState{S2, BR}) where {S1, S2, BR}
   S3 = promote_type(S1, S2)
-  @boundscheck if pureop.hilbert_space !== psi.hilbert_space
+  if pureop.hilbert_space !== psi.hilbert_space
     throw(ArgumentError("Hilbert spaces of lhs and rhs of + should match"))
   end
   out = SparseState{S3, BR}(psi.hilbert_space)
-  for (b, v) in psi.components
-    if (b & pureop.bitmask) == pureop.bitsource
-      b2 = (b & ~pureop.bitmask) | pureop.bittarget
-      out[b2] += pureop.amplitude * v
-    end
-  end
+  apply_unsafe!(out, pureop, psi)
   return out
 end
+
 
 function apply(sumop ::SumOperator{S1, BR}, psi::SparseState{S2, BR}) where {S1, S2, BR}
   S3 = promote_type(S1, S2)
-  @boundscheck if sumop.hilbert_space !== psi.hilbert_space
+  if sumop.hilbert_space !== psi.hilbert_space
     throw(ArgumentError("Hilbert spaces of lhs and rhs of + should match"))
   end
   out = SparseState{S3, BR}(psi.hilbert_space)
   for t in sumop.terms
-    out += apply(t, psi)
+    apply_unsafe!(out, t, psi)
   end
   return out
 end
 
-
-
-
-function apply!(out::SparseState{S1, BR}, pureop ::NullOperator, psi::SparseState{S2, BR}) where {S1, S2, BR}
-end
-
-
-function apply!(out::SparseState{S1, BR}, pureop ::PureOperator{S2, BR}, psi::SparseState{S3, BR}) where {S1, S2, S3, BR}
-  # @boundscheck if pureop.hilbert_space !== psi.hilbert_space
-  #   throw(ArgumentError("Hilbert spaces of lhs and rhs of + should match"))
-  # end
-  # out = SparseState{S3, BR}(psi.hilbert_space)
-  for (b, v) in psi.components
-    if (b & pureop.bitmask) == pureop.bitsource
-      b2 = (b & ~pureop.bitmask) | pureop.bittarget
-      out[b2] += pureop.amplitude * v
-    end
-  end
-end
-
-function apply!(out::SparseState{S1, BR}, sumop ::SumOperator{S2, BR}, psi::SparseState{S3, BR}) where {S1, S2, S3, BR}
-  # TODO ADD TYPE CHECKS
-  # S3 = promote_type(S1, S2)
-  # @boundscheck if sumop.hilbert_space !== psi.hilbert_space
-  #   throw(ArgumentError("Hilbert spaces of lhs and rhs of + should match"))
-  # end
-  # out = SparseState{S3, BR}(psi.hilbert_space)
-  for t in sumop.terms
-    apply!(out, t, psi)
-    # out += apply(t, psi)
-  end
-  # return out
-end
 
 
 
