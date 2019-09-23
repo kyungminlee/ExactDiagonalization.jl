@@ -11,6 +11,7 @@ end
 function merge_vec(x::Vector{T}, y::Vector{T})::Vector{T} where {T}
   (nx, ny) = (1, 1)
   z = T[]
+  sizehint!(z, length(x) + length(y))
   while nx <= length(x) && ny <= length(y)
     if x[nx] < y[ny]
       push!(z, x[nx])
