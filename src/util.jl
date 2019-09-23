@@ -32,6 +32,32 @@ function merge_vec(x::Vector{T}, y::Vector{T})::Vector{T} where {T}
   return z
 end
 
+function bitcount(i ::UInt8) ::Int
+  i = i - ((i >> 1) & 0b01010101);
+  i = (i & 0b00110011) + ( (i>>2) & 0b00110011);
+  i = i + (i >> 4);
+  return Int(i & 0b1111)
+end
+
+function bitcount(i ::UInt16) ::Int
+  i = i - ((i >> 1) & 0b0101010101010101);
+  i = (i & 0b0011001100110011) + ( (i>>2) & 0b0011001100110011);
+  i = (i + (i >> 4)) & 0b0000111100001111;
+	i = i + (i >> 8);
+  return Int(i & 0b11111)
+end
+
+
+function bitcount(i ::UInt32) ::Int
+  i = i - ((i >> 1) & 0b01010101010101010101010101010101);
+  i = (i & 0b00110011001100110011001100110011) + ( (i>>2) & 0b00110011001100110011001100110011);
+  i = (i + (i >> 4)) & 0b00001111000011110000111100001111;
+	i = i + (i >> 8);
+	i = i + (i >> 16);
+  return Int(i & 0b111111)
+end
+
+
 function bitcount(i ::UInt64) ::Int
 	i = i - ((i >> 1) & 0x5555555555555555);
 	i = (i & 0x3333333333333333) + ((i >> 2) & 0x3333333333333333);
