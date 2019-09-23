@@ -136,7 +136,6 @@ function (*)(lhs ::S1, rhs ::SparseState{S2, BR}) where {S1<:Number, S2<:Number,
   return out
 end
 
-
 function (/)(lhs ::SparseState{S1, BR}, rhs ::S2) where {S1, S2<:Number, BR}
   S3 = promote_type(S1, S2)
   out = SparseState{S3, BR}(lhs.hilbert_space)

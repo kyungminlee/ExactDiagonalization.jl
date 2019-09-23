@@ -23,6 +23,15 @@ end
 dimension(chs ::ConcreteHilbertSpace) = length(chs.basis_list)
 #dimension(chsb ::ConcreteHilbertSpaceBlock) = length(chsb.basis_list)
 
+"""
+    concretize(hs; BR ::DataType=UInt)
+
+Make a ConcreteHilbertSpace with all the basis vectors of the specified AbstractHilbertSpace.
+
+# Arguments
+- `hs ::AbstractHilbertSpace{QN}`: Abstract Hilbert space
+- `BR ::DataType=UInt`: Binary representation type
+"""
 function concretize(hs ::AbstractHilbertSpace{QN}; BR ::DataType=UInt) where {QN}
   basis_list = BR[]
   for indexarray in Iterators.product((1:length(site.states) for site in hs.sites)...)
@@ -59,6 +68,16 @@ end
 #   return ConcreteHilbertSpace{QN, BR}(hs, basis_list, basis_lookup)
 # end
 
+"""
+    concretize(hs; BR ::DataType=UInt)
+
+Make a ConcreteHilbertSpace with all the basis vectors of the specified AbstractHilbertSpace.
+
+# Arguments
+- `hs ::AbstractHilbertSpace{QN}`: Abstract Hilbert space
+- `allowed`: Allowed quantum numbers
+- `BR ::DataType=UInt`: Binary representation type
+"""
 function concretize(
     hs::AbstractHilbertSpace{QN},
     allowed::AbstractArray{QN};
