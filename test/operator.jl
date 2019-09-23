@@ -18,6 +18,7 @@ using StaticArrays
     @test imag(nop) == nop
     @test conj(nop) == nop
     @test transpose(nop) == nop
+    @test adjoint(nop) == nop
   end
 
   @testset "binary" begin
@@ -140,6 +141,7 @@ end
       @test (imag(pop1)) == PureOperator{Float64, UInt}(hs, 0b0010, 0b0010, 0b0000, 0.0)
       @test conj(pop1) == pop1
       @test transpose(pop1) == PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0010, 2.0)
+      @test adjoint(pop1) == PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0010, 2.0)
     end
 
     @testset "complex" begin
@@ -151,10 +153,11 @@ end
       @test (real(pop1)).amplitude == 2.0
       @test (imag(pop1)).amplitude == 3.0
 
-      @test real(pop1) == PureOperator{Float64, UInt}(hs, 0b0010, 0b0010, 0b0000, 2.0)
-      @test imag(pop1) == PureOperator{Float64, UInt}(hs, 0b0010, 0b0010, 0b0000, 3.0)
-      @test conj(pop1) == PureOperator{ComplexF64, UInt}(hs, 0b0010, 0b0010, 0b0000, 2.0 - 3.0im)
+      @test real(pop1)      == PureOperator{Float64, UInt}(hs, 0b0010, 0b0010, 0b0000, 2.0)
+      @test imag(pop1)      == PureOperator{Float64, UInt}(hs, 0b0010, 0b0010, 0b0000, 3.0)
+      @test conj(pop1)      == PureOperator{ComplexF64, UInt}(hs, 0b0010, 0b0010, 0b0000, 2.0 - 3.0im)
       @test transpose(pop1) == PureOperator{ComplexF64, UInt}(hs, 0b0010, 0b0000, 0b0010, 2.0 + 3.0im)
+      @test adjoint(pop1)   == PureOperator{ComplexF64, UInt}(hs, 0b0010, 0b0000, 0b0010, 2.0 - 3.0im)
     end
   end
 
@@ -311,6 +314,7 @@ end
 
       @test conj(sop).terms == [ pop1, pop2]
       @test transpose(sop).terms == [ transpose(pop1), transpose(pop2)]
+      @test adjoint(sop).terms == [ adjoint(pop1), adjoint(pop2)]
     end
 
     @testset "complex" begin
@@ -332,6 +336,7 @@ end
 
       @test conj(sop).terms == [ conj(pop1), conj(pop2)]
       @test transpose(sop).terms == [ transpose(pop1), transpose(pop2)]
+      @test adjoint(sop).terms == [ adjoint(pop1), adjoint(pop2)]
     end
   end
 

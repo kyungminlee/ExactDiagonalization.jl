@@ -19,7 +19,7 @@ function (==)(lhs ::SumOperator{S1, BR}, rhs::SumOperator{S2, BR}) where {S1, S2
 end
 
 
-import Base.real, Base.imag, Base.conj, Base.transpose
+import Base.real, Base.imag, Base.conj, Base.transpose, Base.adjoint
 
 real(arg ::SumOperator{S, BR}) where {S<:Real, BR} = arg
 imag(arg ::SumOperator{S, BR}) where {S<:Real, BR} = SumOperator{S, BR}(arg.hilbert_space, [])
@@ -30,6 +30,7 @@ imag(arg ::SumOperator{Complex{S}, BR}) where {S<:Real, BR} = SumOperator{S, BR}
 conj(arg ::SumOperator{Complex{S}, BR}) where {S<:Real, BR} = SumOperator{Complex{S}, BR}(arg.hilbert_space, conj.(arg.terms))
 
 transpose(arg ::SumOperator{S, BR}) where {S, BR} = SumOperator{S, BR}(arg.hilbert_space, transpose.(arg.terms))
+adjoint(arg ::SumOperator{S, BR}) where {S, BR} = SumOperator{S, BR}(arg.hilbert_space, adjoint.(arg.terms))
 
 
 (-)(arg ::SumOperator{S, BR}) where {S, BR} = SumOperator{S, BR}(arg.hilbert_space, -arg.terms)

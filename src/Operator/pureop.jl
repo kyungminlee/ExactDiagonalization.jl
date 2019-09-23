@@ -75,46 +75,22 @@ function (*)(lhs ::PureOperator{S1, BR}, rhs ::PureOperator{S2, BR}) where {S1<:
   end
 end
 
-import Base.real, Base.imag, Base.conj, Base.transpose
 
-real(arg ::PureOperator{S, BR}) where {S<:Real, BR} = arg
-imag(arg ::PureOperator{S, BR}) where {S<:Real, BR} = PureOperator{S, BR}(arg.hilbert_space, arg.bitmask, arg.bitsource, arg.bittarget, zero(S))
-conj(arg ::PureOperator{S, BR}) where {S<:Real, BR} = arg
+import Base.real, Base.imag, Base.conj, Base.transpose, Base.adjoint
 
-function real(arg ::PureOperator{Complex{R}, BR}) where {R<:Real, BR}
-  return PureOperator{R, BR}(arg.hilbert_space,
-                             arg.bitmask,
-                             arg.bitsource,
-                             arg.bittarget,
-                             real(arg.amplitude))
-end
+real(arg ::PureOperator{R, BR}) where {R<:Real, BR} = arg
+imag(arg ::PureOperator{R, BR}) where {R<:Real, BR} = PureOperator{R, BR}(arg.hilbert_space, arg.bitmask, arg.bitsource, arg.bittarget, zero(R))
+conj(arg ::PureOperator{R, BR}) where {R<:Real, BR} = arg
 
-function imag(arg ::PureOperator{Complex{R}, BR}) where {R<:Real, BR}
-  return PureOperator{R, BR}(arg.hilbert_space,
-                             arg.bitmask,
-                             arg.bitsource,
-                             arg.bittarget,
-                             imag(arg.amplitude))
-end
+real(arg ::PureOperator{Complex{R}, BR}) where {R<:Real, BR} = PureOperator{R, BR}(arg.hilbert_space, arg.bitmask, arg.bitsource, arg.bittarget, real(arg.amplitude))
+imag(arg ::PureOperator{Complex{R}, BR}) where {R<:Real, BR} = PureOperator{R, BR}(arg.hilbert_space, arg.bitmask, arg.bitsource, arg.bittarget, imag(arg.amplitude))
+conj(arg ::PureOperator{Complex{R}, BR}) where {R<:Real, BR} = PureOperator{Complex{R}, BR}(arg.hilbert_space, arg.bitmask, arg.bitsource, arg.bittarget, conj(arg.amplitude))
 
-function conj(arg ::PureOperator{S, BR}) where {S, BR}
-  return PureOperator{S, BR}(arg.hilbert_space,
-                             arg.bitmask,
-                             arg.bitsource,
-                             arg.bittarget,
-                             conj(arg.amplitude))
-end
+transpose(arg ::PureOperator{S, BR}) where {S, BR} = PureOperator{S, BR}(arg.hilbert_space, arg.bitmask, arg.bittarget, arg.bitsource, arg.amplitude)
+adjoint(arg ::PureOperator{S, BR}) where {S, BR} = PureOperator{S, BR}(arg.hilbert_space, arg.bitmask, arg.bittarget, arg.bitsource, conj(arg.amplitude))
 
-function transpose(arg ::PureOperator{S, BR}) where {S, BR}
-  return PureOperator{S, BR}(arg.hilbert_space,
-                             arg.bitmask,
-                             arg.bittarget, # switch
-                             arg.bitsource, # order
-                             arg.amplitude)
-end
 
 import Base.<
-
 function (<)(lhs ::PureOperator{S1, BR}, rhs ::PureOperator{S2, BR}) where {S1, S2, BR}
   if lhs.bitmask < rhs.bitmask
     return true

@@ -22,12 +22,12 @@ import Base.-, Base.+, Base.*, Base.==
 # (==)(lhs ::NullOperator, rhs::AbstractOperator) = false
 # (==)(lhs ::AbstractOperator, rhs::NullOperator) = false
 
-import Base.real, Base.imag, Base.conj, Base.transpose
+import Base.real, Base.imag, Base.conj, Base.transpose, Base.adjoint
 real(arg::NullOperator) = arg
 imag(arg::NullOperator) = arg
 conj(arg::NullOperator) = arg
 transpose(arg::NullOperator) = arg
-
+adjoint(arg::NullOperator) = arg
 
 import Base.<
 # null operator is smaller than any other operators
