@@ -1,6 +1,6 @@
 export prettyprintln
 
-prettyprintln(x...) = prettyprintln(stdout, x...)
+prettyprintln(x; kwargs...) = prettyprintln(stdout, x; kwargs...)
 
 function prettyprintln(io::IO, op::NullOperator)
   println(io, "NullOperator")
@@ -24,7 +24,16 @@ end
 function prettyprintln(io ::IO, psi::SparseState{S, BR}; prefix::AbstractString="") where {S, BR}
   println(io, prefix, "SparseState")
   bs = sort(collect(keys(psi.components)))
+  n = psi.hilbert_space.bitoffsets[end]
   for b in bs
-    println(io, prefix, "| ", string(b, base=2, pad=psi.hilbert_space.bitoffsets[end]), " : ", psi.components[b])
+    println(io, prefix, "| ", string(b, base=2, pad=n), " : ", psi.components[b])
+  end
+end
+
+function prettyprintln(io ::IO, hsr::HilbertSpaceRealization; prefix::AbstractString="")
+  n = hsr.hilbert_space.bitoffsets[end]
+  println(io, prefix, "HilbertSpaceRealization")
+  for bvec in hsr.basis_list
+    println(io, prefix, "| ", string(bvec, base=2, pad=n))
   end
 end
