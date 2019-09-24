@@ -1,6 +1,6 @@
 using Test
+using LinearAlgebra
 using ExactDiagonalization
-
 using StaticArrays
 
 @testset "SparseState" begin
@@ -57,6 +57,23 @@ using StaticArrays
     @test ψ1 != ψ2
   end
 
+  @testset "isapprox" begin
+    ψ1 = SparseState{ComplexF64, UInt}(hs, UInt(0b0010001) => 1.0 + 0.0im)
+    @test isapprox(ψ1, ψ1)
+    let
+      ψ2 = copy(ψ1)
+      ψ2[UInt(0b0010001)] += 1E-13
+      @test isapprox(ψ1, ψ2)
+      @test ψ1 != ψ2
+    end
+    let
+      ψ2 = copy(ψ1)
+      ψ2[UInt(0b0000000)] = 0
+      @test isapprox(ψ1, ψ2)
+      @test ψ1 != ψ2
+    end
+  end
+
   @testset "convert" begin
     ψr = SparseState{Float64, UInt}(hs, UInt(0b00100001) => 2.0)
     ψc = SparseState{ComplexF64, UInt}(hs, UInt(0b00100001) => 2.0 + 0.0im)
@@ -104,6 +121,13 @@ using StaticArrays
       @test real(ψ1).components == Dict(UInt(0b0000001) => 3.0)
       @test imag(ψ1).components == Dict(UInt(0b0000001) => 1.0)
       @test conj(ψ1).components == Dict(UInt(0b0000001) => 3.0 - im)
+    end
+
+    @testset "normalize" begin
+      ψ = SparseState{ComplexF64, UInt}(hs, UInt(0b0000) => 3.0 + 4.0im)
+      @test isapprox(norm(ψ), 5.0)
+      ψ2 = normalize(ψ)
+      @test isapprox(ψ2, SparseState{ComplexF64, UInt}(hs, UInt(0b0000) => 0.6 + 0.8im))
     end
   end # unary
 

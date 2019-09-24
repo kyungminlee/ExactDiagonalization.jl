@@ -1,4 +1,5 @@
 export SparseState
+using LinearAlgebra
 
 """
     struct SparseState{Scalar<:Number, BR}
@@ -49,7 +50,25 @@ end
 
 import Base.==
 function (==)(lhs ::SparseState{S1, BR}, rhs::SparseState{S2, BR}) where {S1, S2, BR}
-  return (lhs.hilbert_space == rhs.hilbert_space) && (lhs.components == rhs.components)
+  return (lhs.hilbert_space === rhs.hilbert_space) && (lhs.components == rhs.components)
+end
+
+import Base.isapprox
+function isapprox(lhs ::SparseState{S1, BR}, rhs::SparseState{S2, BR}; atol=sqrt(eps(Float64)), rtol=sqrt(eps(Float64))) where {S1, S2, BR}
+  if lhs.hilbert_space !== rhs.hilbert_space
+    return false
+  end
+
+  all_keys = union(keys(lhs.components), keys(rhs.components))
+  for k in all_keys
+    lv = haskey(lhs.components, k) ? lhs.components[k] : zero(S1)
+    rv = haskey(rhs.components, k) ? rhs.components[k] : zero(S2)
+    if ! isapprox(lv, rv; atol=atol, rtol=rtol)
+      return false
+    end
+  end
+    
+  return true
 end
 
 import Base.copy
@@ -177,7 +196,7 @@ import LinearAlgebra.normalize
 function normalize(arg ::SparseState{S1, BR}) where {S1, BR}
   norm_val = norm(arg)
   S2 = promote_type(typeof(norm_val), S1)
-  components = DefaultDict{BR, S2}(zero(S2), [(k, v/norm_val) for (k, v) in arg.components])
+  components = DefaultDict{BR, S2, S2}(zero(S2), [(k, v/norm_val) for (k, v) in arg.components])
   return SparseState{S2, BR}(arg.hilbert_space, components)
 end
 
