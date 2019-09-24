@@ -13,16 +13,16 @@ using StaticArrays
   sectors = quantum_number_sectors(hs)
   @test sectors == QN[[2, -2], [2, 0], [2, 2], [3, -3], [3, -1], [3, 1], [3, 3]]
   @testset "realize" begin
-    chs_all = realize(hs)
-    @test chs_all.basis_list == UInt[
+    hsr_all = realize(hs)
+    @test hsr_all.basis_list == UInt[
       0b0000, 0b0001, 0b0010,
       0b0100, 0b0101, 0b0110,
       0b1000, 0b1001, 0b1010,
       0b1100, 0b1101, 0b1110,
     ]
-    @test all(ibasis == chs_all.basis_lookup[basis] for (ibasis, basis) in enumerate(chs_all.basis_list))
-    @test dimension(chs_all) == length(chs_all.basis_list)
-    @test chs_all == realize(hs, sectors)
+    @test all(ibasis == hsr_all.basis_lookup[basis] for (ibasis, basis) in enumerate(hsr_all.basis_list))
+    @test dimension(hsr_all) == length(hsr_all.basis_list)
+    @test hsr_all == realize(hs, sectors)
 
     # empty QN
     @test realize(hs, QN[]).basis_list == []
@@ -39,20 +39,20 @@ using StaticArrays
 
     # Test each sector explicitly
     for (qn, basis_list) in qn_basis
-      chs = realize(hs, qn)
-      @test chs.basis_list == basis_list
-      @test all(ibasis == chs.basis_lookup[basis] for (ibasis, basis) in enumerate(chs.basis_list))
-      @test dimension(chs) == length(chs.basis_list)
-      chs2 = realize(hs, basis_list)
-      @test chs == chs2
+      hsr = realize(hs, qn)
+      @test hsr.basis_list == basis_list
+      @test all(ibasis == hsr.basis_lookup[basis] for (ibasis, basis) in enumerate(hsr.basis_list))
+      @test dimension(hsr) == length(hsr.basis_list)
+      hsr2 = realize(hs, basis_list)
+      @test hsr == hsr2
     end
 
     for qn in sectors
-      chs = realize(hs, qn)
-      @test chs_all != chs
-      @test all(ibasis == chs.basis_lookup[basis] for (ibasis, basis) in enumerate(chs.basis_list))
-      @test dimension(chs) == length(chs.basis_list)
-      @test chs == realize(hs, chs.basis_list)
+      hsr = realize(hs, qn)
+      @test hsr_all != hsr
+      @test all(ibasis == hsr.basis_lookup[basis] for (ibasis, basis) in enumerate(hsr.basis_list))
+      @test dimension(hsr) == length(hsr.basis_list)
+      @test hsr == realize(hs, hsr.basis_list)
     end
 
     @test realize(hs, QN[[ 3, 3], [ 3, 1]]).basis_list == [0b0001, 0b0010, 0b0101, 0b1001]

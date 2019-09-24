@@ -2,41 +2,41 @@ export materialize, materialize_parallel
 
 
 function materialize(
-  chs ::HilbertSpaceRealization{QN, BR},
+  hsr ::HilbertSpaceRealization{QN, BR},
   nop ::NullOperator) where {QN, BR<:Unsigned}
-  n = dimension(chs)
+  n = dimension(hsr)
   return (sparse([], [], Float64[], n, n), 0.0)
 end
 
 
 function materialize_parallel(
-    chs ::HilbertSpaceRealization{QN, BR},
+    hsr ::HilbertSpaceRealization{QN, BR},
     nop ::NullOperator) where {QN, S<:Number, BR<:Unsigned}
-  n = dimension(chs)
+  n = dimension(hsr)
   return (sparse([], [], Float64[], n, n), 0.0)
 end
 
 
 function materialize(
-    chs ::HilbertSpaceRealization{QN, BR},
+    hsr ::HilbertSpaceRealization{QN, BR},
     sumop ::SumOperator{S, BR}) where {QN, S<:Number, BR<:Unsigned}
-  hs = chs.hilbert_space
+  hs = hsr.hilbert_space
   rows = Int[]
   cols = Int[]
   vals = S[]
   err = 0.0
   
-  for (irow, row) in enumerate(chs.basis_list)
+  for (irow, row) in enumerate(hsr.basis_list)
     ψrow = SparseState{S, BR}(hs, row)
     ψcol = SparseState{S, BR}(hs)
     apply_unsafe!(ψcol, sumop, ψrow)    
     for (col, amplitude) in ψcol.components
       isapprox(amplitude, 0) && continue
       
-      if !haskey(chs.basis_lookup, col)
+      if !haskey(hsr.basis_lookup, col)
         err += abs(amplitude)^2
       else 
-        icol = chs.basis_lookup[col]
+        icol = hsr.basis_lookup[col]
         push!(rows, irow)
         push!(cols, icol)
         push!(vals, amplitude)
@@ -49,15 +49,15 @@ function materialize(
   elseif S <:Complex && isapprox( maximum(abs.(imag.(vals))), 0)
     vals = real.(vals)
   end
-  n = dimension(chs)
+  n = dimension(hsr)
   return (sparse(rows, cols, vals, n, n), err)
 end
 
 
 function materialize_parallel(
-    chs ::HilbertSpaceRealization{QN, BR},
+    hsr ::HilbertSpaceRealization{QN, BR},
     sumop ::SumOperator{S, BR}) where {QN, S<:Number, BR<:Unsigned}
-  hs = chs.hilbert_space
+  hs = hsr.hilbert_space
 
   nthreads = Threads.nthreads()
   local_rows = [ Int[] for i in 1:nthreads]
@@ -65,11 +65,11 @@ function materialize_parallel(
   local_vals = [ S[] for i in 1:nthreads]
   local_err =  Float64[0.0 for i in 1:nthreads]
 
-  n_basis = length(chs.basis_list)
+  n_basis = length(hsr.basis_list)
 
   Threads.@threads for irow in 1:n_basis
     id = Threads.threadid()
-    row = chs.basis_list[irow]
+    row = hsr.basis_list[irow]
 
     ψrow = SparseState{S, BR}(hs, row)
     ψcol = SparseState{S, BR}(hs)
@@ -77,10 +77,10 @@ function materialize_parallel(
     for (col, amplitude) in ψcol.components
       isapprox(amplitude, 0) && continue
 
-      if !haskey(chs.basis_lookup, col)
+      if !haskey(hsr.basis_lookup, col)
         local_err[id] += abs(amplitude)^2
       else 
-        icol = chs.basis_lookup[col]
+        icol = hsr.basis_lookup[col]
         push!(local_rows[id], irow)
         push!(local_cols[id], icol)
         push!(local_vals[id], amplitude)
@@ -98,7 +98,7 @@ function materialize_parallel(
   elseif S <:Complex && isapprox( maximum(abs.(imag.(vals))), 0)
     vals = real.(vals)
   end
-  n = dimension(chs)
+  n = dimension(hsr)
   return (sparse(rows, cols, vals, n, n), err)
 end
 
