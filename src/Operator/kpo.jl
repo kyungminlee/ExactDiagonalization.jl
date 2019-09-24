@@ -2,12 +2,12 @@
 # export clean!
 
 # struct KroneckerProductOperator{Scalar<:Number} <:AbstractOperator
-#   hilbert_space ::AbstractHilbertSpace
+#   hilbert_space ::HilbertSpace
 #   amplitude ::Scalar
 #   operators ::Dict{Int, Matrix{Scalar}}
 
 #   function KroneckerProductOperator(
-#       hs ::AbstractHilbertSpace,
+#       hs ::HilbertSpace,
 #       am ::S1,
 #       ops::AbstractDict{I, Matrix{S2}}) where {S1<:Number, I<:Integer, S2<:Number}
       
@@ -26,7 +26,7 @@
 #   end
 
 #   function KroneckerProductOperator{S3}(
-#     hs ::AbstractHilbertSpace,
+#     hs ::HilbertSpace,
 #     am ::S1,
 #     ops::AbstractDict{I, Matrix{S2}}) where {S1<:Number, I<:Integer, S2<:Number, S3<:Number}
     

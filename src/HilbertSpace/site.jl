@@ -1,7 +1,10 @@
+export AbstractHilbertSpace
 export State, Site
 export bitwidth, get_state, dimension
 
 using StaticArrays
+
+abstract type AbstractHilbertSpace end
 
 ## TODO: Think about this
 AbstractQuantumNumber = Union{Int, SVector{N, Int} where N}
@@ -52,7 +55,7 @@ julia> Site([up, dn])
 Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)])
 ```
 """
-struct Site{QN<:AbstractQuantumNumber}
+struct Site{QN<:AbstractQuantumNumber} <: AbstractHilbertSpace
   states ::Vector{State{QN}}
 
   Site(states ::AbstractArray{State{QN}, 1}) where QN = new{QN}(states)

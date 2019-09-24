@@ -3,7 +3,7 @@ using Suppressor
 using ExactDiagonalization
 
 @testset "prettyprintln" begin
-  function pauli_matrix(hs::AbstractHilbertSpace, isite ::Integer, j ::Symbol)
+  function pauli_matrix(hs::HilbertSpace, isite ::Integer, j ::Symbol)
     if j == :x
       return pure_operator(hs, isite, 1, 2, 1.0; dtype=UInt) + pure_operator(hs, isite, 2, 1, 1.0; dtype=UInt)
     elseif j == :y
@@ -24,7 +24,7 @@ using ExactDiagonalization
     up = State("Up", QN( 1))
     dn = State("Dn", QN(-1))
     spin_site = Site([up, dn])
-    hs = AbstractHilbertSpace([spin_site, spin_site, spin_site, spin_site])
+    hs = HilbertSpace([spin_site, spin_site, spin_site, spin_site])
     σ(i::Integer, j::Symbol) = pauli_matrix(hs, i, j)
 
     buf = IOBuffer()

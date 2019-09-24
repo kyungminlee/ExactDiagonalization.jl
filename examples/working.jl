@@ -13,7 +13,7 @@ n_sites = 4
 n1 = 4
 n2 = 4
 n_sites = n1 * n2
-hs = AbstractHilbertSpace{QN}([spin_site for i in 1:n_sites])
+hs = HilbertSpace{QN}([spin_site for i in 1:n_sites])
 
 PAULI_MATRICES = [ Float64[0 1.0; 1.0 0.0], ComplexF64[0.0 -1.0*im; 1.0*im 0.0], Float64[1.0 0.0; 0.0 -1.0]]
 

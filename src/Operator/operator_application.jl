@@ -1,12 +1,17 @@
-export apply, apply!
+export apply, apply!, apply_unsafe!
 
 
 import Base.isempty
 isempty(psi::SparseState{S, BR}) where {S, BR} = isempty(psi.components)
 
-function apply!(out::SparseState{S1, BR}, nullop ::NullOperator, psi::SparseState{S2, BR}) where {S1, S2, BR}
-end
+"""
+    apply!
 
+Apply operator to `psi` and add it to `out`.
+"""
+function apply!(out::SparseState{S1, BR}, nullop ::NullOperator, psi::SparseState{S2, BR}) where {S1, S2, BR}
+  return out
+end
 
 function apply!(out::SparseState{S1, BR}, pureop ::PureOperator{S2, BR}, psi::SparseState{S3, BR}) where {S1, S2, S3, BR}
   if pureop.hilbert_space !== psi.hilbert_space || out.hilbert_space !== psi.hilbert_space
@@ -20,9 +25,13 @@ function apply!(out::SparseState{S1, BR}, sumop ::SumOperator{S2, BR}, psi::Spar
   if sumop.hilbert_space !== psi.hilbert_space || out.hilbert_space !== psi.hilbert_space 
     throw(ArgumentError("Hilbert spaces should match"))
   end
-  return apply_unsafe!(out, sumop, psi)
+  apply_unsafe!(out, sumop, psi)
 end
 
+
+function apply_unsafe!(out::SparseState{S1, BR}, nullop ::NullOperator, psi::SparseState{S2, BR}) where {S1, S2, BR}
+  return out
+end
 
 function apply_unsafe!(out::SparseState{S1, BR}, pureop ::PureOperator{S2, BR}, psi::SparseState{S3, BR}) where {S1, S2, S3, BR}
   for (b, v) in psi.components
@@ -31,12 +40,14 @@ function apply_unsafe!(out::SparseState{S1, BR}, pureop ::PureOperator{S2, BR}, 
       out[b2] += pureop.amplitude * v
     end
   end
+  out
 end
 
 function apply_unsafe!(out::SparseState{S1, BR}, sumop ::SumOperator{S2, BR}, psi::SparseState{S3, BR}) where {S1, S2, S3, BR}
   for t in sumop.terms
-    apply!(out, t, psi)
+    apply_unsafe!(out, t, psi)
   end
+  out
 end
 
 
@@ -69,11 +80,8 @@ function apply(sumop ::SumOperator{S1, BR}, psi::SparseState{S2, BR}) where {S1,
 end
 
 
-
-
-
 # # TODO: Replace with more efficient
-# function apply_naive(hs ::AbstractHilbertSpace,
+# function apply_naive(hs ::HilbertSpace,
 #                op ::KroneckerProductOperator{OS},
 #                binrep ::U) where {OS <:Number, U <: Unsigned}
 #   intermediate = apply(hs, op, extract(hs, binrep))
@@ -85,7 +93,7 @@ end
 # end
 
 # # TODO: Replace with more efficient
-# function apply_naive(hs ::AbstractHilbertSpace,
+# function apply_naive(hs ::HilbertSpace,
 #                ops ::AbstractArray{KroneckerProductOperator{OS}},
 #                binrep ::U) where {OS<:Number, U <:Unsigned}
 #   intermediate = apply(hs, ops, extract(hs, binrep))
@@ -101,7 +109,7 @@ end
 # """
 # Returns dict
 # """
-# function apply(hs ::AbstractHilbertSpace,
+# function apply(hs ::HilbertSpace,
 #                op ::KroneckerProductOperator{OS},
 #                indexarray ::AbstractArray{I, 1}) where {OS <:Number, I<:Integer}
 #   zero_scalar = zero(OS)
@@ -136,7 +144,7 @@ end
 #   return output
 # end
 
-# function apply(hs ::AbstractHilbertSpace,
+# function apply(hs ::HilbertSpace,
 #                ops ::AbstractArray{KroneckerProductOperator{S}},
 #                indexarray ::AbstractArray{I, 1}) where {S<:Number, I<:Integer}
 #   zero_scalar = zero(S)
@@ -152,7 +160,7 @@ end
 #   return results
 # end
 
-# function apply(hs ::AbstractHilbertSpace,
+# function apply(hs ::HilbertSpace,
 #                op ::KroneckerProductOperator{OS},
 #                psi ::AbstractDict{Vector{Int}, SS}) where {OS<:Number, SS<:Number}
 #   OutScalar = promote_type(OS, SS)
@@ -167,7 +175,7 @@ end
 #   return results
 # end
 
-# function apply(hs ::AbstractHilbertSpace,
+# function apply(hs ::HilbertSpace,
 #                ops ::AbstractArray{KroneckerProductOperator{OS}},
 #                psi ::AbstractDict{Vector{Int}, SS}) where {OS<:Number, SS<:Number}
 #   OutScalar = promote_type(OS, SS)

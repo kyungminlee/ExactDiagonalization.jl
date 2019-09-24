@@ -1,14 +1,14 @@
-export ConcreteHilbertSpace
-export dimension, concretize, materialize
+export HilbertSpaceRealization
+export dimension, realize, materialize
 
-struct ConcreteHilbertSpace{QN, BR}
-  hilbert_space :: AbstractHilbertSpace{QN}
+struct HilbertSpaceRealization{QN, BR}
+  hilbert_space :: HilbertSpace{QN}
   basis_list ::Vector{BR}
   basis_lookup ::Dict{BR, Int}
 end
 
 import Base.==
-function (==)(lhs ::ConcreteHilbertSpace{H1, B1}, rhs ::ConcreteHilbertSpace{H2, B2}) where {H1, B1, H2, B2}
+function (==)(lhs ::HilbertSpaceRealization{H1, B1}, rhs ::HilbertSpaceRealization{H2, B2}) where {H1, B1, H2, B2}
   return (H1 == H2) && (B1 == B2) && (lhs.hilbert_space == rhs.hilbert_space) && (lhs.basis_list == rhs.basis_list)
 end
 
@@ -17,34 +17,34 @@ end
 
 Dimension of the Concrete Hilbert space, i.e. number of basis vectors.
 """
-dimension(chs ::ConcreteHilbertSpace) = length(chs.basis_list)
+dimension(chs ::HilbertSpaceRealization) = length(chs.basis_list)
 
 """
-    concretize(hs; BR ::DataType=UInt)
+    realize(hs; BR ::DataType=UInt)
 
-Make a ConcreteHilbertSpace with all the basis vectors of the specified AbstractHilbertSpace.
+Make a HilbertSpaceRealization with all the basis vectors of the specified HilbertSpace.
 
 # Arguments
-- `hs ::AbstractHilbertSpace{QN}`: Abstract Hilbert space
+- `hs ::HilbertSpace{QN}`: Abstract Hilbert space
 - `BR ::DataType=UInt`: Binary representation type
 """
-function concretize(hs ::AbstractHilbertSpace{QN}; BR ::DataType=UInt) where {QN}
+function realize(hs ::HilbertSpace{QN}; BR ::DataType=UInt) where {QN}
   basis_list = BR[]
   for indexarray in Iterators.product((1:length(site.states) for site in hs.sites)...)
     indexarray = Int[indexarray...]
     push!(basis_list, compress(hs, indexarray))
   end
   basis_lookup = Dict{BR, Int}(basis => ibasis for (ibasis, basis) in enumerate(basis_list))
-  return ConcreteHilbertSpace{QN, BR}(hs, basis_list, basis_lookup)
+  return HilbertSpaceRealization{QN, BR}(hs, basis_list, basis_lookup)
 end
 
 # function concretize_naive(
-#     hs ::AbstractHilbertSpace{QN},
+#     hs ::HilbertSpace{QN},
 #     qn ::QN;
 #     BR ::DataType=UInt) where {QN}
 #   sectors = quantum_number_sectors(hs)
 #   if ! (qn in sectors)
-#     return ConcreteHilbertSpace{QN, BR}(hs, [], Dict())
+#     return HilbertSpaceRealization{QN, BR}(hs, [], Dict())
 #   end
 #   basis_list = BR[]
 #   for indexarray in Iterators.product((1:length(site.states) for site in hs.sites)...)
@@ -58,34 +58,34 @@ end
 #   for (ibasis, basis) in enumerate(basis_list)
 #     basis_lookup[basis] = ibasis
 #   end
-#   return ConcreteHilbertSpace{QN, BR}(hs, basis_list, basis_lookup)
+#   return HilbertSpaceRealization{QN, BR}(hs, basis_list, basis_lookup)
 # end
 
-function concretize(
-    hs::AbstractHilbertSpace{QN},
+function realize(
+    hs::HilbertSpace{QN},
     qn::QN;
     BR::DataType=UInt) where {QN}
-  return concretize(hs, [qn]; BR=BR)
+  return realize(hs, [qn]; BR=BR)
 end
 
 """
-    concretize(hs; BR ::DataType=UInt)
+    realize(hs; BR ::DataType=UInt)
 
-Make a ConcreteHilbertSpace with all the basis vectors of the specified AbstractHilbertSpace.
+Make a HilbertSpaceRealization with all the basis vectors of the specified HilbertSpace.
 
 # Arguments
-- `hs ::AbstractHilbertSpace{QN}`: Abstract Hilbert space
+- `hs ::HilbertSpace{QN}`: Abstract Hilbert space
 - `allowed`: Allowed quantum numbers
 - `BR ::DataType=UInt`: Binary representation type
 """
-function concretize(
-    hs::AbstractHilbertSpace{QN},
+function realize(
+    hs::HilbertSpace{QN},
     allowed::Union{AbstractSet{QN}, AbstractVector{QN}};
     BR::DataType=UInt) where {QN}
   allowed = Set(allowed)
   sectors = Set(quantum_number_sectors(hs))
   if isempty(intersect(allowed, sectors))
-    return ConcreteHilbertSpace{QN, BR}(hs, [], Dict())
+    return HilbertSpaceRealization{QN, BR}(hs, [], Dict())
   end
 
   quantum_numbers = [[state.quantum_number for state in site.states] for site in hs.sites]
@@ -136,12 +136,12 @@ function concretize(
   end
 
   basis_lookup = Dict{BR, Int}(basis => ibasis for (ibasis, basis) in enumerate(basis_list))
-  return ConcreteHilbertSpace{QN, BR}(hs, basis_list, basis_lookup)
+  return HilbertSpaceRealization{QN, BR}(hs, basis_list, basis_lookup)
 end
 
 
-function concretize(hs ::AbstractHilbertSpace{QN},
+function realize(hs ::HilbertSpace{QN},
                     basis_list ::AbstractArray{BR}) where {QN, BR<:Unsigned}
   basis_lookup = Dict{BR, Int}(basis => ibasis for (ibasis, basis) in enumerate(basis_list))
-  return ConcreteHilbertSpace{QN, BR}(hs, basis_list, basis_lookup)
+  return HilbertSpaceRealization{QN, BR}(hs, basis_list, basis_lookup)
 end

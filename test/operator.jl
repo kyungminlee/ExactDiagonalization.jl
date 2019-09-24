@@ -42,8 +42,8 @@ end
   dn = State{QN}("Dn",-1)
   spin_site = Site{QN}([up, dn])
 
-  hs = AbstractHilbertSpace{QN}([spin_site for i in 1:4])
-  hs2 = AbstractHilbertSpace{QN}([spin_site, spin_site])
+  hs = HilbertSpace{QN}([spin_site for i in 1:4])
+  hs2 = HilbertSpace{QN}([spin_site, spin_site])
   nop = NullOperator()
 
   @testset "type" begin
@@ -235,8 +235,8 @@ end
   dn = State{QN}("Dn",-1)
   spin_site = Site{QN}([up, dn])
 
-  hs = AbstractHilbertSpace{QN}([spin_site for i in 1:4])
-  hs2 = AbstractHilbertSpace{QN}([spin_site, spin_site])
+  hs = HilbertSpace{QN}([spin_site for i in 1:4])
+  hs2 = HilbertSpace{QN}([spin_site, spin_site])
   nop = NullOperator()
 
   @testset "constructor" begin

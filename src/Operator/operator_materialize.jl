@@ -2,7 +2,7 @@ export materialize, materialize_parallel
 
 
 function materialize(
-  chs ::ConcreteHilbertSpace{QN, BR},
+  chs ::HilbertSpaceRealization{QN, BR},
   nop ::NullOperator) where {QN, BR<:Unsigned}
   n = dimension(chs)
   return (sparse([], [], Float64[], n, n), 0.0)
@@ -10,7 +10,7 @@ end
 
 
 function materialize_parallel(
-    chs ::ConcreteHilbertSpace{QN, BR},
+    chs ::HilbertSpaceRealization{QN, BR},
     nop ::NullOperator) where {QN, S<:Number, BR<:Unsigned}
   n = dimension(chs)
   return (sparse([], [], Float64[], n, n), 0.0)
@@ -18,7 +18,7 @@ end
 
 
 function materialize(
-    chs ::ConcreteHilbertSpace{QN, BR},
+    chs ::HilbertSpaceRealization{QN, BR},
     sumop ::SumOperator{S, BR}) where {QN, S<:Number, BR<:Unsigned}
   hs = chs.hilbert_space
   rows = Int[]
@@ -55,7 +55,7 @@ end
 
 
 function materialize_parallel(
-    chs ::ConcreteHilbertSpace{QN, BR},
+    chs ::HilbertSpaceRealization{QN, BR},
     sumop ::SumOperator{S, BR}) where {QN, S<:Number, BR<:Unsigned}
   hs = chs.hilbert_space
 

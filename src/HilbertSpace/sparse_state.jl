@@ -6,19 +6,19 @@ export SparseState
 Represents a row vector?
 """
 mutable struct SparseState{Scalar<:Number, BR}
-  hilbert_space ::AbstractHilbertSpace
+  hilbert_space ::HilbertSpace
   components ::DefaultDict{BR, Scalar, Scalar}
-  function SparseState{Scalar, BR}(hs ::AbstractHilbertSpace) where {Scalar, BR}
+  function SparseState{Scalar, BR}(hs ::HilbertSpace) where {Scalar, BR}
     return new{Scalar, BR}(hs, DefaultDict{BR, Scalar, Scalar}(zero(Scalar)))
   end
 
-  function SparseState{Scalar, BR}(hs ::AbstractHilbertSpace, binrep ::BR) where {Scalar, BR}
+  function SparseState{Scalar, BR}(hs ::HilbertSpace, binrep ::BR) where {Scalar, BR}
     components = DefaultDict{BR, Scalar, Scalar}(zero(Scalar))
     components[binrep] = one(Scalar)
     return new{Scalar, BR}(hs, components)
   end
 
-  function SparseState{Scalar, BR}(hs ::AbstractHilbertSpace, component::Pair{BR, S2}, rest...) where {Scalar, BR, S2}
+  function SparseState{Scalar, BR}(hs ::HilbertSpace, component::Pair{BR, S2}, rest...) where {Scalar, BR, S2}
     components = DefaultDict{BR, Scalar, Scalar}(zero(Scalar))
     components[component.first] = component.second
     for (cf, cs) in rest
@@ -27,7 +27,7 @@ mutable struct SparseState{Scalar<:Number, BR}
     return new{Scalar, BR}(hs, components)
   end
 
-  function SparseState{Scalar, BR}(hs ::AbstractHilbertSpace, components ::AbstractDict{BR, S2}) where {Scalar, BR, S2}
+  function SparseState{Scalar, BR}(hs ::HilbertSpace, components ::AbstractDict{BR, S2}) where {Scalar, BR, S2}
     # TODO bound checking
     return new{Scalar, BR}(hs, components)
   end
@@ -163,3 +163,31 @@ function convert(type ::Type{SparseState{S1, BR}}, obj::SparseState{S2, BR}) whe
   end
   return state
 end
+
+import LinearAlgebra.norm
+function norm(arg ::SparseState{S1, BR}) where {S1, BR}
+  if isempty(arg.components)
+    return zero(real(S1))
+  else
+    return norm(values(arg.components))
+  end
+end
+
+import LinearAlgebra.normalize
+function normalize(arg ::SparseState{S1, BR}) where {S1, BR}
+  norm_val = norm(arg)
+  S2 = promote_type(typeof(norm_val), S1)
+  components = DefaultDict{BR, S2}(zero(S2), [(k, v/norm_val) for (k, v) in arg.components])
+  return SparseState{S2, BR}(arg.hilbert_space, components)
+end
+
+import LinearAlgebra.normalize!
+function normalize!(arg ::SparseState{S1, BR}) where {S1, BR}
+  norm_val = norm(arg)
+  for (k, v) in arg.components
+    arg[k] = v / norm_val
+  end
+  arg
+end
+
+

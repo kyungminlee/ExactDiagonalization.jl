@@ -32,7 +32,7 @@ function simplify(so ::SumOperator{S, BR}; tol::AbstractFloat=sqrt(eps(Float64))
   sort!(terms; lt=(<))
   new_terms = PureOperator{S, BR}[]
 
-  hs ::AbstractHilbertSpace = terms[1].hilbert_space
+  hs ::HilbertSpace = terms[1].hilbert_space
   bm ::BR = terms[1].bitmask
   bs ::BR = terms[1].bitsource
   bt ::BR = terms[1].bittarget

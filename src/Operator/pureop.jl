@@ -1,5 +1,5 @@
 #abstract type AbstractOperator end
-#struct AbstractHilbertSpace end
+#struct HilbertSpace end
 
 export PureOperator
 #export OptionalPureOperator
@@ -7,14 +7,14 @@ export PureOperator
 export pure_operator
 
 struct PureOperator{Scalar<:Number, BR<:Unsigned} <:AbstractOperator
-  hilbert_space ::AbstractHilbertSpace
+  hilbert_space ::HilbertSpace
   bitmask ::BR
   bitsource ::BR  # Row
   bittarget ::BR  # Column
   amplitude ::Scalar
   # TODO: fermion sign
 
-  function PureOperator{S, BR}(hilbert_space ::AbstractHilbertSpace,
+  function PureOperator{S, BR}(hilbert_space ::HilbertSpace,
                                bitmask, bitsource, bittarget, amplitude::S) where {S, BR}
     if (~bitmask) & bitsource != 0x0
       throw(ArgumentError("every bit of bitsource not in bitmask should be set to zero"))
@@ -124,7 +124,7 @@ function convert(type ::Type{PureOperator{S1, BR}}, obj::PureOperator{S2, BR}) w
   return PureOperator{S1, BR}(obj.hilbert_space, obj.bitmask, obj.bitsource, obj.bittarget, convert(S1, obj.amplitude))
 end
 
-function pure_operator(hilbert_space ::AbstractHilbertSpace,
+function pure_operator(hilbert_space ::HilbertSpace,
                        isite ::Integer,
                        istate_source ::Integer,
                        istate_target ::Integer,

@@ -10,8 +10,8 @@ using StaticArrays
   dn = State("Dn", QN( 1,-1))
   spin_site = Site([up, dn])
   site = Site([em, up, dn])
-  hs = AbstractHilbertSpace([site, site, spin_site, site])
-  hs2 = AbstractHilbertSpace([site, spin_site, site, site])
+  hs = HilbertSpace([site, site, spin_site, site])
+  hs2 = HilbertSpace([site, spin_site, site, site])
 
   @testset "constructor" begin
     ψ1 = SparseState{ComplexF64, UInt}(hs, UInt(0b0010001))

@@ -2,7 +2,7 @@
 # """
 # Returns dict
 # """
-# function apply(hs ::AbstractHilbertSpace,
+# function apply(hs ::HilbertSpace,
 #                op ::KroneckerProductOperator{OS},
 #                binrep ::BR) where {OS<:Number, BR<:Unsigned}
 #   zero_scalar = zero(OS)
@@ -30,7 +30,7 @@
 # end
 
 
-# function apply(hs ::AbstractHilbertSpace,
+# function apply(hs ::HilbertSpace,
 #                ops ::AbstractArray{KroneckerProductOperator{OS}},
 #                binrep ::BR) where {OS<:Number, BR <:Unsigned}
 #   zero_scalar = zero(OS)
@@ -45,7 +45,7 @@
 # end
 
 
-# function apply(hs ::AbstractHilbertSpace,
+# function apply(hs ::HilbertSpace,
 #                ops ::AbstractArray{KroneckerProductOperator{OS}},
 #                psi ::AbstractDict{BR, SS}) where {OS<:Number, SS<:Number, BR<:Unsigned}
 #   OutScalar = promote_type(OS, SS)

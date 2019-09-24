@@ -6,10 +6,10 @@ dn = State{QN}("Dn",-1)
 spin_site = Site{QN}([up, dn])
 
 n_sites = 4
-hs = AbstractHilbertSpace([spin_site for i in 1:n_sites])
-chs = concretize(hs, QN(0))
+hs = HilbertSpace([spin_site for i in 1:n_sites])
+chs = realize(hs, QN(0))
 
-function pauli_matrix(hs::AbstractHilbertSpace, isite ::Integer, j ::Symbol)
+function pauli_matrix(hs::HilbertSpace, isite ::Integer, j ::Symbol)
   if j == :x
     return pure_operator(hs, isite, 1, 2, 1; dtype=UInt) + pure_operator(hs, isite, 2, 1, 1; dtype=UInt)
   elseif j == :y

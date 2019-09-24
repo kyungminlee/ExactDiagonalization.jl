@@ -2,10 +2,10 @@
 export SumOperator
 
 struct SumOperator{Scalar<:Number, BR <:Unsigned} <:AbstractOperator
-  hilbert_space ::AbstractHilbertSpace
+  hilbert_space ::HilbertSpace
   terms ::Vector{PureOperator{Scalar, BR}}
 
-  function SumOperator{S, BR}(hs ::AbstractHilbertSpace, terms) where {S, BR}
+  function SumOperator{S, BR}(hs ::HilbertSpace, terms) where {S, BR}
     if any(!isa(t,  NullOperator) && t.hilbert_space !== hs for t in terms)
       throw(ArgumentError("Hilbert spaces don't match"))
     end

@@ -2,7 +2,7 @@ using Test
 using ExactDiagonalization
 
 @testset "operatorapplication" begin
-  function pauli_matrix(hs::AbstractHilbertSpace, isite ::Integer, j ::Symbol)
+  function pauli_matrix(hs::HilbertSpace, isite ::Integer, j ::Symbol)
     if j == :x
       return pure_operator(hs, isite, 1, 2, 1.0; dtype=UInt) + pure_operator(hs, isite, 2, 1, 1.0; dtype=UInt)
     elseif j == :y
@@ -23,14 +23,14 @@ using ExactDiagonalization
     up = State("Up", QN( 1))
     dn = State("Dn", QN(-1))
     spin_site = Site([up, dn])
-    hs = AbstractHilbertSpace([spin_site, spin_site, spin_site, spin_site])
+    hs = HilbertSpace([spin_site, spin_site, spin_site, spin_site])
     σ(i::Integer, j::Symbol) = pauli_matrix(hs, i, j)
 
-    chs = concretize(hs, 0)
+    chs = realize(hs, 0)
     psi = SparseState{Float64, UInt}(hs, UInt(0b0011) => 2.0, UInt(0b0101) => 10.0)
     
     @testset "hilbert" begin
-      hs2 = AbstractHilbertSpace([spin_site, spin_site, spin_site,])
+      hs2 = HilbertSpace([spin_site, spin_site, spin_site,])
       psi2 = SparseState{Float64, UInt}(hs2, UInt(0b0011) => 2.0, UInt(0b0101) => 10.0)
       @test_throws ArgumentError apply(σ(1, :+), psi2)
       @test_throws ArgumentError apply(σ(1, :x), psi2)
@@ -63,7 +63,7 @@ using ExactDiagonalization
       end
 
       let
-        hs2 = AbstractHilbertSpace([spin_site, spin_site, spin_site,])
+        hs2 = HilbertSpace([spin_site, spin_site, spin_site,])
         psi2 = SparseState{Float64, UInt}(hs2, UInt(0b0011) => 2.0, UInt(0b0101) => 10.0)
         @test_throws ArgumentError apply!(psi2, σ(1, :+), psi)
         @test_throws ArgumentError apply!(psi2, σ(1, :x), psi)
@@ -121,7 +121,7 @@ using ExactDiagonalization
       field_y = sum(σ(i, :y) for i in 1:n)
       field_z = sum(σ(i, :z) for i in 1:n)
       @testset "zerosector" begin
-        chs = concretize(hs, 0)
+        chs = realize(hs, 0)
         H, ϵ = materialize(chs, heisenberg)
         @test H ≈ [ 0  2  0  0  2  0;
                     2 -4  2  2  0  2;
@@ -168,7 +168,7 @@ using ExactDiagonalization
         PAULI_MATRIX = [
           [0.0 1.0; 1.0 0.0], [0.0 -1.0im; 1.0im 0.0], [1.0 0.0; 0.0 -1.0], [1.0 0.0; 0.0 1.0]
         ]
-        chs = concretize(hs)
+        chs = realize(hs)
         H, ϵ = materialize(chs, heisenberg)
         H2  = sum( kron(PAULI_MATRIX[i], PAULI_MATRIX[i], PAULI_MATRIX[4], PAULI_MATRIX[4]) for i in 1:3)
         H2 += sum( kron(PAULI_MATRIX[4], PAULI_MATRIX[i], PAULI_MATRIX[i], PAULI_MATRIX[4]) for i in 1:3)
