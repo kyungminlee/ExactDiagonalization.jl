@@ -33,10 +33,10 @@ using ExactDiagonalization
   @test hs == hs2
 
   # Test HilbertSpaceRealization
-  chs = realize(hs; BR=UInt64)
-  @test dimension(chs) == 2^n
-  @test chs.basis_list == collect(UInt64(0):UInt64(2^n-1))
-  @test all(chs.basis_lookup[basis] == ibasis for (ibasis, basis) in enumerate(chs.basis_list))
+  hsr = realize(hs; BR=UInt64)
+  @test dimension(hsr) == 2^n
+  @test hsr.basis_list == collect(UInt64(0):UInt64(2^n-1))
+  @test all(hsr.basis_lookup[basis] == ibasis for (ibasis, basis) in enumerate(hsr.basis_list))
 
   sector_bases = Dict{Int, Vector{UInt}}(
     +4 => [0b0000],
@@ -48,13 +48,13 @@ using ExactDiagonalization
   sectors = quantum_number_sectors(hs)
   @test sectors == sort(collect(keys(sector_bases)))
   for (q, target_basis) in sector_bases
-    chs1 = realize(hs, Set([q]); BR=UInt64)
-    chs2 = realize(hs, target_basis)
-    chs3 = realize(hs, UInt64[0x1])
-    @test chs1 == chs1
-    @test chs1 == chs2
-    @test chs1 != chs3
-    @test !(chs1 == chs3)
+    hsr1 = realize(hs, Set([q]); BR=UInt64)
+    hsr2 = realize(hs, target_basis)
+    hsr3 = realize(hs, UInt64[0x1])
+    @test hsr1 == hsr1
+    @test hsr1 == hsr2
+    @test hsr1 != hsr3
+    @test !(hsr1 == hsr3)
   end
   
   #=

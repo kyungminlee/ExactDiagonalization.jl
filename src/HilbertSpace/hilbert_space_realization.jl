@@ -17,7 +17,7 @@ end
 
 Dimension of the Concrete Hilbert space, i.e. number of basis vectors.
 """
-dimension(chs ::HilbertSpaceRealization) = length(chs.basis_list)
+dimension(hsr ::HilbertSpaceRealization) = length(hsr.basis_list)
 
 """
     realize(hs; BR ::DataType=UInt)

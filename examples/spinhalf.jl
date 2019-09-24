@@ -7,7 +7,7 @@ spin_site = Site{QN}([up, dn])
 
 n_sites = 4
 hs = HilbertSpace([spin_site for i in 1:n_sites])
-chs = realize(hs, QN(0))
+hsr = realize(hs, QN(0))
 
 function pauli_matrix(hs::HilbertSpace, isite ::Integer, j ::Symbol)
   if j == :x
