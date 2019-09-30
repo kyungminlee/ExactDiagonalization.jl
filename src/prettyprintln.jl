@@ -9,8 +9,8 @@ end
 function prettyprintln(io::IO, op::PureOperator{S, BR}; prefix::AbstractString="") where {S, BR}
   println(io, prefix, "PureOperator")
   println(io, prefix, "| M: ", string(op.bitmask, base=2, pad=op.hilbert_space.bitoffsets[end]))
-  println(io, prefix, "| S: ", string(op.bitsource, base=2, pad=op.hilbert_space.bitoffsets[end]))
-  println(io, prefix, "| T: ", string(op.bittarget, base=2, pad=op.hilbert_space.bitoffsets[end]))
+  println(io, prefix, "| R: ", string(op.bitrow, base=2, pad=op.hilbert_space.bitoffsets[end]))
+  println(io, prefix, "| C: ", string(op.bitcol, base=2, pad=op.hilbert_space.bitoffsets[end]))
   println(io, prefix, "| A: ", op.amplitude) 
 end
 

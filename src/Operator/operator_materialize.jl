@@ -29,7 +29,7 @@ function materialize(
   for (irow, row) in enumerate(hsr.basis_list)
     ψrow = SparseState{S, BR}(hs, row)
     ψcol = SparseState{S, BR}(hs)
-    apply_unsafe!(ψcol, sumop, ψrow)    
+    apply_unsafe!(ψcol, ψrow, sumop)    
     for (col, amplitude) in ψcol.components
       isapprox(amplitude, 0) && continue
       
@@ -73,7 +73,7 @@ function materialize_parallel(
 
     ψrow = SparseState{S, BR}(hs, row)
     ψcol = SparseState{S, BR}(hs)
-    apply_unsafe!(ψcol, sumop, ψrow)
+    apply_unsafe!(ψcol, ψrow, sumop)
     for (col, amplitude) in ψcol.components
       isapprox(amplitude, 0) && continue
 

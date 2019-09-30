@@ -34,20 +34,20 @@ function simplify(so ::SumOperator{S, BR}; tol::AbstractFloat=sqrt(eps(Float64))
 
   hs ::HilbertSpace = terms[1].hilbert_space
   bm ::BR = terms[1].bitmask
-  bs ::BR = terms[1].bitsource
-  bt ::BR = terms[1].bittarget
+  bs ::BR = terms[1].bitrow
+  bt ::BR = terms[1].bitcol
   am ::S  = terms[1].amplitude
 
   for term in terms[2:end]
-    if (bm == term.bitmask) && (bs == term.bitsource) && (bt == term.bittarget)
+    if (bm == term.bitmask) && (bs == term.bitrow) && (bt == term.bitcol)
       am += term.amplitude
     else
       if ! isapprox(am, 0; rtol=tol, atol=tol)
         push!(new_terms, PureOperator{S, BR}(hs, bm, bs, bt, am))
       end
       bm = term.bitmask
-      bs = term.bitsource
-      bt = term.bittarget
+      bs = term.bitrow
+      bt = term.bitcol
       am = term.amplitude
     end
   end

@@ -43,8 +43,8 @@ using ExactDiagonalization
     @test result1 == result2
     @test result1 == join(["PureOperator",
                            "| M: 0001",
-                           "| S: 0000",
-                           "| T: 0001",
+                           "| R: 0000",
+                           "| C: 0001",
                            "| A: 1.0", ""], "\n")
     val = σ(2, :x)
     result1 = @capture_out prettyprintln(val)
@@ -54,13 +54,13 @@ using ExactDiagonalization
     @test result1 == join(["SumOperator",
                            "| PureOperator",
                            "| | M: 0010",
-                           "| | S: 0000",
-                           "| | T: 0010",
+                           "| | R: 0000",
+                           "| | C: 0010",
                            "| | A: 1.0",
                            "| PureOperator",
                            "| | M: 0010",
-                           "| | S: 0010",
-                           "| | T: 0000",
+                           "| | R: 0010",
+                           "| | C: 0000",
                            "| | A: 1.0",
                            ""], "\n")
                                       
