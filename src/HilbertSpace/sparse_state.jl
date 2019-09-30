@@ -1,5 +1,6 @@
 export SparseState
 using LinearAlgebra
+export clean!
 
 """
     struct SparseState{Scalar<:Number, BR}
@@ -182,6 +183,15 @@ function convert(type ::Type{SparseState{S1, BR}}, obj::SparseState{S2, BR}) whe
   end
   return state
 end
+
+
+function clean!(arg ::SparseState{S1, BR}; tol=sqrt(eps(Float64))) where {S1, BR}
+  to_delete = [k for (k, v) in arg.components if isapprox(v, 0; atol=tol)]
+  for k in to_delete
+    delete!(arg.components, k)
+  end
+end
+
 
 import LinearAlgebra.norm
 function norm(arg ::SparseState{S1, BR}) where {S1, BR}
