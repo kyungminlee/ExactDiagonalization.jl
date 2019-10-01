@@ -28,7 +28,7 @@ function apply_unsafe!(out::SparseState{S1, BR}, psi::SparseState{S3, BR}, pureo
   for (b, v) in psi.components
     if (b & pureop.bitmask) == pureop.bitrow
       b2 = (b & ~pureop.bitmask) | pureop.bitcol
-      out[b2] += pureop.amplitude * v
+      out[b2] += v * pureop.amplitude
     end
   end
   out
@@ -44,7 +44,7 @@ end
 
 function apply_unsafe!(out::SparseState{S1, BR}, psi::SparseState{S3, BR}, sumop ::SumOperator{S2, BR}) where {S1, S2, S3, BR}
   for t in sumop.terms
-    apply_unsafe!(out, t, psi)
+    apply_unsafe!(out, psi, t)
   end
   out
 end

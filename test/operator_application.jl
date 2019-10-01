@@ -39,16 +39,16 @@ using ExactDiagonalization
     @testset "apply" begin
       @test apply(NullOperator(), psi) == SparseState{Float64, UInt}(hs)
     
-      @test apply(σ(1, :+), psi) == SparseState{Float64, UInt}(hs)
-      @test apply(σ(1, :-), psi) == SparseState{Float64, UInt}(hs, UInt(0b0010) => 2.0, UInt(0b0100) => 10.0)
+      @test apply(psi, σ(1, :+)) == SparseState{Float64, UInt}(hs)
+      @test apply(psi, σ(1, :-)) == SparseState{Float64, UInt}(hs, UInt(0b0010) => 2.0, UInt(0b0100) => 10.0)
 
-      @test apply(σ(2, :+), psi) == SparseState{Float64, UInt}(hs, UInt(0b0111) => 10.0)
-      @test apply(σ(2, :-), psi) == SparseState{Float64, UInt}(hs, UInt(0b0001) => 2.0)
+      @test apply(psi, σ(2, :+)) == SparseState{Float64, UInt}(hs, UInt(0b0111) => 10.0)
+      @test apply(psi, σ(2, :-)) == SparseState{Float64, UInt}(hs, UInt(0b0001) => 2.0)
 
       for i1 in 1:4, j1 in [:x, :y, :z, :+, :-]
         for i2 in 1:4, j2 in [:x, :y, :z, :+, :-]
-          ϕ1 = apply(σ(i2, j2), apply(σ(i1, j1), psi))
-          ϕ2 = apply(σ(i1, j1) * σ(i2,j2), psi)
+          ϕ1 = apply(apply(psi, σ(i1, j1)), σ(i2, j2))
+          ϕ2 = apply(psi, σ(i1, j1) * σ(i2,j2))
           @test ϕ1 == ϕ2
         end
       end
@@ -58,54 +58,54 @@ using ExactDiagonalization
     @testset "apply!" begin
       let
         psi2 = SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
-        apply!(psi2, NullOperator(), psi)
+        apply!(psi2, psi, NullOperator())
         @test psi2 == SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
       end
 
       let
         hs2 = HilbertSpace([spin_site, spin_site, spin_site,])
         psi2 = SparseState{Float64, UInt}(hs2, UInt(0b0011) => 2.0, UInt(0b0101) => 10.0)
-        @test_throws ArgumentError apply!(psi2, σ(1, :+), psi)
-        @test_throws ArgumentError apply!(psi2, σ(1, :x), psi)
+        @test_throws ArgumentError apply!(psi2, psi, σ(1, :+))
+        @test_throws ArgumentError apply!(psi2, psi, σ(1, :x))
       end
 
       let
         psi2 = SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
-        apply!(psi2, σ(1, :+), psi)
+        apply!(psi2, psi, σ(1, :+))
         @test psi2 == SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
       end
 
       let
         psi2 = SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
-        apply!(psi2, σ(1, :-), psi)
+        apply!(psi2, psi, σ(1, :-))
         @test psi2 == SparseState{Float64, UInt}(hs, UInt(0b0010) => 2.25, UInt(0b0100) => 10.0)
       end
 
       let
         psi2 = SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
-        apply!(psi2, σ(2, :+), psi)
+        apply!(psi2, psi, σ(2, :+))
         @test psi2 == SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25, UInt(0b0111) => 10.0)
       end
 
       let
         psi2 = SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
-        apply!(psi2, σ(2, :-), psi)
+        apply!(psi2, psi, σ(2, :-))
         @test psi2 == SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25, UInt(0b0001) => 2.0)
       end
 
       for i1 in 1:4, j1 in [:x, :y, :z, :+, :-]
-        ϕ1 = apply(σ(i1, j1), psi)
+        ϕ1 = apply(psi, σ(i1, j1))
         ϕ2 = SparseState{ComplexF64, UInt}(hs)
-        apply!(ϕ2, σ(i1, j1), psi)
+        apply!(ϕ2, psi, σ(i1, j1))
         @test ϕ1 == ϕ2
         ϕ3 = SparseState{Float64, UInt}(hs)
       end
 
       let
         psi2 = SparseState{ComplexF64, UInt}(hs, UInt(0b0010) => 0.25)
-        psi3 = apply(σ(2, :y), psi2)
+        psi3 = apply(psi2, σ(2, :y))
         psi4 = SparseState{Float64, UInt}(hs)
-        @test_throws InexactError apply!(psi4, σ(2, :y), psi2)
+        @test_throws InexactError apply!(psi4, psi2, σ(2, :y))
         # TODO more
       end
 
