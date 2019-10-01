@@ -1,7 +1,7 @@
 using Test
 using ExactDiagonalization
 
-@testset "operatorapplication" begin
+@testset "Operator Application" begin
   function pauli_matrix(hs::HilbertSpace, isite ::Integer, j ::Symbol)
     if j == :x
       return pure_operator(hs, isite, 1, 2, 1.0; dtype=UInt) + pure_operator(hs, isite, 2, 1, 1.0; dtype=UInt)
@@ -32,6 +32,8 @@ using ExactDiagonalization
     @testset "hilbert" begin
       hs2 = HilbertSpace([spin_site, spin_site, spin_site,])
       psi2 = SparseState{Float64, UInt}(hs2, UInt(0b0011) => 2.0, UInt(0b0101) => 10.0)
+      @test_throws ArgumentError apply(psi2, σ(1, :+))
+      @test_throws ArgumentError apply(psi2, σ(1, :x))
       @test_throws ArgumentError apply(σ(1, :+), psi2)
       @test_throws ArgumentError apply(σ(1, :x), psi2)
     end
@@ -60,6 +62,8 @@ using ExactDiagonalization
         psi2 = SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
         apply!(psi2, psi, NullOperator())
         @test psi2 == SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
+        apply!(psi2, NullOperator(), psi)
+        @test psi2 == SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
       end
 
       let
@@ -67,30 +71,59 @@ using ExactDiagonalization
         psi2 = SparseState{Float64, UInt}(hs2, UInt(0b0011) => 2.0, UInt(0b0101) => 10.0)
         @test_throws ArgumentError apply!(psi2, psi, σ(1, :+))
         @test_throws ArgumentError apply!(psi2, psi, σ(1, :x))
+        @test_throws ArgumentError apply!(psi2, σ(1, :+), psi)
+        @test_throws ArgumentError apply!(psi2, σ(1, :x), psi)
       end
 
       let
+        #psi = SparseState{Float64, UInt}(hs, UInt(0b0011) => 2.0, UInt(0b0101) => 10.0)
         psi2 = SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
         apply!(psi2, psi, σ(1, :+))
         @test psi2 == SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
-      end
 
-      let
         psi2 = SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
-        apply!(psi2, psi, σ(1, :-))
+        apply!(psi2, σ(1, :+), psi)
         @test psi2 == SparseState{Float64, UInt}(hs, UInt(0b0010) => 2.25, UInt(0b0100) => 10.0)
       end
 
       let
+        #psi = SparseState{Float64, UInt}(hs, UInt(0b0011) => 2.0, UInt(0b0101) => 10.0)
+        psi2 = SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
+        apply!(psi2, psi, σ(1, :-))
+        @test psi2 == SparseState{Float64, UInt}(hs, UInt(0b0010) => 2.25, UInt(0b0100) => 10.0)
+
+        psi2 = SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
+        apply!(psi2, σ(1, :-), psi)
+        @test psi2 == SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
+      end
+
+      let
+        #psi = SparseState{Float64, UInt}(hs, UInt(0b0011) => 2.0, UInt(0b0101) => 10.0)
         psi2 = SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
         apply!(psi2, psi, σ(2, :+))
         @test psi2 == SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25, UInt(0b0111) => 10.0)
+
+        psi2 = SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
+        apply!(psi2, σ(2, :+), psi)
+        @test psi2 == SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25, UInt(0b0001) => 2.0)
       end
 
       let
         psi2 = SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
         apply!(psi2, psi, σ(2, :-))
         @test psi2 == SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25, UInt(0b0001) => 2.0)
+
+        psi2 = SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
+        apply!(psi2, σ(2, :-), psi)
+        @test psi2 == SparseState{Float64, UInt}(hs,  UInt(0b0010) => 0.25, UInt(0b0111) => 10.0)
+      end
+
+      for i1 in 1:4, j1 in [:x, :z]
+        ϕ1 = SparseState{ComplexF64, UInt}(hs)
+        ϕ2 = SparseState{ComplexF64, UInt}(hs)
+        apply!(ϕ1, psi, σ(i1, j1))
+        apply!(ϕ2, σ(i1, j1), psi)
+        @test ϕ1 == ϕ2
       end
 
       for i1 in 1:4, j1 in [:x, :y, :z, :+, :-]
@@ -98,7 +131,6 @@ using ExactDiagonalization
         ϕ2 = SparseState{ComplexF64, UInt}(hs)
         apply!(ϕ2, psi, σ(i1, j1))
         @test ϕ1 == ϕ2
-        ϕ3 = SparseState{Float64, UInt}(hs)
       end
 
       let
@@ -108,8 +140,7 @@ using ExactDiagonalization
         @test_throws InexactError apply!(psi4, psi2, σ(2, :y))
         # TODO more
       end
-
-    end
+    end # testset apply!
 
 
     @testset "materialize" begin
