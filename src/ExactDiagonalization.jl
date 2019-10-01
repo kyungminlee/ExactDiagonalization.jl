@@ -7,6 +7,9 @@ using SparseArrays
 include("util.jl")
 include("HilbertSpace.jl")
 include("Operator.jl")
+
+include("Symmetry.jl")
+
 include("prettyprintln.jl")
 
 end

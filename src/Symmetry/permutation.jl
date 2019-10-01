@@ -1,5 +1,10 @@
+export AbstractSymmetryOperation
+export Permutation
 
-struct Permutation
+
+abstract type AbstractSymmetryOperation end
+
+struct Permutation <: AbstractSymmetryOperation
   map ::Vector{Int}
   cycle_length ::Int
   function Permutation(perms ::AbstractVector{Int}; max_cycle=2048)
