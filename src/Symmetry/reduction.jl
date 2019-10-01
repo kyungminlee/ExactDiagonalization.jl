@@ -2,16 +2,17 @@ export ReducedHilbertSpaceRealization
 export symmetry_reduce
 export materialize
 
-struct ReducedHilbertSpaceRealization
-  parent_hilbert_space_realization ::HilbertSpaceRealization
+struct ReducedHilbertSpaceRealization{QN, BR, C<:Complex}
+  parent_hilbert_space_realization ::HilbertSpaceRealization{QN, BR}
   translation_group ::TranslationGroup
   basis_list ::Vector{UInt}
-  basis_lookup ::Dict{UInt, NamedTuple{(:index, :amplitude), Tuple{Int, ComplexF64}}}
+  basis_lookup ::Dict{UInt, NamedTuple{(:index, :amplitude), Tuple{Int, C}}}
 end
 
-function symmetry_reduce(hsr ::HilbertSpaceRealization,
+function symmetry_reduce(hsr ::HilbertSpaceRealization{QN, BR},
                 trans_group ::TranslationGroup,
-                fractional_momentum ::AbstractVector{Rational})
+                fractional_momentum ::AbstractVector{Rational};
+                ComplexType::DataType=ComplexF64) where {QN, BR}
   ik = findfirst(collect(
     trans_group.fractional_momenta[ik] == fractional_momentum
     for ik in 1:length(trans_group.fractional_momenta) ))
@@ -30,7 +31,7 @@ function symmetry_reduce(hsr ::HilbertSpaceRealization,
       continue
     end
 
-    ψ = SparseState{ComplexF64, UInt}(hsr.hilbert_space)
+    ψ = SparseState{ComplexType, UInt}(hsr.hilbert_space)
     identity_translations = Vector{Int}[]
     for i in 1:length(trans_group.elements)
       t = trans_group.translations[i]
@@ -64,13 +65,13 @@ function symmetry_reduce(hsr ::HilbertSpaceRealization,
     bvec_prime == bvec && continue
     reduced_basis_lookup[bvec_prime] = (index=reduced_basis_lookup[bvec].index, amplitude=amplitude)
   end
-  return ReducedHilbertSpaceRealization(hsr, trans_group, reduced_basis_list, reduced_basis_lookup)
+  return ReducedHilbertSpaceRealization{QN, BR, ComplexType}(hsr, trans_group, reduced_basis_list, reduced_basis_lookup)
 end
 
 
-function materialize(rhsr :: ReducedHilbertSpaceRealization,
+function materialize(rhsr :: ReducedHilbertSpaceRealization{QN, BR, C},
                      operator ::AbstractOperator;
-                     tol::Real=sqrt(eps(Float64)))
+                     tol::Real=sqrt(eps(Float64))) where {QN, BR, C}
   # TODO CHECK IF THe OPERATOR HAS TRANSLATION SYMMETRY
   rows = Int[]
   cols = Int[]
@@ -81,8 +82,8 @@ function materialize(rhsr :: ReducedHilbertSpaceRealization,
 
   for (irow, brow) in enumerate(rhsr.basis_list)
     ampl_row = rhsr.basis_lookup[brow].amplitude
-    ψrow = SparseState{ComplexF64, UInt}(hs, brow=>1/ampl_row)
-    ψcol = SparseState{ComplexF64, UInt}(hs)
+    ψrow = SparseState{C, UInt}(hs, brow=>1/ampl_row)
+    ψcol = SparseState{C, UInt}(hs)
     apply!(ψcol, ψrow, operator)
     clean!(ψcol)
 
@@ -106,3 +107,4 @@ function materialize(rhsr :: ReducedHilbertSpaceRealization,
   n = length(rhsr.basis_list)
   return (sparse(rows, cols, vals, n, n), err)
 end
+
