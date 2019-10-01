@@ -10,11 +10,6 @@ matrix:
         - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
         - julia --project -e 'import Pkg; Pkg.build()'
         - JULIA_NUM_THREADS=2 julia --project --check-bounds=yes -e 'import Pkg; Pkg.test(; coverage=false)'
-    - julia: 1.1
-      script:
-        - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-        - julia --project -e 'import Pkg; Pkg.build()'
-        - JULIA_NUM_THREADS=2 julia --project --check-bounds=yes -e 'import Pkg; Pkg.test(; coverage=false)'
     - julia: 1.2
       script:
         - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
