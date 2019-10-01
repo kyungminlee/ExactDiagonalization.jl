@@ -1,9 +1,4 @@
-#abstract type AbstractOperator end
-#struct HilbertSpace end
-
 export PureOperator
-#export OptionalPureOperator
-
 export pure_operator
 
 struct PureOperator{Scalar<:Number, BR<:Unsigned} <:AbstractOperator
