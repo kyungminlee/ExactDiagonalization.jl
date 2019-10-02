@@ -1,6 +1,6 @@
 export ReducedHilbertSpaceRealization
 export symmetry_reduce
-export materialize
+export materialize, materialize_parallel
 
 struct ReducedHilbertSpaceRealization{QN, BR, C<:Complex}
   parent_hilbert_space_realization ::HilbertSpaceRealization{QN, BR}
@@ -105,6 +105,59 @@ function materialize(rhsr :: ReducedHilbertSpaceRealization{QN, BR, C},
   end
 
   n = length(rhsr.basis_list)
+  return (sparse(rows, cols, vals, n, n), err)
+end
+
+
+
+function materialize_parallel(rhsr :: ReducedHilbertSpaceRealization{QN, BR, C},
+                     operator ::AbstractOperator;
+                     tol::Real=sqrt(eps(Float64))) where {QN, BR, C}
+  # TODO CHECK IF THe OPERATOR HAS TRANSLATION SYMMETRY
+  hs = rhsr.parent_hilbert_space_realization.hilbert_space
+
+  nthreads = Threads.nthreads()
+  local_rows = [ Int[] for i in 1:nthreads]
+  local_cols = [ Int[] for i in 1:nthreads]
+  local_vals = [ C[] for i in 1:nthreads]
+  local_err =  Float64[0.0 for i in 1:nthreads]
+
+  n_basis = length(rhsr.basis_list)
+  
+  Threads.@threads for irow in 1:n_basis
+    id = Threads.threadid()
+    brow = rhsr.basis_list[irow]
+
+    ampl_row = rhsr.basis_lookup[brow].amplitude
+    ψrow = SparseState{C, UInt}(hs, brow=>1/ampl_row)
+    ψcol = SparseState{C, UInt}(hs)
+    apply_unsafe!(ψcol, ψrow, operator)
+    clean!(ψcol)
+
+    for (bcol, ampl) in ψcol.components
+      if ! haskey(rhsr.basis_lookup, bcol)
+        local_err[id] += abs(ampl.^2)
+        continue
+      end
+
+      (icol, ampl_col) = rhsr.basis_lookup[bcol]
+      push!(local_rows[id], irow)
+      push!(local_cols[id], icol)
+      push!(local_vals[id], ampl * ampl_col)
+    end
+  end
+
+  rows ::Vector{Int} = vcat(local_rows...) 
+  cols ::Vector{Int} = vcat(local_cols...) 
+  vals ::Vector{C} = vcat(local_vals...) 
+  err ::Float64 = sum(local_err) 
+
+  n = length(rhsr.basis_list)
+  if isempty(vals)
+    vals = Float64[]
+  elseif isapprox( maximum(abs.(imag.(vals))), 0)
+    vals = real.(vals)
+  end
   return (sparse(rows, cols, vals, n, n), err)
 end
 
