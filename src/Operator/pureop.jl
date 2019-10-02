@@ -121,16 +121,17 @@ end
 
 function pure_operator(hilbert_space ::HilbertSpace,
                        isite ::Integer,
-                       istate_source ::Integer,
-                       istate_target ::Integer,
+                       istate_row ::Integer,
+                       istate_col ::Integer,
                        amplitude::Number=1;
                        dtype ::DataType=UInt)
-  site = hilbert_space.sites[isite]
-  state_source = site.states[istate_source]
-  state_target = site.states[istate_target]
-
+  @boundscheck let
+    site = hilbert_space.sites[isite]
+    state_row = site.states[istate_row]
+    state_col = site.states[istate_col]
+  end
   bm = get_bitmask(hilbert_space, isite; dtype=dtype)
-  bs = dtype(istate_source - 1) << hilbert_space.bitoffsets[isite]
-  bt = dtype(istate_target - 1) << hilbert_space.bitoffsets[isite]
-  return PureOperator{typeof(amplitude), dtype}(hilbert_space, bm, bs, bt, amplitude)
+  br = dtype(istate_row - 1) << hilbert_space.bitoffsets[isite]
+  bc = dtype(istate_col - 1) << hilbert_space.bitoffsets[isite]
+  return PureOperator{typeof(amplitude), dtype}(hilbert_space, bm, br, bc, amplitude)
 end
