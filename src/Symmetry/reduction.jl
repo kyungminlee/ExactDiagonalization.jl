@@ -23,7 +23,7 @@ function symmetry_reduce(hsr ::HilbertSpaceRealization{QN, BR},
   #k = float.(fractional_momentum) .* 2π
   phases = trans_group.character_table[ik, :]
   #[ cis(dot(k, t)) for t in trans_group.translations]
-  reduced_basis_list = Set{UInt}()  
+  reduced_basis_list = Set{UInt}()
   parent_amplitude = Dict()
 
   for bvec in hsr.basis_list
@@ -100,7 +100,7 @@ function materialize(rhsr :: ReducedHilbertSpaceRealization{QN, BR, C},
     end
   end
 
-  if maximum(imag.(vals)) < tol
+  if !isempty(vals) && maximum(imag.(vals)) < tol
     vals = real.(vals)
   end
 
