@@ -35,7 +35,7 @@ end
 Set a(R(bvec)) = value / b(bvec)
 =#
 import Base.setindex!
-function setindex!(rss ::ReducedSparseState, value ::ComplexF64, bvec ::UInt)
+function setindex!(rss ::ReducedSparseState, value ::Number, bvec ::UInt)
   list = rss.reduced_hilbert_space_realization.basis_list
   lookup = rss.reduced_hilbert_space_realization.basis_lookup
   ivec, amplitude = lookup[bvec]
