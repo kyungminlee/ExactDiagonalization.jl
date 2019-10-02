@@ -1,5 +1,5 @@
 export ReducedHilbertSpaceRealization
-export symmetry_reduce
+export symmetry_reduce, symmetry_reduce_parallel
 export materialize, materialize_parallel
 
 struct ReducedHilbertSpaceRealization{QN, BR, C<:Complex}
@@ -58,6 +58,86 @@ function symmetry_reduce(hsr ::HilbertSpaceRealization{QN, BR},
     end
   end
   reduced_basis_list = sort(collect(reduced_basis_list))
+  reduced_basis_lookup = Dict(bvec => (index=ivec, amplitude=parent_amplitude[bvec].amplitude)
+                              for (ivec, bvec) in enumerate(reduced_basis_list))
+
+  for (bvec_prime, (bvec, amplitude)) in parent_amplitude
+    bvec_prime == bvec && continue
+    reduced_basis_lookup[bvec_prime] = (index=reduced_basis_lookup[bvec].index, amplitude=amplitude)
+  end
+  return ReducedHilbertSpaceRealization{QN, BR, ComplexType}(hsr, trans_group, reduced_basis_list, reduced_basis_lookup)
+end
+
+
+function symmetry_reduce_parallel(hsr ::HilbertSpaceRealization{QN, BR},
+                trans_group ::TranslationGroup,
+                fractional_momentum ::AbstractVector{Rational};
+                ComplexType::DataType=ComplexF64) where {QN, BR}
+  ik = findfirst(collect(
+    trans_group.fractional_momenta[ik] == fractional_momentum
+    for ik in 1:length(trans_group.fractional_momenta) ))
+  
+  isnothing(ik) && throw(ArgumentError("fractional momentum $(fractional_momentum) not an irrep of the translation group"))
+
+  # check if fractional momentum is compatible with translation group ?
+  #k = float.(fractional_momentum) .* 2π
+  phases = trans_group.character_table[ik, :]
+  #[ cis(dot(k, t)) for t in trans_group.translations]
+
+  n_basis = length(hsr.basis_list)
+
+  mutex = Threads.Mutex()
+
+  nthreads = Threads.nthreads()
+  local_reduced_basis_list = [UInt[] for i in 1:nthreads]
+  ParentAmplitudeDictType = Dict{BR, NamedTuple{(:parent,:amplitude), Tuple{BR,ComplexType}}}
+  local_parent_amplitude = [ParentAmplitudeDictType() for i in 1:nthreads]
+
+  visited = BitArray(undef, n_basis)
+  visited .= false
+
+  Threads.@threads for ivec in 1:n_basis
+    visited[ivec] && continue
+    id = Threads.threadid()
+    bvec = hsr.basis_list[ivec]
+
+    ψ = SparseState{ComplexType, UInt}(hsr.hilbert_space)
+    identity_translations = Vector{Int}[]
+    for i in 1:length(trans_group.elements)
+      t = trans_group.translations[i]
+      g = trans_group.elements[i]
+      p = phases[i]
+
+      bvec_prime = apply_symmetry(hsr.hilbert_space, g, bvec)
+      ψ[bvec_prime] += p
+      if bvec_prime == bvec
+        push!(identity_translations, t)
+      end
+    end
+    !is_compatible(fractional_momentum, identity_translations) && continue
+    bvec != minimum(keys(ψ.components)) && continue
+
+    clean!(ψ)
+    @assert !isempty(ψ)
+
+    normalize!(ψ)
+
+    push!(local_reduced_basis_list[id], bvec)
+    for (bvec_prime, amplitude) in ψ.components
+      local_parent_amplitude[id][bvec_prime] = (parent=bvec, amplitude=amplitude)
+    end
+    
+    ivec_primes = [hsr.basis_lookup[bvec_prime] for bvec_prime in keys(ψ.components)]
+    lock(mutex)
+    visited[ivec_primes] .= true
+    unlock(mutex)
+  end
+
+  reduced_basis_list ::Vector{BR} = vcat(local_reduced_basis_list...)
+  sort!(reduced_basis_list)
+
+  parent_amplitude = ParentAmplitudeDictType()
+  merge!(parent_amplitude, local_parent_amplitude...)
   reduced_basis_lookup = Dict(bvec => (index=ivec, amplitude=parent_amplitude[bvec].amplitude)
                               for (ivec, bvec) in enumerate(reduced_basis_list))
 
