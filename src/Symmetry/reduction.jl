@@ -114,23 +114,28 @@ function symmetry_reduce_parallel(hsr ::HilbertSpaceRealization{QN, BR},
         push!(identity_translations, t)
       end
     end
-    !is_compatible(fractional_momentum, identity_translations) && continue
-    bvec != minimum(keys(ψ.components)) && continue
+    (!is_compatible(fractional_momentum, identity_translations)) && continue
+    (bvec != minimum(keys(ψ.components))) && continue
 
     clean!(ψ)
     @assert !isempty(ψ)
 
-    normalize!(ψ)
+    ivec_primes = [hsr.basis_lookup[bvec_prime] for bvec_prime in keys(ψ.components)]
 
+    lock(mutex)
+    if any(visited[ivec_primes]) 
+      unlock(mutex)
+      continue
+    else
+      visited[ivec_primes] .= true
+      unlock(mutex)
+    end
+
+    normalize!(ψ)
     push!(local_reduced_basis_list[id], bvec)
     for (bvec_prime, amplitude) in ψ.components
       local_parent_amplitude[id][bvec_prime] = (parent=bvec, amplitude=amplitude)
     end
-    
-    ivec_primes = [hsr.basis_lookup[bvec_prime] for bvec_prime in keys(ψ.components)]
-    lock(mutex)
-    visited[ivec_primes] .= true
-    unlock(mutex)
   end
 
   reduced_basis_list ::Vector{BR} = vcat(local_reduced_basis_list...)
