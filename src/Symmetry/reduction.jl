@@ -106,8 +106,8 @@ function symmetry_reduce_parallel(hsr ::HilbertSpaceRealization{QN, BR},
       end
     end
   end
-  @assert length(reorder) == n_basis
-  @assert length(Set(reorder)) == n_basis
+  #@assert length(reorder) == n_basis
+  @assert sort(reorder) == 1:n_basis
 
   visited = falses(n_basis)
   Threads.@threads for itemp in 1:n_basis
