@@ -80,7 +80,7 @@ function symmetry_reduce_parallel(hsr ::HilbertSpaceRealization{QN, BR},
 
   n_basis = length(hsr.basis_list)
 
-  mutex = Threads.Mutex()
+  visit_lock = Threads.SpinLock()
 
   nthreads = Threads.nthreads()
   local_reduced_basis_list = [BR[] for i in 1:nthreads]
@@ -142,13 +142,13 @@ function symmetry_reduce_parallel(hsr ::HilbertSpaceRealization{QN, BR},
 
     ivec_primes = Int[hsr.basis_lookup[bvec_prime] for bvec_prime in keys(ψ.components)]
 
-    lock(mutex)
+    lock(visit_lock)
     if any(visited[ivec_primes])
-      unlock(mutex)
+      unlock(visit_lock)
       continue
     else
       visited[ivec_primes] .= true
-      unlock(mutex)
+      unlock(visit_lock)
     end
 
     normalize!(ψ)
