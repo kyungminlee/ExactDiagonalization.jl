@@ -1,4 +1,5 @@
 export make_bitmask
+export bitcount
 
 function make_bitmask(msb ::Integer,
                       lsb ::Integer=0;
