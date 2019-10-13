@@ -84,7 +84,6 @@ function (+)(lhs::SumOperator{S1, BR}, rhs::PureOperator{S2, BR}) where {S1, S2,
   if lhs.hilbert_space !== rhs.hilbert_space
     throw(ArgumentError("Hilbert spaces don't match"))
   end
-
   S3 = promote_type(S1, S2)
   return SumOperator{S3, BR}(lhs.hilbert_space, PureOperator{S3, BR}[lhs.terms..., rhs])
 end
@@ -94,7 +93,6 @@ function (+)(lhs::PureOperator{S1, BR}, rhs::SumOperator{S2, BR}) where {S1, S2,
   if lhs.hilbert_space !== rhs.hilbert_space
     throw(ArgumentError("Hilbert spaces don't match"))
   end
-
   S3 = promote_type(S1, S2)
   return SumOperator{S3, BR}(lhs.hilbert_space, PureOperator{S3, BR}[lhs, rhs.terms...])
 end
@@ -104,7 +102,6 @@ function (+)(lhs::SumOperator{S1, BR}, rhs::SumOperator{S2, BR}) where {S1, S2, 
   if lhs.hilbert_space !== rhs.hilbert_space
     throw(ArgumentError("Hilbert spaces don't match"))
   end
-
   S3 = promote_type(S1, S2)
   return SumOperator{S3, BR}(lhs.hilbert_space, PureOperator{S3, BR}[lhs.terms..., rhs.terms...])
 end

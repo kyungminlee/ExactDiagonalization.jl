@@ -19,7 +19,9 @@ end
 
 function materialize(
     hsr ::HilbertSpaceRealization{QN, BR},
-    sumop ::SumOperator{S, BR}) where {QN, S<:Number, BR<:Unsigned}
+    sumop ::SumOperator{S, BR};
+    tol::Real=sqrt(eps(Float64))) where {QN, S<:Number, BR<:Unsigned}
+  debug(LOGGER, "BEGIN materialize for HilbertSpaceRealization")
   hs = hsr.hilbert_space
   rows = Int[]
   cols = Int[]
@@ -45,18 +47,27 @@ function materialize(
   end
 
   if isempty(vals)
+    debug(LOGGER, "Matrix empty")
     vals = Float64[]
   elseif S <:Complex && isapprox( maximum(abs.(imag.(vals))), 0)
+    debug(LOGGER, "Matrix purely real")
     vals = real.(vals)
   end
   n = dimension(hsr)
+  spmat = sparse(rows, cols, vals, n, n)
+  debug(LOGGER, "Number of nonzero elements: $(length(spmat.nzval))")
+  droptol!(spmat, tol)
+  debug(LOGGER, "Number of nonzero elements after droptol!: $(length(spmat.nzval))")
+  debug(LOGGER, "END materialize for HilbertSpaceRealization")
   return (sparse(rows, cols, vals, n, n), err)
 end
 
 
 function materialize_parallel(
     hsr ::HilbertSpaceRealization{QN, BR},
-    sumop ::SumOperator{S, BR}) where {QN, S<:Number, BR<:Unsigned}
+    sumop ::SumOperator{S, BR};
+    tol::Real=sqrt(eps(Float64))) where {QN, S<:Number, BR<:Unsigned}
+  debug(LOGGER, "BEGIN materialize_parallel for HilbertSpaceRealization")
   hs = hsr.hilbert_space
 
   nthreads = Threads.nthreads()
@@ -94,11 +105,18 @@ function materialize_parallel(
   err ::Float64 = sum(local_err) 
 
   if isempty(vals)
+    debug(LOGGER, "Matrix empty")
     vals = Float64[]
   elseif S <:Complex && isapprox( maximum(abs.(imag.(vals))), 0)
+    debug(LOGGER, "Matrix purely real")
     vals = real.(vals)
   end
   n = dimension(hsr)
-  return (sparse(rows, cols, vals, n, n), err)
+  spmat = sparse(rows, cols, vals, n, n)
+  debug(LOGGER, "Number of nonzero elements: $(length(spmat.nzval))")
+  droptol!(spmat, tol)
+  debug(LOGGER, "Number of nonzero elements after droptol!: $(length(spmat.nzval))")
+  debug(LOGGER, "END materialize_parallel for HilbertSpaceRealization")
+  return (spmat, err)
 end
 
