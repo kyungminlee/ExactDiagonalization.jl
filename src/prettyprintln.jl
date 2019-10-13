@@ -2,8 +2,8 @@ export prettyprintln
 
 prettyprintln(x; kwargs...) = prettyprintln(stdout, x; kwargs...)
 
-function prettyprintln(io::IO, op::NullOperator)
-  println(io, "NullOperator")
+function prettyprintln(io::IO, op::NullOperator; prefix::AbstractString="")
+  println(io, prefix, "NullOperator")
 end
 
 function prettyprintln(io::IO, op::PureOperator{S, BR}; prefix::AbstractString="") where {S, BR}
