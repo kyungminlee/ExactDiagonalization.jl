@@ -3,6 +3,13 @@ module ExactDiagonalization
 using DataStructures
 using StaticArrays
 using SparseArrays
+using Memento
+
+const LOGGER = getlogger(@__MODULE__)
+
+function __init__()
+  Memento.register(LOGGER)
+end
 
 include("util.jl")
 include("HilbertSpace.jl")
