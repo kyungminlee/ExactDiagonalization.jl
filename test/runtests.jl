@@ -1,15 +1,14 @@
 using Test
 using ExactDiagonalization
 
-include("util.jl")
+include("test_util.jl")
 
-include("hilbert_space.jl")
-include("sparse_state.jl")
-include("operator.jl")
+include("test_hilbert_space.jl")
+include("test_sparse_state.jl")
+include("test_operator.jl")
 
-include("hilbert_space_realization.jl")
-include("operator_application.jl")
-include("operator_simplify.jl")
+include("test_hilbert_space_realization.jl")
+include("test_operator_application.jl")
+include("test_operator_simplify.jl")
 
-include("prettyprintln.jl")
-#include("spinhalf.jl")
+include("test_prettyprintln.jl")
