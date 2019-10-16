@@ -6,6 +6,7 @@ os:
 matrix:
   allow_failures:
     - julia: nightly
+  fast_finish: true
   include:
     - julia: 1.0
       script:
