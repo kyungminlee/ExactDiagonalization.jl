@@ -12,6 +12,8 @@ function __init__()
 end
 
 include("util.jl")
+include("frozensortedarray.jl")
+
 include("HilbertSpace.jl")
 include("Operator.jl")
 

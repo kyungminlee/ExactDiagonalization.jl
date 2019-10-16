@@ -6,8 +6,8 @@ struct ReducedHilbertSpaceRealization{QN, BR, C<:Complex}
   parent_hilbert_space_realization ::HilbertSpaceRealization{QN, BR}
   translation_group ::TranslationGroup
   basis_list ::Vector{BR}
-  basis_lookup ::MinimalPerfectHash.CHD{BR, NamedTuple{(:index, :amplitude), Tuple{Int, C}}}
-  #basis_lookup ::Dict{BR, NamedTuple{(:index, :amplitude), Tuple{Int, C}}}
+  #basis_lookup ::MinimalPerfectHash.CHD{BR, NamedTuple{(:index, :amplitude), Tuple{Int, C}}}
+  basis_lookup ::Dict{BR, NamedTuple{(:index, :amplitude), Tuple{Int, C}}}
 end
 
 function symmetry_reduce(hsr ::HilbertSpaceRealization{QN, BR},
@@ -98,7 +98,7 @@ function symmetry_reduce(hsr ::HilbertSpaceRealization{QN, BR},
     ivec_r = reduced_basis_lookup[bvec].index
     reduced_basis_lookup[bvec_prime] = (index=ivec_r, amplitude=amplitude)
   end
-  reduced_basis_lookup = MinimalPerfectHash.CHD{BR, NamedTuple{(:index, :amplitude), Tuple{Int, C}}}(reduced_basis_lookup)
+  #reduced_basis_lookup = MinimalPerfectHash.CHD{BR, NamedTuple{(:index, :amplitude), Tuple{Int, C}}}(reduced_basis_lookup)
 
   return ReducedHilbertSpaceRealization{QN, BR, ComplexType}(hsr, trans_group, reduced_basis_list, reduced_basis_lookup)
 end
@@ -227,7 +227,7 @@ function symmetry_reduce_parallel(hsr ::HilbertSpaceRealization{QN, BR},
     reduced_basis_lookup[bvec_prime] = (index=ivec_r, amplitude=amplitude)
   end
   debug(LOGGER, "END symmetry_reduce_parallel")
-  reduced_basis_lookup = MinimalPerfectHash.CHD{BR, NamedTuple{(:index, :amplitude), Tuple{Int, C}}}(reduced_basis_lookup)
+  #reduced_basis_lookup = MinimalPerfectHash.CHD{BR, NamedTuple{(:index, :amplitude), Tuple{Int, C}}}(reduced_basis_lookup)
   return ReducedHilbertSpaceRealization{QN, BR, ComplexType}(hsr, trans_group, reduced_basis_list, reduced_basis_lookup)
 end
 
