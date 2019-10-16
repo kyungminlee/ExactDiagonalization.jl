@@ -37,7 +37,7 @@ function realize(hs ::HilbertSpace{QN}; BR ::DataType=UInt) where {QN}
     push!(basis_list, compress(hs, indexarray))
   end
   #basis_lookup = Dict{BR, Int}(basis => ibasis for (ibasis, basis) in enumerate(basis_list))
-  basis_lookup = MinimalPerfectHash.CHD(basis_list, collect(1:length(basis_list)))
+  basis_lookup = MinimalPerfectHash.CHD{BR, Int}((b, i) for (i, b) in enumerate(basis_list))
   return HilbertSpaceRealization{QN, BR}(hs, basis_list, basis_lookup)
 end
 
@@ -88,7 +88,7 @@ function realize(
   allowed = Set(allowed)
   sectors = Set(quantum_number_sectors(hs))
   if isempty(intersect(allowed, sectors))
-    return HilbertSpaceRealization{QN, BR}(hs, [], MinimalPerfectHash.CHD(BR[], Int[]))
+    return HilbertSpaceRealization{QN, BR}(hs, [], MinimalPerfectHash.CHD())
   end
 
   quantum_numbers = [[state.quantum_number for state in site.states] for site in hs.sites]
@@ -139,7 +139,7 @@ function realize(
   end
 
   #basis_lookup = Dict{BR, Int}(basis => ibasis for (ibasis, basis) in enumerate(basis_list))
-  basis_lookup = MinimalPerfectHash.CHD(basis_list, collect(1:length(basis_list)))
+  basis_lookup = MinimalPerfectHash.CHD{BR, Int}((b, i) for (i, b) in enumerate(basis_list))
   return HilbertSpaceRealization{QN, BR}(hs, basis_list, basis_lookup)
 end
 
@@ -147,6 +147,6 @@ end
 function realize(hs ::HilbertSpace{QN},
                     basis_list ::AbstractArray{BR}) where {QN, BR<:Unsigned}
   #basis_lookup = Dict{BR, Int}(basis => ibasis for (ibasis, basis) in enumerate(basis_list))
-  basis_lookup = MinimalPerfectHash.CHD(basis_list, collect(1:length(basis_list)))
+  basis_lookup = MinimalPerfectHash.CHD{BR, Int}((b, i) for (i, b) in enumerate(basis_list))
   return HilbertSpaceRealization{QN, BR}(hs, basis_list, basis_lookup)
 end

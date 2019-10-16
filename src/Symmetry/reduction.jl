@@ -6,7 +6,8 @@ struct ReducedHilbertSpaceRealization{QN, BR, C<:Complex}
   parent_hilbert_space_realization ::HilbertSpaceRealization{QN, BR}
   translation_group ::TranslationGroup
   basis_list ::Vector{BR}
-  basis_lookup ::Dict{BR, NamedTuple{(:index, :amplitude), Tuple{Int, C}}}
+  basis_lookup ::MinimalPerfectHash.CHD{BR, NamedTuple{(:index, :amplitude), Tuple{Int, C}}}
+  #basis_lookup ::Dict{BR, NamedTuple{(:index, :amplitude), Tuple{Int, C}}}
 end
 
 function symmetry_reduce(hsr ::HilbertSpaceRealization{QN, BR},
@@ -16,7 +17,7 @@ function symmetry_reduce(hsr ::HilbertSpaceRealization{QN, BR},
   ik = findfirst(collect(
     trans_group.fractional_momenta[ik] == fractional_momentum
     for ik in 1:length(trans_group.fractional_momenta) ))
-  
+
   isnothing(ik) && throw(ArgumentError("fractional momentum $(fractional_momentum) not an irrep of the translation group"))
 
   phases = trans_group.character_table[ik, :]
@@ -44,7 +45,7 @@ function symmetry_reduce(hsr ::HilbertSpaceRealization{QN, BR},
       g = trans_group.elements[i]
 
       bvec_prime = apply_symmetry(hsr.hilbert_space, g, bvec)
-      
+
       if bvec_prime < bvec
         compatible = false
         break
@@ -76,7 +77,7 @@ function symmetry_reduce(hsr ::HilbertSpaceRealization{QN, BR},
       parent_amplitude_list[ivec_prime] = (parent=ivec, amplitude=amplitude)
     end
   end
-  
+
   sort!(reduced_basis_list)
 
   ItemType = NamedTuple{(:index, :amplitude), Tuple{Int, ComplexType}}
@@ -97,6 +98,8 @@ function symmetry_reduce(hsr ::HilbertSpaceRealization{QN, BR},
     ivec_r = reduced_basis_lookup[bvec].index
     reduced_basis_lookup[bvec_prime] = (index=ivec_r, amplitude=amplitude)
   end
+  reduced_basis_lookup = MinimalPerfectHash.CHD{BR, NamedTuple{(:index, :amplitude), Tuple{Int, C}}}(reduced_basis_lookup)
+
   return ReducedHilbertSpaceRealization{QN, BR, ComplexType}(hsr, trans_group, reduced_basis_list, reduced_basis_lookup)
 end
 
@@ -150,7 +153,7 @@ function symmetry_reduce_parallel(hsr ::HilbertSpaceRealization{QN, BR},
     visited[ivec] && continue
     id = Threads.threadid()
     bvec = hsr.basis_list[ivec]
-    
+
     compatible = true
     ψ = SparseState{ComplexType, BR}(hsr.hilbert_space)
     for i in 1:length(trans_group.elements)
@@ -224,6 +227,7 @@ function symmetry_reduce_parallel(hsr ::HilbertSpaceRealization{QN, BR},
     reduced_basis_lookup[bvec_prime] = (index=ivec_r, amplitude=amplitude)
   end
   debug(LOGGER, "END symmetry_reduce_parallel")
+  reduced_basis_lookup = MinimalPerfectHash.CHD{BR, NamedTuple{(:index, :amplitude), Tuple{Int, C}}}(reduced_basis_lookup)
   return ReducedHilbertSpaceRealization{QN, BR, ComplexType}(hsr, trans_group, reduced_basis_list, reduced_basis_lookup)
 end
 
@@ -231,7 +235,7 @@ end
 function materialize(rhsr :: ReducedHilbertSpaceRealization{QN, BR, C},
                      operator ::AbstractOperator;
                      tol::Real=sqrt(eps(Float64))) where {QN, BR, C}
-  
+
   @assert is_invariant(rhsr.translation_group, operator)
   hs = rhsr.parent_hilbert_space_realization.hilbert_space
 
@@ -315,10 +319,10 @@ function materialize_parallel(rhsr :: ReducedHilbertSpaceRealization{QN, BR, C},
   end
   debug(LOGGER, "Finished materialization (parallel)")
 
-  rows ::Vector{Int} = vcat(local_rows...) 
-  cols ::Vector{Int} = vcat(local_cols...) 
-  vals ::Vector{C} = vcat(local_vals...) 
-  err ::Float64 = sum(local_err) 
+  rows ::Vector{Int} = vcat(local_rows...)
+  cols ::Vector{Int} = vcat(local_cols...)
+  vals ::Vector{C} = vcat(local_vals...)
+  err ::Float64 = sum(local_err)
 
   if isempty(vals)
     debug(LOGGER, "Matrix empty")
@@ -334,4 +338,3 @@ function materialize_parallel(rhsr :: ReducedHilbertSpaceRealization{QN, BR, C},
   debug(LOGGER, "END materialize_parallel for ReducedHilbertSpaceRealiation")
   return (spmat, err)
 end
-
