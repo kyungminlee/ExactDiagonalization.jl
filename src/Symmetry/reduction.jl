@@ -3,17 +3,17 @@ export symmetry_reduce, symmetry_reduce_parallel
 export materialize, materialize_parallel
 
 struct ReducedHilbertSpaceRealization{QN, BR, C<:Complex}
-  parent_hilbert_space_realization ::HilbertSpaceRealization{QN, BR}
+  parent ::HilbertSpaceRealization{QN, BR}
   translation_group ::TranslationGroup
   basis_list ::Vector{BR}
-  #basis_lookup ::MinimalPerfectHash.CHD{BR, NamedTuple{(:index, :amplitude), Tuple{Int, C}}}
-  basis_lookup ::Dict{BR, NamedTuple{(:index, :amplitude), Tuple{Int, C}}}
+  basis_mapping ::Vector{NamedTuple{(:index, :amplitude), Tuple{Int, C}}} # has size of parent dimension. each index item contains index at reduced basis, or -1 if not included
 end
 
-function symmetry_reduce(hsr ::HilbertSpaceRealization{QN, BR},
-                trans_group ::TranslationGroup,
-                fractional_momentum ::AbstractVector{Rational};
-                ComplexType::DataType=ComplexF64) where {QN, BR}
+function symmetry_reduce(
+    hsr ::HilbertSpaceRealization{QN, BR},
+    trans_group ::TranslationGroup,
+    fractional_momentum ::AbstractVector{Rational};
+    ComplexType::DataType=ComplexF64) where {QN, BR}
   ik = findfirst(collect(
     trans_group.fractional_momenta[ik] == fractional_momentum
     for ik in 1:length(trans_group.fractional_momenta) ))
@@ -24,8 +24,8 @@ function symmetry_reduce(hsr ::HilbertSpaceRealization{QN, BR},
   n_basis = length(hsr.basis_list)
 
   reduced_basis_list = BR[]
-  ParentAmplitudeType = NamedTuple{(:parent,:amplitude), Tuple{Int,ComplexType}}
-  parent_amplitude_list = ParentAmplitudeType[(parent=-1,amplitude=zero(ComplexType)) for i in 1:n_basis]
+  RepresentativeAmplitudeType = NamedTuple{(:representative,:amplitude), Tuple{Int,ComplexType}}
+  representative_amplitude_list = RepresentativeAmplitudeType[(representative=-1,amplitude=zero(ComplexType)) for i in 1:n_basis]
 
   size_estimate = let
     denom = max(1, length(trans_group.fractional_momenta) - 1)
@@ -34,9 +34,9 @@ function symmetry_reduce(hsr ::HilbertSpaceRealization{QN, BR},
   sizehint!(reduced_basis_list, size_estimate)
 
   visited = falses(n_basis)
-  for ivec in 1:n_basis
-    visited[ivec] && continue
-    bvec = hsr.basis_list[ivec]
+  for ivec_p in 1:n_basis
+    visited[ivec_p] && continue
+    bvec = hsr.basis_list[ivec_p]
 
     compatible = true
     ψ = SparseState{ComplexType, BR}(hsr.hilbert_space)
@@ -62,45 +62,40 @@ function symmetry_reduce(hsr ::HilbertSpaceRealization{QN, BR},
     clean!(ψ)
     @assert !isempty(ψ)
 
-    ivec_primes = Int[hsr.basis_lookup[bvec_prime] for bvec_prime in keys(ψ.components)]
+    ivec_p_primes = Int[hsr.basis_lookup[bvec_prime] for bvec_prime in keys(ψ.components)]
 
-    if any(visited[ivec_primes])
+    if any(visited[ivec_p_primes])
       continue
     else
-      visited[ivec_primes] .= true
+      visited[ivec_p_primes] .= true
     end
 
     normalize!(ψ)
     push!(reduced_basis_list, bvec)
     for (bvec_prime, amplitude) in ψ.components
-      ivec_prime = hsr.basis_lookup[bvec_prime]
-      parent_amplitude_list[ivec_prime] = (parent=ivec, amplitude=amplitude)
+      ivec_p_prime = hsr.basis_lookup[bvec_prime]
+      representative_amplitude_list[ivec_p_prime] = (representative=ivec_p, amplitude=amplitude)
     end
   end
 
   sort!(reduced_basis_list)
 
   ItemType = NamedTuple{(:index, :amplitude), Tuple{Int, ComplexType}}
-  reduced_basis_lookup = Dict{BR, ItemType}(
-                              let
-                                ivec = hsr.basis_lookup[bvec]
-                                amplitude = parent_amplitude_list[ivec].amplitude
-                                bvec => (index=ivec_r, amplitude=amplitude)
-                              end for (ivec_r, bvec) in enumerate(reduced_basis_list))
-  sizehint!(reduced_basis_lookup, length(reduced_basis_list))
-
-  for (ivec_prime, (ivec, amplitude)) in enumerate(parent_amplitude_list)
-    (ivec == -1) && continue  # not in this irrep
-    (ivec_prime == ivec) && continue # already in the lookup
-
-    bvec_prime = hsr.basis_list[ivec_prime]
-    bvec = hsr.basis_list[ivec]
-    ivec_r = reduced_basis_lookup[bvec].index
-    reduced_basis_lookup[bvec_prime] = (index=ivec_r, amplitude=amplitude)
+  basis_mapping = ItemType[(index=-1, amplitude=zero(ComplexType)) for b in hsr.basis_list]
+  for (ivec_r, bvec) in enumerate(reduced_basis_list)
+    ivec_p = hsr.basis_lookup[bvec]
+    amplitude = representative_amplitude_list[ivec_p].amplitude
+    basis_mapping[ivec_p] = (index=ivec_r, amplitude=amplitude)
   end
-  #reduced_basis_lookup = MinimalPerfectHash.CHD{BR, NamedTuple{(:index, :amplitude), Tuple{Int, C}}}(reduced_basis_lookup)
 
-  return ReducedHilbertSpaceRealization{QN, BR, ComplexType}(hsr, trans_group, reduced_basis_list, reduced_basis_lookup)
+  for (ivec_p_prime, (ivec_p, amplitude)) in enumerate(representative_amplitude_list)
+    (ivec_p == -1) && continue  # not in this irrep
+    (ivec_p_prime == ivec_p) && continue # already in the lookup
+    ivec_r = basis_mapping[ivec_p].index
+    basis_mapping[ivec_p_prime] = (index=ivec_r, amplitude=amplitude)
+  end
+
+  return ReducedHilbertSpaceRealization{QN, BR, ComplexType}(hsr, trans_group, reduced_basis_list, basis_mapping)
 end
 
 
@@ -121,8 +116,8 @@ function symmetry_reduce_parallel(hsr ::HilbertSpaceRealization{QN, BR},
   visit_lock = Threads.SpinLock()
   nthreads = Threads.nthreads()
   local_reduced_basis_list = [BR[] for i in 1:nthreads]
-  ParentAmplitudeType = NamedTuple{(:parent,:amplitude), Tuple{Int,ComplexType}}
-  parent_amplitude_list = ParentAmplitudeType[(parent=-1,amplitude=zero(ComplexType)) for i in 1:n_basis]
+  RepresentativeAmplitudeList = NamedTuple{(:representative,:amplitude), Tuple{Int,ComplexType}}
+  representative_amplitude_list = RepresentativeAmplitudeList[(representative=-1,amplitude=zero(ComplexType)) for i in 1:n_basis]
 
   size_estimate = let
     denom = max(1, length(trans_group.fractional_momenta) - 1)
@@ -143,16 +138,15 @@ function symmetry_reduce_parallel(hsr ::HilbertSpaceRealization{QN, BR},
       push!(reorder, k)
     end
   end
-  #@assert length(reorder) == n_basis
   @assert sort(reorder) == 1:n_basis
 
   visited = falses(n_basis)
   debug(LOGGER, "Starting reduction (parallel)")
   Threads.@threads for itemp in 1:n_basis
-    ivec = reorder[itemp]
-    visited[ivec] && continue
+    ivec_p = reorder[itemp]
+    visited[ivec_p] && continue
     id = Threads.threadid()
-    bvec = hsr.basis_list[ivec]
+    bvec = hsr.basis_list[ivec_p]
 
     compatible = true
     ψ = SparseState{ComplexType, BR}(hsr.hilbert_space)
@@ -178,22 +172,22 @@ function symmetry_reduce_parallel(hsr ::HilbertSpaceRealization{QN, BR},
     clean!(ψ)
     @assert !isempty(ψ)
 
-    ivec_primes = Int[hsr.basis_lookup[bvec_prime] for bvec_prime in keys(ψ.components)]
+    ivec_p_primes = Int[hsr.basis_lookup[bvec_prime] for bvec_prime in keys(ψ.components)]
 
     lock(visit_lock)
-    if any(visited[ivec_primes])
+    if any(visited[ivec_p_primes])
       unlock(visit_lock)
       continue
     else
-      visited[ivec_primes] .= true
+      visited[ivec_p_primes] .= true
       unlock(visit_lock)
     end
 
     normalize!(ψ)
     push!(local_reduced_basis_list[id], bvec)
     for (bvec_prime, amplitude) in ψ.components
-      ivec_prime = hsr.basis_lookup[bvec_prime]
-      parent_amplitude_list[ivec_prime] = (parent=ivec, amplitude=amplitude)
+      ivec_p_prime = hsr.basis_lookup[bvec_prime]
+      representative_amplitude_list[ivec_p_prime] = (representative=ivec_p, amplitude=amplitude)
     end
   end
   debug(LOGGER, "Finished reduction (parallel)")
@@ -206,38 +200,38 @@ function symmetry_reduce_parallel(hsr ::HilbertSpaceRealization{QN, BR},
   end
   sort!(reduced_basis_list)
 
-  debug(LOGGER, "Collecting basis lookup (diagonal)")
   ItemType = NamedTuple{(:index, :amplitude), Tuple{Int, ComplexType}}
-  reduced_basis_lookup = Dict{BR, ItemType}(
-                              let
-                                ivec = hsr.basis_lookup[bvec]
-                                amplitude = parent_amplitude_list[ivec].amplitude
-                                bvec => (index=ivec_r, amplitude=amplitude)
-                              end for (ivec_r, bvec) in enumerate(reduced_basis_list))
-  sizehint!(reduced_basis_lookup, length(reduced_basis_list))
+  basis_mapping = ItemType[(index=-1, amplitude=zero(ComplexType)) for i in hsr.basis_list]
+  debug(LOGGER, "Collecting basis lookup (diagonal)")
+  Threads.@threads for ivec_r in eachindex(reduced_basis_list)
+    bvec = reduced_basis_list[ivec_r]
+    ivec_p = hsr.basis_lookup[bvec]
+    amplitude = representative_amplitude_list[ivec_p].amplitude
+    basis_mapping[ivec_p] = (index=ivec_r, amplitude=amplitude)
+  end
 
   debug(LOGGER, "Collecting basis lookup (offdiagonal)")
-  for (ivec_prime, (ivec, amplitude)) in enumerate(parent_amplitude_list)
-    (ivec == -1) && continue  # not in this irrep
-    (ivec_prime == ivec) && continue # already in the lookup
-
-    bvec_prime = hsr.basis_list[ivec_prime]
-    bvec = hsr.basis_list[ivec]
-    ivec_r = reduced_basis_lookup[bvec].index
-    reduced_basis_lookup[bvec_prime] = (index=ivec_r, amplitude=amplitude)
+  Threads.@threads for ivec_p_prime in eachindex(representative_amplitude_list)
+    ivec_p, amplitude = representative_amplitude_list[ivec_p_prime]
+    (ivec_p == -1) && continue  # not in this irrep
+    (ivec_p_prime == ivec_p) && continue # already in the lookup
+    bvec = hsr.basis_list[ivec_p]
+    ivec_r = basis_mapping[ivec_p].index
+    @assert ivec_r > 0 "ivec_r $ivec_r <= 0"
+    basis_mapping[ivec_p_prime] = (index=ivec_r, amplitude=amplitude)
   end
   debug(LOGGER, "END symmetry_reduce_parallel")
-  #reduced_basis_lookup = MinimalPerfectHash.CHD{BR, NamedTuple{(:index, :amplitude), Tuple{Int, C}}}(reduced_basis_lookup)
-  return ReducedHilbertSpaceRealization{QN, BR, ComplexType}(hsr, trans_group, reduced_basis_list, reduced_basis_lookup)
+  return ReducedHilbertSpaceRealization{QN, BR, ComplexType}(hsr, trans_group, reduced_basis_list, basis_mapping)
 end
 
 
-function materialize(rhsr :: ReducedHilbertSpaceRealization{QN, BR, C},
-                     operator ::AbstractOperator;
-                     tol::Real=sqrt(eps(Float64))) where {QN, BR, C}
+function materialize(
+    rhsr ::ReducedHilbertSpaceRealization{QN, BR, C},
+    operator ::AbstractOperator;
+    tol::Real=sqrt(eps(Float64))) where {QN, BR, C}
 
   @assert is_invariant(rhsr.translation_group, operator)
-  hs = rhsr.parent_hilbert_space_realization.hilbert_space
+  hs = rhsr.parent.hilbert_space
 
   rows = Int[]
   cols = Int[]
@@ -245,23 +239,30 @@ function materialize(rhsr :: ReducedHilbertSpaceRealization{QN, BR, C},
   err  = 0.0
 
   n_basis = length(rhsr.basis_list)
-  for irow in 1:n_basis
-    brow = rhsr.basis_list[irow]
-    ampl_row = rhsr.basis_lookup[brow].amplitude
+  for irow_r in 1:n_basis
+    brow = rhsr.basis_list[irow_r]
+    irow_p = rhsr.parent.basis_lookup[brow]
+    irow_r2, ampl_row = rhsr.basis_mapping[irow_p]
+    @assert irow_r == irow_r2 "$irow_r != $irow_r2"
     ψrow = SparseState{C, BR}(hs, brow=>1/ampl_row)
     ψcol = SparseState{C, BR}(hs)
     apply_unsafe!(ψcol, ψrow, operator)
     clean!(ψcol)
 
     for (bcol, ampl) in ψcol.components
-      if ! haskey(rhsr.basis_lookup, bcol)
-        err += abs(ampl.^2)
+      if ! haskey(rhsr.parent.basis_lookup, bcol)
+        err += abs(ampl)^2
         continue
       end
 
-      (icol, ampl_col) = rhsr.basis_lookup[bcol]
-      push!(rows, irow)
-      push!(cols, icol)
+      icol_p = rhsr.parent.basis_lookup[bcol]
+      (icol_r, ampl_col) = rhsr.basis_mapping[icol_p]
+      if !(icol_r > 0)
+        err += abs(ampl)^2
+        continue
+      end
+      push!(rows, irow_r)
+      push!(cols, icol_r)
       push!(vals, ampl * ampl_col)
     end
   end
@@ -278,13 +279,14 @@ end
 
 
 
-function materialize_parallel(rhsr :: ReducedHilbertSpaceRealization{QN, BR, C},
-                     operator ::AbstractOperator;
-                     tol::Real=sqrt(eps(Float64))) where {QN, BR, C}
+function materialize_parallel(
+    rhsr :: ReducedHilbertSpaceRealization{QN, BR, C},
+    operator ::AbstractOperator;
+    tol::Real=sqrt(eps(Float64))) where {QN, BR, C}
   debug(LOGGER, "BEGIN materialize_parallel for ReducedHilbertSpaceRealiation")
   debug(LOGGER, "Checking whether the operator is translationally invariant")
   @assert is_invariant(rhsr.translation_group, operator)
-  hs = rhsr.parent_hilbert_space_realization.hilbert_space
+  hs = rhsr.parent.hilbert_space
 
   nthreads = Threads.nthreads()
   debug(LOGGER, "Number of threads: $nthreads")
@@ -295,25 +297,30 @@ function materialize_parallel(rhsr :: ReducedHilbertSpaceRealization{QN, BR, C},
 
   n_basis = length(rhsr.basis_list)
   debug(LOGGER, "Starting materialization (parallel)")
-  Threads.@threads for irow in 1:n_basis
+  Threads.@threads for irow_r in 1:n_basis
     id = Threads.threadid()
     brow = rhsr.basis_list[irow]
-
-    ampl_row = rhsr.basis_lookup[brow].amplitude
+    irow_p = rhsr.parent.basis_lookup[brow]
+    irow_r2, ampl_row = rhsr.basis_mapping[irow_p]
+    @assert irow_r2 == irow "$irow_r != $irow_r2"
     ψrow = SparseState{C, BR}(hs, brow=>1/ampl_row)
     ψcol = SparseState{C, BR}(hs)
     apply_unsafe!(ψcol, ψrow, operator)
     clean!(ψcol)
 
     for (bcol, ampl) in ψcol.components
-      if ! haskey(rhsr.basis_lookup, bcol)
-        local_err[id] += abs(ampl.^2)
+      if ! haskey(rhsr.parent.basis_lookup, bcol)
+        local_err[id] += abs(ampl^2)
         continue
       end
-
-      (icol, ampl_col) = rhsr.basis_lookup[bcol]
-      push!(local_rows[id], irow)
-      push!(local_cols[id], icol)
+      icol_p = rhsr.parent.basis_lookup[bcol]
+      (icol_r, ampl_col) = rhsr.basis_mapping[icol_p]
+      if !(icol_r > 0)
+        err += abs(ampl)^2
+        continue
+      end
+      push!(local_rows[id], irow_r)
+      push!(local_cols[id], icol_r)
       push!(local_vals[id], ampl * ampl_col)
     end
   end

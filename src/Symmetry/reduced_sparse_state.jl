@@ -21,9 +21,12 @@ end
 =#
 import Base.getindex
 function getindex(rss ::ReducedSparseState, bvec::UInt) ::ComplexF64
-  lookup = rss.reduced_hilbert_space_realization.basis_lookup
-  ivec, amplitude = lookup[bvec]
-  #(_, amplitude_parent) = lookup[ivec]
+  parent_lookup = rss.reduced_hilbert_space_realization.hilbert_space.basis_lookup
+  reduced_lookup = rss.reduced_hilbert_space_realization.basis_lookup
+  ivec_parent = parent_lookup[bvec]
+  #lookup = rss.reduced_hilbert_space_realization.basis_lookup
+  ivec, amplitude = reduced_lookup[ivec_parent]
+  #(_, amplitude_parent) = reduced_lookup[ivec]
   return rss.components[ivec] * amplitude
 end
 
@@ -36,32 +39,16 @@ Set a(R(bvec)) = value / b(bvec)
 =#
 import Base.setindex!
 function setindex!(rss ::ReducedSparseState, value ::Number, bvec ::UInt)
-  list = rss.reduced_hilbert_space_realization.basis_list
-  lookup = rss.reduced_hilbert_space_realization.basis_lookup
-  ivec, amplitude = lookup[bvec]
-  (_, amplitude_parent) = lookup[list[ivec]]
+  #list = rss.reduced_hilbert_space_realization.basis_list
+  parent_lookup = rss.reduced_hilbert_space_realization.hilbert_space.basis_lookup
+  reduced_lookup = rss.reduced_hilbert_space_realization.basis_lookup
+  ivec_parent = parent_lookup[bvec]
+  ivec, amplitude = reduced_lookup[ivec_parent]
+  #(_, amplitude_parent) = reduced_lookup[ivec]
   rss.components[ivec] = value / amplitude
   return rss
 end
 
-
-# import Base.setindex!
-# function setindex!(rss ::ReducedSparseState, value ::ComplexF64, bvec ::UInt)
-#   list = rss.reduced_hilbert_space_realization.basis_list
-#   lookup = rss.reduced_hilbert_space_realization.basis_lookup
-#   ivec, amplitude = lookup[bvec]
-#   (_, amplitude_parent) = lookup[list[ivec]]
-#   rss.components[ivec] = value / amplitude * amplitude_parent
-#   return rss
-# end
-
-# import Base.getindex
-# function getindex(rss::ReducedSparseState, bvec::UInt)
-#   lookup = rss.reduced_hilbert_space_realization.basis_lookup
-#   ivec, amplitude = lookup[bvec]
-#   (_, amplitude_parent) = lookup[ivec]
-#   return rss.components[ivec] * amplitude / amplitude_parent
-# end
 
 import LinearAlgebra.norm
 import LinearAlgebra.normalize!

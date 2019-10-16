@@ -34,7 +34,7 @@ struct HilbertSpace{QN} <: AbstractHilbertSpace
     bitwidths = Int[bitwidth(site) for site in sites]
     bitoffsets = Int[0, cumsum(bitwidths)...]
     new{QN}(sites, bitwidths, bitoffsets)
-  end  
+  end
 end
 
 import Base.==
@@ -47,12 +47,6 @@ function get_bitmask(hs ::HilbertSpace, isite ::Integer; dtype ::DataType=UInt)
   return make_bitmask(hs.bitoffsets[isite+1], hs.bitoffsets[isite]; dtype=dtype)
 end
 
-# function add_site!(hs ::HilbertSpace{QN}, site ::Site{QN}) where QN
-#   push!(hs.sites, site)
-#   bw = bitwidth(site)
-#   push!(hs.bitwidths, bw)
-#   push!(hs.bitoffsets, hs.bitoffsets[end] + bw)
-# end
 
 function quantum_number_sectors(hs ::HilbertSpace{QN})::Vector{QN} where QN
   qns = Set{QN}([zero(QN)])
@@ -85,10 +79,6 @@ function get_quantum_number(hs ::HilbertSpace{QN}, indexarray ::AbstractArray{I,
     )
 end
 
-# function extract_binrep(hilbert_space ::HilbertSpace{QN}, isite ::Integer, binrep ::U) where {QN, U <:Unsigned}
-#   mask = make_bitmask(hilbert_space.bidwidths[isite]; dtype=U)
-#   return (binrep >> hilbert_space.bitoffsets[isite]) & mask
-# end
 
 """
 Convert binary representation to an array of indices (of states)
@@ -115,7 +105,7 @@ end
 
 
 """
-Convert an array of indices (of states) to binary representation 
+Convert an array of indices (of states) to binary representation
 """
 function compress(hs ::HilbertSpace{QN}, indexarray ::AbstractVector{I}; BR::DataType=UInt) where {QN, I<:Integer}
   if length(indexarray) != length(hs.sites)
