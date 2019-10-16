@@ -1,5 +1,5 @@
 export make_bitmask
-export bitcount
+#export bitcount
 
 function make_bitmask(msb ::Integer,
                       lsb ::Integer=0;
@@ -35,6 +35,7 @@ function merge_vec(x::Vector{T}, y::Vector{T})::Vector{T} where {T}
   return z
 end
 
+#=
 function bitcount(i ::UInt8) ::Int
   i = i - ((i >> 1) & 0x55);
   i = (i & 0x33) + ( (i>>2) & 0x33);
@@ -81,3 +82,4 @@ function bitcount(i ::UInt128) ::Int
 	i = i + (i >> 64);
   return Int(i & 0xff);
 end
+=#

@@ -11,6 +11,7 @@ using ExactDiagonalization
     @test make_bitmask(5, 3) == 0b11000
   end
 
+  #=
   @testset "bitcount" begin
     @test ExactDiagonalization.bitcount(UInt(0b0110101)) == 4
     @test ExactDiagonalization.bitcount(UInt(0b0100001)) == 2
@@ -23,7 +24,8 @@ using ExactDiagonalization
       end
     end
   end
-
+  =#
+  
   @testset "merge_vec" begin
     let
       a = Int[1,5,7,8]
