@@ -1,10 +1,12 @@
 export HilbertSpaceRealization
 export dimension, realize, materialize
 
+using MinimalPerfectHash
+
 struct HilbertSpaceRealization{QN, BR}
   hilbert_space :: HilbertSpace{QN}
   basis_list ::Vector{BR}
-  basis_lookup ::Dict{BR, Int}
+  basis_lookup ::MinimalPerfectHash.CHD{BR, Int}
 end
 
 import Base.==
@@ -34,7 +36,8 @@ function realize(hs ::HilbertSpace{QN}; BR ::DataType=UInt) where {QN}
     indexarray = Int[indexarray...]
     push!(basis_list, compress(hs, indexarray))
   end
-  basis_lookup = Dict{BR, Int}(basis => ibasis for (ibasis, basis) in enumerate(basis_list))
+  #basis_lookup = Dict{BR, Int}(basis => ibasis for (ibasis, basis) in enumerate(basis_list))
+  basis_lookup = MinimalPerfectHash.CHD(basis_list, collect(1:length(basis_list)))
   return HilbertSpaceRealization{QN, BR}(hs, basis_list, basis_lookup)
 end
 
@@ -85,7 +88,7 @@ function realize(
   allowed = Set(allowed)
   sectors = Set(quantum_number_sectors(hs))
   if isempty(intersect(allowed, sectors))
-    return HilbertSpaceRealization{QN, BR}(hs, [], Dict())
+    return HilbertSpaceRealization{QN, BR}(hs, [], MinimalPerfectHash.CHD(BR[], Int[]))
   end
 
   quantum_numbers = [[state.quantum_number for state in site.states] for site in hs.sites]
@@ -135,13 +138,15 @@ function realize(
     basis_list
   end
 
-  basis_lookup = Dict{BR, Int}(basis => ibasis for (ibasis, basis) in enumerate(basis_list))
+  #basis_lookup = Dict{BR, Int}(basis => ibasis for (ibasis, basis) in enumerate(basis_list))
+  basis_lookup = MinimalPerfectHash.CHD(basis_list, collect(1:length(basis_list)))
   return HilbertSpaceRealization{QN, BR}(hs, basis_list, basis_lookup)
 end
 
 
 function realize(hs ::HilbertSpace{QN},
                     basis_list ::AbstractArray{BR}) where {QN, BR<:Unsigned}
-  basis_lookup = Dict{BR, Int}(basis => ibasis for (ibasis, basis) in enumerate(basis_list))
+  #basis_lookup = Dict{BR, Int}(basis => ibasis for (ibasis, basis) in enumerate(basis_list))
+  basis_lookup = MinimalPerfectHash.CHD(basis_list, collect(1:length(basis_list)))
   return HilbertSpaceRealization{QN, BR}(hs, basis_list, basis_lookup)
 end

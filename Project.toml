@@ -8,6 +8,7 @@ DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
 JLD2 = "033835bb-8acc-5ee8-8aae-3f567f8a3819"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Memento = "f28f55f0-a522-5efc-85c2-fe41dfb9b2d9"
+MinimalPerfectHash = "bb017ab8-e7aa-48c1-8510-d0c63904c71d"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
