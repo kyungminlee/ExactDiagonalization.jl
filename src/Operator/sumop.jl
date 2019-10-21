@@ -6,7 +6,7 @@ struct SumOperator{Scalar<:Number, BR <:Unsigned} <:AbstractOperator
   terms ::Vector{PureOperator{Scalar, BR}}
 
   function SumOperator{S, BR}(hs ::HilbertSpace, terms) where {S, BR}
-    if any(!isa(t,  NullOperator) && t.hilbert_space !== hs for t in terms)
+    @boundscheck if any(!isa(t,  NullOperator) && t.hilbert_space != hs for t in terms)
       throw(ArgumentError("Hilbert spaces don't match"))
     end
     return new{S, BR}(hs, terms)
@@ -47,7 +47,7 @@ end
 
 
 function (*)(lhs::SumOperator{S1, BR}, rhs::PureOperator{S2, BR}) where {S1, S2, BR}
-  if lhs.hilbert_space !== rhs.hilbert_space
+  @boundscheck if lhs.hilbert_space != rhs.hilbert_space
     throw(ArgumentError("Hilbert spaces don't match"))
   end
   S3 = promote_type(S1, S2)
@@ -56,7 +56,7 @@ function (*)(lhs::SumOperator{S1, BR}, rhs::PureOperator{S2, BR}) where {S1, S2,
 end
 
 function (*)(lhs::PureOperator{S1, BR}, rhs::SumOperator{S2, BR}) where {S1, S2, BR}
-  if lhs.hilbert_space !== rhs.hilbert_space
+  @boundscheck if lhs.hilbert_space != rhs.hilbert_space
     throw(ArgumentError("Hilbert spaces don't match"))
   end
   S3 = promote_type(S1, S2)
@@ -65,7 +65,7 @@ function (*)(lhs::PureOperator{S1, BR}, rhs::SumOperator{S2, BR}) where {S1, S2,
 end
 
 function (*)(lhs::SumOperator{S1, BR}, rhs::SumOperator{S2, BR}) where {S1, S2, BR}
-  if lhs.hilbert_space !== rhs.hilbert_space
+  @boundscheck if lhs.hilbert_space != rhs.hilbert_space
     throw(ArgumentError("Hilbert spaces don't match"))
   end
   S3 = promote_type(S1, S2)
@@ -81,7 +81,7 @@ end
 
 
 function (+)(lhs::SumOperator{S1, BR}, rhs::PureOperator{S2, BR}) where {S1, S2, BR}
-  if lhs.hilbert_space !== rhs.hilbert_space
+  @boundscheck if lhs.hilbert_space != rhs.hilbert_space
     throw(ArgumentError("Hilbert spaces don't match"))
   end
   S3 = promote_type(S1, S2)
@@ -90,7 +90,7 @@ end
 
 
 function (+)(lhs::PureOperator{S1, BR}, rhs::SumOperator{S2, BR}) where {S1, S2, BR}
-  if lhs.hilbert_space !== rhs.hilbert_space
+  @boundscheck if lhs.hilbert_space != rhs.hilbert_space
     throw(ArgumentError("Hilbert spaces don't match"))
   end
   S3 = promote_type(S1, S2)
@@ -99,7 +99,7 @@ end
 
 
 function (+)(lhs::SumOperator{S1, BR}, rhs::SumOperator{S2, BR}) where {S1, S2, BR}
-  if lhs.hilbert_space !== rhs.hilbert_space
+  @boundscheck if lhs.hilbert_space != rhs.hilbert_space
     throw(ArgumentError("Hilbert spaces don't match"))
   end
   S3 = promote_type(S1, S2)
@@ -112,5 +112,3 @@ import Base.convert
 function convert(type ::Type{SumOperator{S1, BR}}, obj::SumOperator{S2, BR}) where {S1, S2, BR}
   return SumOperator{S1, BR}(obj.hilbert_space, [convert(PureOperator{S1, BR}, t) for t in obj.terms])
 end
-
-
