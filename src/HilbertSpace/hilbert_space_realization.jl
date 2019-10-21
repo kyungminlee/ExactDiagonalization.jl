@@ -3,11 +3,28 @@ export dimension, realize, materialize
 
 using MinimalPerfectHash
 
-struct HilbertSpaceRealization{QN, BR}
+struct HilbertSpaceRealization{QN, BR <:Unsigned}
   hilbert_space :: HilbertSpace{QN}
   basis_list ::Vector{BR}
   #basis_lookup ::MinimalPerfectHash.CHD{BR, Int}
   basis_lookup ::FrozenSortedArrayIndex{BR}
+  function HilbertSpaceRealization{QN, BR}(
+      hilbert_space ::HilbertSpace{QN},
+      basis_list::AbstractVector{BR},
+      basis_lookup::FrozenSortedArrayIndex{BR}) where {QN, BR}
+    if count_ones(typemax(BR)) <= hilbert_space.bitoffsets[end]
+      # equality added such that the MSB checks overflow
+      throw(ArgumentError("type $(BR) not enough to represent the hilbert space (need $(hilbert_space.bitoffsets[end]) bits)"))
+    end
+    return new{QN, BR}(hilbert_space, basis_list, basis_lookup)
+  end
+end
+
+function checkvalidbasis(hsr::HilbertSpaceRealization)
+  for (ivec, bvec) in enumerate(hsr.basis_list)
+    ivec2 = hsr.basis_lookup[bvec]
+    @assert ivec == ivec2
+  end
 end
 
 import Base.==

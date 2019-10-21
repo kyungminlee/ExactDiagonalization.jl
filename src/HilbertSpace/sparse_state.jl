@@ -20,13 +20,13 @@ mutable struct SparseState{Scalar<:Number, BR}
     return new{Scalar, BR}(hs, components)
   end
 
-  function SparseState{Scalar, BR}(hs ::HilbertSpace, component::Pair{BR, S2}, rest...) where {Scalar, BR, S2}
-    components = DefaultDict{BR, Scalar, Scalar}(zero(Scalar))
-    components[component.first] = component.second
-    for (cf, cs) in rest
-      components[cf] = cs
+  function SparseState{Scalar, BR}(hs ::HilbertSpace, components::Pair{BR, <:Number}...) where {Scalar, BR}
+    compos = DefaultDict{BR, Scalar, Scalar}(zero(Scalar))
+    #compos[component.first] = component.second
+    for (cf, cs) in components
+      compos[cf] = cs
     end
-    return new{Scalar, BR}(hs, components)
+    return new{Scalar, BR}(hs, compos)
   end
 
   function SparseState{Scalar, BR}(hs ::HilbertSpace, components ::AbstractDict{BR, S2}) where {Scalar, BR, S2}
@@ -48,6 +48,7 @@ function Base.setindex!(state ::SparseState{Scalar, BR}, value ::S, basis ::BR2)
   state
 end
 
+Base.eltype(state ::SparseState{Scalar, BR}) where {Scalar, BR} = Scalar
 
 import Base.==
 function (==)(lhs ::SparseState{S1, BR}, rhs::SparseState{S2, BR}) where {S1, S2, BR}
@@ -68,7 +69,7 @@ function isapprox(lhs ::SparseState{S1, BR}, rhs::SparseState{S2, BR}; atol=sqrt
       return false
     end
   end
-    
+
   return true
 end
 
@@ -130,7 +131,7 @@ function (+)(lhs ::SparseState{S1, BR}, rhs ::SparseState{S2, BR}) where {S1, S2
   for (b, v) in rhs.components
     out[b] += v
   end
-  return out 
+  return out
 end
 
 function (-)(lhs ::SparseState{S1, BR}, rhs ::SparseState{S2, BR}) where {S1, S2, BR}
@@ -145,7 +146,7 @@ function (-)(lhs ::SparseState{S1, BR}, rhs ::SparseState{S2, BR}) where {S1, S2
   for (b, v) in rhs.components
     out[b] -= v
   end
-  return out 
+  return out
 end
 
 function (*)(lhs ::SparseState{S1, BR}, rhs ::S2) where {S1, S2<:Number, BR}
@@ -192,7 +193,6 @@ function clean!(arg ::SparseState{S1, BR}; tol=sqrt(eps(Float64))) where {S1, BR
   end
 end
 
-
 import LinearAlgebra.norm
 function norm(arg ::SparseState{S1, BR}) where {S1, BR}
   if isempty(arg.components)
@@ -219,4 +219,4 @@ function normalize!(arg ::SparseState{S1, BR}) where {S1, BR}
   arg
 end
 
-
+# TODO Broadcasting
