@@ -1,11 +1,11 @@
-export ReducedSparseState
+export ReducedSparseStateIndexed
 # export get_component
 # export set_component!
 
-struct ReducedSparseState
+struct ReducedSparseStateIndexed
   reduced_hilbert_space_realization ::ReducedHilbertSpaceRealization
   components ::DefaultDict{Int, ComplexF64, ComplexF64}
-  function ReducedSparseState(rhsr ::ReducedHilbertSpaceRealization)
+  function ReducedSparseStateIndexed(rhsr ::ReducedHilbertSpaceRealization)
     return new(rhsr, DefaultDict{Int, ComplexF64}(zero(ComplexF64)))
   end
 end
@@ -20,7 +20,7 @@ end
   (a(R(bvec)) * b_i(bvec)
 =#
 import Base.getindex
-function getindex(rss ::ReducedSparseState, bvec::UInt) ::ComplexF64
+function getindex(rss ::ReducedSparseStateIndexed, bvec::UInt) ::ComplexF64
   parent_lookup = rss.reduced_hilbert_space_realization.hilbert_space.basis_lookup
   reduced_lookup = rss.reduced_hilbert_space_realization.basis_lookup
   ivec_parent = parent_lookup[bvec]
@@ -38,7 +38,7 @@ end
 Set a(R(bvec)) = value / b(bvec)
 =#
 import Base.setindex!
-function setindex!(rss ::ReducedSparseState, value ::Number, bvec ::UInt)
+function setindex!(rss ::ReducedSparseStateIndexed, value ::Number, bvec ::UInt)
   #list = rss.reduced_hilbert_space_realization.basis_list
   parent_lookup = rss.reduced_hilbert_space_realization.hilbert_space.basis_lookup
   reduced_lookup = rss.reduced_hilbert_space_realization.basis_lookup
@@ -53,7 +53,7 @@ end
 import LinearAlgebra.norm
 import LinearAlgebra.normalize!
 
-function norm(rss ::ReducedSparseState)
+function norm(rss ::ReducedSparseStateIndexed)
   list = rss.reduced_hilbert_space_realization.basis_list
   lookup = rss.reduced_hilbert_space_realization.basis_lookup
 
@@ -62,7 +62,7 @@ function norm(rss ::ReducedSparseState)
   return sqrt(norm_sq)
 end
 
-function normalize!(rss ::ReducedSparseState)
+function normalize!(rss ::ReducedSparseStateIndexed)
   norm_value = norm(rss)
   for (ivec, ampl) in rss.components
     rss.components[ivec] = ampl / norm_value
