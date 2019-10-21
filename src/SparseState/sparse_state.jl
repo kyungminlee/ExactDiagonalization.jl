@@ -1,6 +1,7 @@
 export SparseState
-using LinearAlgebra
 export clean!
+
+using LinearAlgebra
 
 """
     struct SparseState{Scalar<:Number, BR}
@@ -49,6 +50,11 @@ function Base.setindex!(state ::SparseState{Scalar, BR}, value ::S, basis ::BR2)
 end
 
 Base.eltype(state ::SparseState{Scalar, BR}) where {Scalar, BR} = Scalar
+
+
+import Base.isempty
+isempty(psi::SparseState{S, BR}) where {S, BR} = isempty(psi.components)
+
 
 import Base.==
 function (==)(lhs ::SparseState{S1, BR}, rhs::SparseState{S2, BR}) where {S1, S2, BR}

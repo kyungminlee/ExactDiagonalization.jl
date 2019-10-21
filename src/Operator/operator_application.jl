@@ -1,10 +1,6 @@
 export apply, apply!, apply_unsafe!
 
 
-import Base.isempty
-isempty(psi::SparseState{S, BR}) where {S, BR} = isempty(psi.components)
-
-
 function apply_unsafe!(out::SparseState{S1, BR}, nullop ::NullOperator, psi::SparseState{S2, BR}) where {S1, S2, BR}
   return out
 end
@@ -80,14 +76,14 @@ end
 
 
 function apply!(out::SparseState{S1, BR}, sumop ::SumOperator{S2, BR}, psi::SparseState{S3, BR}) where {S1, S2, S3, BR}
-  if sumop.hilbert_space !== psi.hilbert_space || out.hilbert_space !== psi.hilbert_space 
+  if sumop.hilbert_space !== psi.hilbert_space || out.hilbert_space !== psi.hilbert_space
     throw(ArgumentError("Hilbert spaces should match"))
   end
   apply_unsafe!(out, sumop, psi)
 end
 
 function apply!(out::SparseState{S1, BR}, psi::SparseState{S3, BR}, sumop ::SumOperator{S2, BR}) where {S1, S2, S3, BR}
-  if sumop.hilbert_space !== psi.hilbert_space || out.hilbert_space !== psi.hilbert_space 
+  if sumop.hilbert_space !== psi.hilbert_space || out.hilbert_space !== psi.hilbert_space
     throw(ArgumentError("Hilbert spaces should match"))
   end
   apply_unsafe!(out, psi, sumop)
@@ -218,7 +214,7 @@ end
 #                ops ::AbstractArray{KroneckerProductOperator{S}},
 #                indexarray ::AbstractArray{I, 1}) where {S<:Number, I<:Integer}
 #   zero_scalar = zero(S)
-  
+
 #   @assert length(indexarray) == length(hs.sites)
 #   results = DefaultDict{Vector{Int}, S}(zero_scalar)
 #   for op in ops
@@ -255,7 +251,7 @@ end
 #   for (indexarray, amplitude) in psi
 #     output = apply(hs, ops, indexarray)
 #     for (ϕ, α) in output
-#       results[indexarray] += amplitude * α 
+#       results[indexarray] += amplitude * α
 #     end
 #   end
 #   return results
