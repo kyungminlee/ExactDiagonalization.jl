@@ -49,6 +49,7 @@ function Base.setindex!(state ::SparseState{Scalar, BR}, value ::S, basis ::BR2)
   state
 end
 
+import Base.eltype
 Base.eltype(state ::SparseState{Scalar, BR}) where {Scalar, BR} = Scalar
 
 
@@ -192,6 +193,12 @@ function convert(type ::Type{SparseState{S1, BR}}, obj::SparseState{S2, BR}) whe
 end
 
 
+import Base.iterate
+function Base.iterate(iter ::SparseState{S, BR}, i::Int=iter.components.idxfloor) ::Tuple{Tuple{BR, S}, Int} where {S, BR}
+  return Base.iterate(iter.components, i)
+end
+
+
 function clean!(arg ::SparseState{S1, BR}; tol=sqrt(eps(Float64))) where {S1, BR}
   to_delete = [k for (k, v) in arg.components if isapprox(v, 0; atol=tol)]
   for k in to_delete
@@ -224,5 +231,6 @@ function normalize!(arg ::SparseState{S1, BR}) where {S1, BR}
   end
   arg
 end
+
 
 # TODO Broadcasting
