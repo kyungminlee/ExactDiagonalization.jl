@@ -299,10 +299,10 @@ function materialize_parallel(
   debug(LOGGER, "Starting materialization (parallel)")
   Threads.@threads for irow_r in 1:n_basis
     id = Threads.threadid()
-    brow = rhsr.basis_list[irow]
+    brow = rhsr.basis_list[irow_r]
     irow_p = rhsr.parent.basis_lookup[brow]
     irow_r2, ampl_row = rhsr.basis_mapping[irow_p]
-    @assert irow_r2 == irow "$irow_r != $irow_r2"
+    @assert irow_r == irow_r2 "$irow_r != $irow_r2"
     ψrow = SparseState{C, BR}(hs, brow=>1/ampl_row)
     ψcol = SparseState{C, BR}(hs)
     apply_unsafe!(ψcol, ψrow, operator)
@@ -316,7 +316,7 @@ function materialize_parallel(
       icol_p = rhsr.parent.basis_lookup[bcol]
       (icol_r, ampl_col) = rhsr.basis_mapping[icol_p]
       if !(icol_r > 0)
-        err += abs(ampl)^2
+        local_err[id] += abs(ampl)^2
         continue
       end
       push!(local_rows[id], irow_r)
