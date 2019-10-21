@@ -1,6 +1,8 @@
 export PureOperator
 export pure_operator
 
+using LinearAlgebra
+
 struct PureOperator{Scalar<:Number, BR<:Unsigned} <:AbstractOperator
   hilbert_space ::HilbertSpace
   bitmask ::BR
@@ -18,6 +20,11 @@ struct PureOperator{Scalar<:Number, BR<:Unsigned} <:AbstractOperator
     end
     return new{S, BR}(hilbert_space, bitmask, bitrow, bitcol, amplitude)
   end
+
+  function PureOperator{S, BR}(hilbert_space ::HilbertSpace,
+                               s::UniformScaling{S}) where {S, BR}
+    return new{S, BR}(hilbert_space, zero(BR), zero(BR), zero(BR), s.λ)
+  end
 end
 
 #const OptionalPureOperator{Scalar, BR} = Union{PureOperator{Scalar, BR}, NullOperator} where {Scalar, BR}
@@ -31,6 +38,8 @@ function (==)(lhs ::PureOperator{S1, BR}, rhs::PureOperator{S2, BR}) where {S1, 
           (lhs.bitcol == rhs.bitcol) &&
           (lhs.amplitude == rhs.amplitude))
 end
+
+import Base.+, Base.-, Base.*, Base./
 
 (-)(op ::PureOperator{S, BR}) where {S, BR} = PureOperator{S, BR}(op.hilbert_space, op.bitmask, op.bitrow, op.bitcol, -op.amplitude)
 
@@ -62,7 +71,7 @@ function (*)(lhs ::PureOperator{S1, BR}, rhs ::PureOperator{S2, BR}) where {S1<:
     new_bitrow = lhs.bitrow | (rhs.bitrow & onlyrhs_bitmask)
     new_bitcol = rhs.bitcol | (lhs.bitcol & onlylhs_bitmask)
     new_amplitude = lhs.amplitude * rhs.amplitude
-    return PureOperator{S3, BR}(lhs.hilbert_space, 
+    return PureOperator{S3, BR}(lhs.hilbert_space,
                                 new_bitmask,
                                 new_bitrow,
                                 new_bitcol,
