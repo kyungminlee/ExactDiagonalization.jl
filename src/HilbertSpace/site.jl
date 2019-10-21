@@ -9,8 +9,6 @@ abstract type AbstractHilbertSpace end
 ## TODO: Think about this
 AbstractQuantumNumber = Union{Int, SVector{N, Int} where N}
 
-import Base.==
-
 """
     State{QN}
 
@@ -24,18 +22,19 @@ julia> up = State{Int}("Up", 1)
 State{Int64}("Up", 1)
 
 julia> State("Dn", SVector{2, Int}([-1, 1]))
-State{SArray{Tuple{2},Int64,1,2}}("Dn", [-1, 1]) 
+State{SArray{Tuple{2},Int64,1,2}}("Dn", [-1, 1])
 ```
 """
 struct State{QN<:AbstractQuantumNumber}
   name ::String
   quantum_number ::QN
-  
+
   State(name ::AbstractString) = new{Int}(name, 0)
   State(name ::AbstractString, quantum_number ::QN) where {QN} = new{QN}(name, quantum_number)
   State{QN}(name ::AbstractString, quantum_number ::QN) where {QN} = new{QN}(name, quantum_number)
 end
 
+import Base.==
 function ==(lhs ::State{Q1}, rhs ::State{Q2}) where {Q1, Q2}
   return (Q1 == Q2) && (lhs.name == rhs.name) && (lhs.quantum_number == rhs.quantum_number)
 end
@@ -62,6 +61,7 @@ struct Site{QN<:AbstractQuantumNumber} <: AbstractHilbertSpace
   Site{QN}(states ::AbstractArray{State{QN}, 1}) where QN = new{QN}(states)
 end
 
+import Base.==
 function ==(lhs ::Site{Q1}, rhs ::Site{Q2}) where {Q1, Q2}
   return (Q1 == Q2) && (lhs.states == rhs.states)
 end
