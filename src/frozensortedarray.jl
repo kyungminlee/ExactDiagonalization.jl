@@ -31,3 +31,9 @@ function Base.haskey(arr::FrozenSortedArrayIndex{K}, key) ::Bool where K
   idx = fs_index(arr, key)
   return idx > 0
 end
+
+import Base.iterate
+function iterate(iter::FrozenSortedArrayIndex{K}, state::Int=1) ::Union{Nothing, Tuple{Pair{K, Int}, Int}} where {K}
+  state > length(iter.keys) && return nothing
+  return ((iter.keys[state] => state), state+1)
+end
