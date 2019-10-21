@@ -15,6 +15,9 @@ include("util.jl")
 include("frozensortedarray.jl")
 
 include("HilbertSpace.jl")
+
+include("SparseState.jl")
+
 include("Operator.jl")
 
 include("Symmetry.jl")
