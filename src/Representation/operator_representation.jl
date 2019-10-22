@@ -6,40 +6,40 @@ export bintype
 
 abstract type AbstractOperatorRepresentation end
 
-struct OperatorRepresentation{H <:HilbertSpaceRealization, O <:AbstractOperator} <: AbstractOperatorRepresentation
-  hilbert_space_realization ::H
+struct OperatorRepresentation{HSR <:HilbertSpaceRepresentation, O <:AbstractOperator} <: AbstractOperatorRepresentation
+  hilbert_space_realization ::HSR
   operator ::O
 
-  function OperatorRepresentation(hsr ::H, op ::O) where {H<:HilbertSpaceRealization, O<:AbstractOperator}
-    new{H, O}(hsr, op)
+  function OperatorRepresentation(hsr ::HSR, op ::O) where {HSR<:HilbertSpaceRepresentation, O<:AbstractOperator}
+    new{HSR, O}(hsr, op)
   end
-  function OperatorRepresentation{H, O}(hsr ::H, op ::O) where {H<:HilbertSpaceRealization, O<:AbstractOperator}
-    new{H, O}(hsr, op)
+  function OperatorRepresentation{HSR, O}(hsr ::HSR, op ::O) where {HSR<:HilbertSpaceRepresentation, O<:AbstractOperator}
+    new{HSR, O}(hsr, op)
   end
 end
 
-function represent(hsr ::H, op ::O) where {H<:HilbertSpaceRealization, O<:AbstractOperator}
-  return OperatorRepresentation{H, O}(hsr, op)
+function represent(hsr ::HSR, op ::O) where {HSR<:HilbertSpaceRepresentation, O<:AbstractOperator}
+  return OperatorRepresentation{HSR, O}(hsr, op)
 end
 
 
 import Base.size
-function size(arg::OperatorRepresentation{H, O}) ::Tuple{Int, Int} where {H, O}
+function size(arg::OperatorRepresentation{HSR, O}) ::Tuple{Int, Int} where {HSR, O}
   dim = dimension(arg.hilbert_space_realization)
   return (dim, dim)
 end
 
 
 
-bintype(lhs ::OperatorRepresentation{H, O}) where {H, O} = bintype(H)
-bintype(lhs ::Type{OperatorRepresentation{H, O}}) where {H, O} = bintype(H)
+@inline bintype(lhs ::OperatorRepresentation{HSR, O}) where {HSR, O} = bintype(HSR)
+@inline bintype(lhs ::Type{OperatorRepresentation{HSR, O}}) where {HSR, O} = bintype(HSR)
 
 import Base.eltype
-eltype(lhs ::OperatorRepresentation{H, O}) where {H, O} = eltype(O)
-eltype(lhs ::Type{OperatorRepresentation{H, O}}) where {H, O} = eltype(O)
+@inline eltype(lhs ::OperatorRepresentation{HSR, O}) where {HSR, O} = eltype(O)
+@inline eltype(lhs ::Type{OperatorRepresentation{HSR, O}}) where {HSR, O} = eltype(O)
 
 
-function get_slice(opr ::OperatorRepresentation{H, O}, icol ::Integer) where {H, O}
+function get_slice(opr ::OperatorRepresentation{HSR, O}, icol ::Integer) where {HSR, O}
   hsr = opr.hilbert_space_realization
   dim = length(hsr.basis_list)
   bcol = hsr.basis_list[icol]
@@ -50,7 +50,7 @@ end
 """
 May contain duplicates
 """
-function get_slice(irow ::Integer, opr ::OperatorRepresentation{H, O}) where {H, O}
+function get_slice(irow ::Integer, opr ::OperatorRepresentation{HSR, O}) where {HSR, O}
   hsr = opr.hilbert_space_realization
   dim = length(hsr.basis_list)
   brow = hsr.basis_list[irow]
@@ -59,7 +59,7 @@ function get_slice(irow ::Integer, opr ::OperatorRepresentation{H, O}) where {H,
 end
 
 import SparseArrays.sparse
-function sparse(opr::OperatorRepresentation{H, O}; tol ::Real=sqrt(eps(Float64))) where {H, O}
+function sparse(opr::OperatorRepresentation{HSR, O}; tol ::Real=sqrt(eps(Float64))) where {HSR, O}
   S = eltype(opr)
   m, n = size(opr)
   colptr = zeros(Int, n+1)
@@ -73,10 +73,7 @@ function sparse(opr::OperatorRepresentation{H, O}; tol ::Real=sqrt(eps(Float64))
     for (irow, ampl) in get_slice(opr, icol)
       colvec[irow] = get(colvec, irow, zero(S)) + ampl
     end
-    to_delete = Int[irow for (irow, ampl) in colvec if abs(ampl) < tol]
-    for irow in to_delete
-      delete!(colvec, irow)
-    end
+    choptol!(colvec, tol)
 
     colptr[icol+1] = colptr[icol] + length(colvec)
     sorted_items = sort(collect(colvec), by = item -> item[1])
@@ -89,10 +86,10 @@ end
 
 
 function apply_unsafe!(out ::Vector{S1},
-                       opr ::OperatorRepresentation{H, O},
+                       opr ::OperatorRepresentation{HSR, O},
                        state ::AbstractVector{S2};
                        range ::AbstractVector{<:Integer}=1:dimension(opr.hilbert_space_realization)
-                       ) where {H, O, S1<:Number, S2<:Number}
+                       ) where {HSR, O, S1<:Number, S2<:Number}
   hsr = opr.hilbert_space_realization
   dim = length(hsr.basis_list)
   err = zero(Float64)
@@ -114,9 +111,9 @@ end
 
 function apply_unsafe!(out ::Vector{S1},
                        state ::AbstractVector{S2},
-                       opr ::OperatorRepresentation{H, O};
+                       opr ::OperatorRepresentation{HSR, O};
                        range ::AbstractVector{<:Integer}=1:dimension(opr.hilbert_space_realization)
-                       ) where {H, O, S1<:Number, S2<:Number}
+                       ) where {HSR, O, S1<:Number, S2<:Number}
   hsr = opr.hilbert_space_realization
   dim = length(hsr.basis_list)
   err = zero(Float64)
@@ -149,9 +146,9 @@ end
 
 #
 # function apply_thread_unsafe!(out ::Vector{S1},
-#                               opr ::OperatorRepresentation{H, O},
+#                               opr ::OperatorRepresentation{HS, O},
 #                               state ::AbstractVector{S2}
-#                               ) where {H, O, S1<:Number, S2<:Number}
+#                               ) where {HS, O, S1<:Number, S2<:Number}
 #
 #   nthreads = Threads.nthreads()
 #   nthreads == 1 && return apply_unsafe!(out, opr, stage, range)
@@ -191,7 +188,7 @@ end
 
 
 import Base.*
-function (*)(opr ::OperatorRepresentation{H, O}, state ::AbstractVector{S}) where {H, O, S<:Number}
+function (*)(opr ::OperatorRepresentation{HSR, O}, state ::AbstractVector{S}) where {HSR, O, S<:Number}
   hsr = opr.hilbert_space_realization
   n = length(hsr.basis_list)
   T = promote_type(S, eltype(O))
@@ -209,7 +206,7 @@ end
 
 
 import Base.*
-function (*)(state ::AbstractVector{S}, opr ::OperatorRepresentation{H, O}) where {H, O, S<:Number}
+function (*)(state ::AbstractVector{S}, opr ::OperatorRepresentation{HSR, O}) where {HSR, O, S<:Number}
   hsr = opr.hilbert_space_realization
   n = len(hsr.basis_list)
   T = promote_type(S, eltype(O))

@@ -18,10 +18,9 @@ using StaticArrays
     @test ψ1.hilbert_space == hs
 
     @test ψ1.components == Dict(UInt(0x11) => 1.0 + 0.0im)
-    ψ1[UInt(0x0)] # DefaultDict
     @test ψ1[UInt(0x11)] == 1.0 + 0.0im
-    @test ψ1.components != Dict(UInt(0x11) => 1.0 + 0.0im)
-    
+    @test ψ1.components == Dict(UInt(0x11) => 1.0 + 0.0im)
+
     ψ2 = SparseState{ComplexF64, UInt}(hs)
     ψ2[UInt(0b0010001)] = 1.0
     @test ψ2.components == Dict(UInt(0x11) => 1.0 + 0.0im)
@@ -37,8 +36,8 @@ using StaticArrays
     ψ1 = SparseState{ComplexF64, UInt}(hs, UInt(0b0010001))
     ψ2 = SparseState{ComplexF64, UInt}(hs2, UInt(0b0010001))
     @test ψ1 != ψ2
-    @test_throws ArgumentError ψ1 + ψ2 
-    @test_throws ArgumentError ψ1 - ψ2 
+    @test_throws ArgumentError ψ1 + ψ2
+    @test_throws ArgumentError ψ1 - ψ2
   end
 
   @testset "equality" begin
@@ -52,9 +51,6 @@ using StaticArrays
     @test ψ1 == ψ2
     @test ψ1 != ψ3
     @test ψ1 != ψ4
-    
-    ψ2[UInt(0x0)]
-    @test ψ1 != ψ2
   end
 
   @testset "isapprox" begin
@@ -87,7 +83,7 @@ using StaticArrays
     @test ψr == ψc_r
     @test typeof(ψc) == typeof(ψr_c)
     @test ψc == ψr_c
-    
+
     ψc2 = SparseState{ComplexF64, UInt}(hs, UInt(0b00100001) => 1.0 + 2.0im)
     @test_throws InexactError convert(SparseState{Float64, UInt}, ψc2)
   end
@@ -98,7 +94,7 @@ using StaticArrays
       @test isempty(ψ1)
       ψ1[UInt(0b0000001)] = 3.0
       @test !isempty(ψ1)
-      
+
       @test +ψ1 == ψ1
       @test -ψ1 != ψ1
       @test (-ψ1).components == Dict(UInt(0b0000001) => -3.0)

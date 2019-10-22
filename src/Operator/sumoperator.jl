@@ -16,11 +16,11 @@ end
 
 
 import Base.eltype
-eltype(lhs ::SumOperator{S, BR}) where {S, BR} = S
-eltype(lhs ::Type{SumOperator{S, BR}}) where {S, BR} = S
+#eltype(lhs ::SumOperator{S, BR}) where {S, BR} = S
+@inline eltype(lhs ::Type{SumOperator{S, BR}}) where {S, BR} = S
 
-bintype(lhs ::SumOperator{S, BR}) where {S, BR} = BR
-bintype(lhs ::Type{SumOperator{S, BR}}) where {S, BR} = BR
+@inline bintype(lhs ::SumOperator{S, BR}) where {S, BR} = BR
+@inline bintype(lhs ::Type{SumOperator{S, BR}}) where {S, BR} = BR
 
 import Base.size
 function size(arg::SumOperator{S, BR}) ::Tuple{Int, Int} where {S, BR}

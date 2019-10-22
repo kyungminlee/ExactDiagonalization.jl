@@ -3,9 +3,9 @@ export ReducedSparseStateIndexed
 # export set_component!
 
 struct ReducedSparseStateIndexed
-  reduced_hilbert_space_realization ::ReducedHilbertSpaceRealization
+  reduced_hilbert_space_realization ::ReducedHilbertSpaceRepresentation
   components ::DefaultDict{Int, ComplexF64, ComplexF64}
-  function ReducedSparseStateIndexed(rhsr ::ReducedHilbertSpaceRealization)
+  function ReducedSparseStateIndexed(rhsr ::ReducedHilbertSpaceRepresentation)
     return new(rhsr, DefaultDict{Int, ComplexF64}(zero(ComplexF64)))
   end
 end

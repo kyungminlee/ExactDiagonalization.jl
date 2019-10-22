@@ -1,6 +1,7 @@
 export AbstractHilbertSpace
 export State, Site
 export bitwidth, get_state, dimension
+export qntype
 
 using StaticArrays
 
@@ -8,6 +9,8 @@ abstract type AbstractHilbertSpace end
 
 ## TODO: Think about this
 AbstractQuantumNumber = Union{Int, SVector{N, Int} where N}
+
+@inline qntype(arg ::T) where T = qntype(T)
 
 """
     State{QN}
@@ -39,6 +42,8 @@ function ==(lhs ::State{Q1}, rhs ::State{Q2}) where {Q1, Q2}
   return (Q1 == Q2) && (lhs.name == rhs.name) && (lhs.quantum_number == rhs.quantum_number)
 end
 
+@inline qntype(::Type{State{QN}}) where QN = QN
+
 """
     Site{QN}
 
@@ -60,6 +65,8 @@ struct Site{QN<:AbstractQuantumNumber} <: AbstractHilbertSpace
   Site(states ::AbstractArray{State{QN}, 1}) where QN = new{QN}(states)
   Site{QN}(states ::AbstractArray{State{QN}, 1}) where QN = new{QN}(states)
 end
+
+@inline qntype(::Type{Site{QN}}) where QN = QN
 
 import Base.==
 function ==(lhs ::Site{Q1}, rhs ::Site{Q2}) where {Q1, Q2}

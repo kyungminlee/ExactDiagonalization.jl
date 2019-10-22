@@ -1,5 +1,5 @@
 # export KroneckerProductOperator
-# export clean!
+# export choptol!
 
 # struct KroneckerProductOperator{Scalar<:Number} <:AbstractOperator
 #   hilbert_space ::HilbertSpace
@@ -46,7 +46,7 @@
 
 # KPO = KroneckerProductOperator
 
-# # function clean!(op ::KPO; tol=sqrt(eps(Float64)))
+# # function choptol!(op ::KPO, tol::Real)
 # #   keys_to_delete = [k for (k, v) in op.operators if isapprox(v, I)]
 # #   for k in keys_to_delete
 # #     delete!(k, op)

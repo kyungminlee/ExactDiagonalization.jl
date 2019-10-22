@@ -1,31 +1,33 @@
 export represent
 export get_slice
 export ReducedOperatorRepresentation
+export bintype
 
-struct ReducedOperatorRepresentation{RH <:ReducedHilbertSpaceRealization, O <:AbstractOperator}
-    reduced_hilbert_space_realization ::RH
-    operator ::O
+struct ReducedOperatorRepresentation{RHSR <:ReducedHilbertSpaceRepresentation, O <:AbstractOperator}
+  reduced_hilbert_space_realization ::RHSR
+  operator ::O
 end
 
-bintype(lhs ::ReducedOperatorRepresentation{RH, O}) where {RH, O} = bintype(RH)
-bintype(lhs ::Type{ReducedOperatorRepresentation{RH, O}}) where {RH, O} = bintype(RH)
+bintype(lhs ::ReducedOperatorRepresentation{RHSR, O}) where {RHSR, O} = bintype(RHSR)
+bintype(lhs ::Type{ReducedOperatorRepresentation{RHSR, O}}) where {RHSR, O} = bintype(RHSR)
 
 import Base.eltype
-eltype(lhs ::ReducedOperatorRepresentation{RH, O}) where {RH, O} = promote_type(eltype(RH), eltype(O))
-eltype(lhs ::Type{ReducedOperatorRepresentation{RH, O}}) where {RH, O} = promote_type(eltype(RH), eltype(O))
+#eltype(lhs ::ReducedOperatorRepresentation{RHSR, O}) where {RHSR, O} = promote_type(eltype(RHSR), eltype(O))
+@inline eltype(lhs ::Type{ReducedOperatorRepresentation{RHSR, O}}) where {RHSR, O} = promote_type(eltype(RHSR), eltype(O))
 
 
 import Base.size
-function size(arg::ReducedOperatorRepresentation{RH, O}) ::Tuple{Int, Int} where {RH, O}
+function size(arg::ReducedOperatorRepresentation{RHSR, O}) ::Tuple{Int, Int} where {RHSR, O}
   dim = dimension(arg.reduced_hilbert_space_realization)
   return (dim, dim)
 end
 
-function represent(rhsr ::RH, op ::O) where {RH <:ReducedHilbertSpaceRealization, O <:AbstractOperator}
-    return ReducedOperatorRepresentation{RH, O}(rhsr, op)
+function represent(rhsr ::RHSR, op ::O) where {RHSR <:ReducedHilbertSpaceRepresentation, O <:AbstractOperator}
+    return ReducedOperatorRepresentation{RHSR, O}(rhsr, op)
 end
 
-function get_slice(irow_r ::Integer, opr ::ReducedOperatorRepresentation{RH, O}) where {RH, O}
+
+function get_slice(irow_r ::Integer, opr ::ReducedOperatorRepresentation{RHSR, O}) where {RHSR, O}
   rhsr = opr.reduced_hilbert_space_realization
   hsr = rhsr.parent
   S = eltype(opr.operator)
@@ -51,7 +53,7 @@ function get_slice(irow_r ::Integer, opr ::ReducedOperatorRepresentation{RH, O})
 end
 
 
-function get_slice(opr ::ReducedOperatorRepresentation{RH, O}, icol_r ::Integer) where {RH, O}
+function get_slice(opr ::ReducedOperatorRepresentation{RHSR, O}, icol_r ::Integer) where {RHSR, O}
   rhsr = opr.reduced_hilbert_space_realization
   hsr = rhsr.parent
   S = eltype(opr.operator)
@@ -78,8 +80,8 @@ end
 
 
 import SparseArrays.sparse
-function sparse(opr::ReducedOperatorRepresentation{H, O}; tol ::Real=sqrt(eps(Float64))) where {H, O}
-  S = promote_type(eltype(opr), eltype(H))
+function sparse(opr::ReducedOperatorRepresentation{RHSR, O}; tol ::Real=sqrt(eps(Float64))) where {RHSR, O}
+  S = promote_type(eltype(opr), eltype(RHSR))
   m, n = size(opr)
   colptr = zeros(Int, n+1)
   rowval = Int[]
@@ -92,10 +94,7 @@ function sparse(opr::ReducedOperatorRepresentation{H, O}; tol ::Real=sqrt(eps(Fl
     for (irow, ampl) in get_slice(opr, icol)
       colvec[irow] = get(colvec, irow, zero(S)) + ampl
     end
-    to_delete = Int[irow for (irow, ampl) in colvec if abs(ampl) < tol]
-    for irow in to_delete
-      delete!(colvec, irow)
-    end
+    choptol!(colvec, tol)
 
     colptr[icol+1] = colptr[icol] + length(colvec)
     sorted_items = sort(collect(colvec), by = item -> item[1])

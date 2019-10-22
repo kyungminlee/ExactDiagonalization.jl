@@ -1,12 +1,10 @@
-include("Operator/operator.jl")
+include("Operator/abstractoperator.jl")
 
-include("Operator/nullop.jl")
-include("Operator/pureop.jl")
-include("Operator/sumop.jl")
+include("Operator/nulloperator.jl")
+include("Operator/pureoperator.jl")
+include("Operator/sumoperator.jl")
 
+include("Operator/operator_simplify.jl")
 include("Operator/operator_slicing.jl")
 
 include("Operator/apply_sparse_state.jl")
-# include("Operator/apply_dense_state.jl")
-
-include("Operator/operator_simplify.jl")

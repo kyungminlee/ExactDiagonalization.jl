@@ -6,21 +6,21 @@ export DenseState
 Implemented with dense vector, accessed through binary representation
 """
 mutable struct DenseState{S<:Number, QN, BR<:Unsigned} #<:AbstractDict{BR, S}
-  hilbert_space_realization ::HilbertSpaceRealization{QN, BR}
+  hilbert_space_realization ::HilbertSpaceRepresentation{QN, BR}
   components ::Vector{S}
 
-  function DenseState{S, BR}(hsr ::HilbertSpaceRealization{QN, BR}) where {S, QN, BR}
+  function DenseState{S, BR}(hsr ::HilbertSpaceRepresentation{QN, BR}) where {S, QN, BR}
     return new{S, QN, BR}(hsr, zeros(S,dimension(hsr)))
   end
 
-  function DenseState{S, BR}(hsr ::HilbertSpaceRealization{QN, BR}, binrep ::BR) where {S, QN, BR}
+  function DenseState{S, BR}(hsr ::HilbertSpaceRepresentation{QN, BR}, binrep ::BR) where {S, QN, BR}
     components = zeros(S, dimension(hsr))
     i = hsr.basis_lookup[binrep]
     components[i] = one(S)
     return new{S, QN, BR}(hs, components)
   end
 
-  function DenseState{S, BR}(hsr ::HilbertSpaceRealization{QN, BR}, components::Pair{BR, <:Number}...) where {S, QN, BR}
+  function DenseState{S, BR}(hsr ::HilbertSpaceRepresentation{QN, BR}, components::Pair{BR, <:Number}...) where {S, QN, BR}
     compos = zeros(S, dimension(hsr))
     for (cf, cs) in components
       icf = hsr.basis_lookup[cf]
@@ -29,7 +29,7 @@ mutable struct DenseState{S<:Number, QN, BR<:Unsigned} #<:AbstractDict{BR, S}
     return new{S, QN, BR}(hs, compos)
   end
 
-  function DenseState{S, BR}(hsr ::HilbertSpaceRealization{QN, BR}, components::AbstractDict{BR, S2}) where {S, QN, BR, S2}
+  function DenseState{S, BR}(hsr ::HilbertSpaceRepresentation{QN, BR}, components::AbstractDict{BR, S2}) where {S, QN, BR, S2}
     # TODO bound checking
     compos = zeros(S, dimension(hsr))
     for (cf, cs) in components
@@ -39,13 +39,13 @@ mutable struct DenseState{S<:Number, QN, BR<:Unsigned} #<:AbstractDict{BR, S}
     return new{S, QN, BR}(hs, compos)
   end
 
-  function DenseState{S, BR}(hsr ::HilbertSpaceRealization{QN, BR},
+  function DenseState{S, BR}(hsr ::HilbertSpaceRepresentation{QN, BR},
                              components::AbstractVector{S2}) where {S, QN, BR, S2<:Number}
     @boundscheck dimension(hsr) == length(components) || throw(ArgumentError("components should match dimension"))
     return new{S, QN, BR}(hs, components)
   end
 
-  function DenseState(hsr ::HilbertSpaceRealization{QN, BR},
+  function DenseState(hsr ::HilbertSpaceRepresentation{QN, BR},
                       components::AbstractVector{S}) where {S<:Number, QN, BR}
     @boundscheck dimension(hsr) == length(components) || throw(ArgumentError("components should match dimension"))
     return new{S, QN, BR}(hs, components)
@@ -78,7 +78,7 @@ end
 
 
 import Base.eltype
-eltype(arg ::DenseState{S, QN, BR}) where {S, QN, BR} = S
+@inline eltype(arg ::Type{DenseState{S, QN, BR}}) where {S, QN, BR} = S
 
 
 import Base.getindex
@@ -129,7 +129,7 @@ end
 
 function (+)(lhs ::DenseState{S1, QN, BR}, rhs ::DenseState{S2, QN, BR}) where {S1, S2, QN, BR}
   if lhs.hilbert_space_realization !== rhs.hilbert_space_realization
-    throw(ArgumentError("HilbertSpaceRealization of lhs and rhs of + do not match"))
+    throw(ArgumentError("HilbertSpaceRepresentation of lhs and rhs of + do not match"))
   end
   S = promote_type(S1, S2)
   return DenseState{S, QN, BR}(lhs.hilbert_space_realization, lhs.components .+ rhs.components)
@@ -137,7 +137,7 @@ end
 
 function (-)(lhs ::DenseState{S1, QN, BR}, rhs ::DenseState{S2, QN, BR}) where {S1, S2, QN, BR}
   if lhs.hilbert_space_realization !== rhs.hilbert_space_realization
-    throw(ArgumentError("HilbertSpaceRealization of lhs and rhs of + do not match"))
+    throw(ArgumentError("HilbertSpaceRepresentation of lhs and rhs of + do not match"))
   end
   S = promote_type(S1, S2)
   return DenseState{S, QN, BR}(lhs.hilbert_space_realization, lhs.components .- rhs.components)

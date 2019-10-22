@@ -1,27 +1,37 @@
-export HilbertSpaceRealization
-export dimension, realize, materialize
+export HilbertSpaceRepresentation
+export dimension, represent, materialize
 export bintype
 
-#using MinimalPerfectHash
-
-struct HilbertSpaceRealization{QN, BR <:Unsigned}
-  hilbert_space :: HilbertSpace{QN}
+struct HilbertSpaceRepresentation{HS <:HilbertSpace, BR <:Unsigned}
+  hilbert_space ::HS
   basis_list ::Vector{BR}
-  #basis_lookup ::MinimalPerfectHash.CHD{BR, Int}
   basis_lookup ::FrozenSortedArrayIndex{BR}
-  function HilbertSpaceRealization{QN, BR}(
+
+  function HilbertSpaceRepresentation(
       hilbert_space ::HilbertSpace{QN},
       basis_list::AbstractVector{BR},
-      basis_lookup::FrozenSortedArrayIndex{BR}) where {QN, BR}
-    if count_ones(typemax(BR)) <= hilbert_space.bitoffsets[end]
+      basis_lookup::FrozenSortedArrayIndex{BR}) where {QN, BR <:Unsigned}
+    if count_ones(typemax(BR)) <= bitwidth(hilbert_space)
       # equality added such that the MSB checks overflow
       throw(ArgumentError("type $(BR) not enough to represent the hilbert space (need $(hilbert_space.bitoffsets[end]) bits)"))
     end
-    return new{QN, BR}(hilbert_space, basis_list, basis_lookup)
+    return new{HilbertSpace{QN}, BR}(hilbert_space, basis_list, basis_lookup)
   end
+
+  function HilbertSpaceRepresentation(
+      hilbert_space_sector ::HilbertSpaceSector{QN},
+      basis_list::AbstractVector{BR},
+      basis_lookup::FrozenSortedArrayIndex{BR}) where {QN, BR <:Unsigned}
+    if count_ones(typemax(BR)) <= bitwidth(hilbert_space)
+      # equality added such that the MSB checks overflow
+      throw(ArgumentError("type $(BR) not enough to represent the hilbert space (need $(hilbert_space.bitoffsets[end]) bits)"))
+    end
+    return new{HilbertSpace{QN}, BR}(hilbert_space_sector.parent, basis_list, basis_lookup)
+  end
+
 end
 
-function checkvalidbasis(hsr::HilbertSpaceRealization)
+function checkvalidbasis(hsr::HilbertSpaceRepresentation{HS, BR}) where {HS <:AbstractHilbertSpace, BR <:Unsigned}
   for (ivec, bvec) in enumerate(hsr.basis_list)
     ivec2 = hsr.basis_lookup[bvec]
     @assert ivec == ivec2
@@ -29,15 +39,15 @@ function checkvalidbasis(hsr::HilbertSpaceRealization)
 end
 
 import Base.eltype
-eltype(lhs ::HilbertSpaceRealization{QN, BR}) where {QN, BR} = Bool
-eltype(lhs ::Type{HilbertSpaceRealization{QN, BR}}) where {QN, BR} = Bool
+@inline eltype(lhs ::HilbertSpaceRepresentation{HS, BR}) where {HS, BR} = Bool
+@inline eltype(lhs ::Type{HilbertSpaceRepresentation{HS, BR}}) where {HS, BR} = Bool
 
-bintype(lhs ::HilbertSpaceRealization{QN, BR}) where {QN, BR} = BR
-bintype(lhs ::Type{HilbertSpaceRealization{QN, BR}}) where {QN, BR} = BR
+@inline bintype(lhs ::HilbertSpaceRepresentation{HS, BR}) where {HS, BR} = BR
+@inline bintype(lhs ::Type{HilbertSpaceRepresentation{HS, BR}}) where {HS, BR} = BR
 
 import Base.==
-function (==)(lhs ::HilbertSpaceRealization{H1, B1}, rhs ::HilbertSpaceRealization{H2, B2}) where {H1, B1, H2, B2}
-  return (H1 == H2) && (B1 == B2) && (lhs.hilbert_space == rhs.hilbert_space) && (lhs.basis_list == rhs.basis_list)
+function (==)(lhs ::HilbertSpaceRepresentation{H1, B1}, rhs ::HilbertSpaceRepresentation{H2, B2}) where {H1, B1, H2, B2}
+  return (B1 == B2) && (lhs.hilbert_space == rhs.hilbert_space) && (lhs.basis_list == rhs.basis_list)
 end
 
 
@@ -46,56 +56,47 @@ end
 
 Dimension of the Concrete Hilbert space, i.e. number of basis vectors.
 """
-dimension(hsr ::HilbertSpaceRealization) = length(hsr.basis_list)
+dimension(hsr ::HilbertSpaceRepresentation) = length(hsr.basis_list)
 
 """
-    realize(hs; BR ::DataType=UInt)
+    represent(hs; BR ::DataType=UInt)
 
-Make a HilbertSpaceRealization with all the basis vectors of the specified HilbertSpace.
+Make a HilbertSpaceRepresentation with all the basis vectors of the specified HilbertSpace.
 
 # Arguments
 - `hs ::HilbertSpace{QN}`: Abstract Hilbert space
 - `BR ::DataType=UInt`: Binary representation type
 """
-function realize(hs ::HilbertSpace{QN}; BR ::DataType=UInt) where {QN}
+function represent(hs ::HilbertSpace{QN}; BR ::DataType=UInt) where {QN}
+  HS = HilbertSpace{QN}
   basis_list = BR[]
-  for indexarray in Iterators.product((1:length(site.states) for site in hs.sites)...)
-    indexarray = Int[indexarray...]
+  for indexarray in hs
     push!(basis_list, compress(hs, indexarray))
   end
-  #basis_lookup = Dict{BR, Int}(basis => ibasis for (ibasis, basis) in enumerate(basis_list))
-  #basis_lookup = MinimalPerfectHash.CHD{BR, Int}((b, i) for (i, b) in enumerate(basis_list))
   sort!(basis_list)
   basis_lookup = FrozenSortedArrayIndex{BR}(basis_list)
-  return HilbertSpaceRealization{QN, BR}(hs, basis_list, basis_lookup)
-end
-
-
-function realize(
-    hs::HilbertSpace{QN},
-    qn::QN;
-    BR::DataType=UInt) where {QN}
-  return realize(hs, [qn]; BR=BR)
+  return HilbertSpaceRepresentation(hs, basis_list, basis_lookup)
 end
 
 """
-    realize(hs; BR ::DataType=UInt)
+    represent(hs; BR ::DataType=UInt)
 
-Make a HilbertSpaceRealization with all the basis vectors of the specified HilbertSpace.
+Make a HilbertSpaceRepresentation with all the basis vectors of the specified HilbertSpace.
 
 # Arguments
 - `hs ::HilbertSpace{QN}`: Abstract Hilbert space
 - `allowed`: Allowed quantum numbers
 - `BR ::DataType=UInt`: Binary representation type
 """
-function realize(
-    hs::HilbertSpace{QN},
-    allowed::Union{AbstractSet{QN}, AbstractVector{QN}};
+function represent(
+    hss::HilbertSpaceSector{QN};
     BR::DataType=UInt) where {QN}
-  allowed = Set(allowed)
+
+  hs = hss.parent
+  allowed = hss.allowed_quantum_numbers
   sectors = Set(quantum_number_sectors(hs))
   if isempty(intersect(allowed, sectors))
-    return HilbertSpaceRealization{QN, BR}(hs, BR[], FrozenSortedArrayIndex{BR}(BR[]))
+    return HilbertSpaceRepresentation(hs, BR[], FrozenSortedArrayIndex{BR}(BR[]))
   end
 
   quantum_numbers = [[state.quantum_number for state in site.states] for site in hs.sites]
@@ -143,14 +144,85 @@ function realize(
 
   sort!(basis_list)
   basis_lookup = FrozenSortedArrayIndex{BR}(basis_list)
-  return HilbertSpaceRealization{QN, BR}(hs, basis_list, basis_lookup)
+  return HilbertSpaceRepresentation(hs, basis_list, basis_lookup)
 end
 
+#
+# function represent(
+#     hs::HilbertSpace{QN},
+#     allowed::Union{AbstractSet{QN}, AbstractVector{QN}};
+#     BR::DataType=UInt) where {QN}
+#   allowed = Set(allowed)
+#   sectors = Set(quantum_number_sectors(hs))
+#   if isempty(intersect(allowed, sectors))
+#     return HilbertSpaceRepresentation{QN, BR}(hs, BR[], FrozenSortedArrayIndex{BR}(BR[]))
+#   end
+#
+#   quantum_numbers = [[state.quantum_number for state in site.states] for site in hs.sites]
+#   possible_quantum_numbers = [Set([zero(QN)])]  # PQN[i]: possible QN left of i
+#
+#   n_sites = length(hs.sites)
+#   for i in 1:n_sites
+#     pq = Set{QN}(q1 + q2 for q1 in possible_quantum_numbers[i], q2 in quantum_numbers[i])
+#     push!(possible_quantum_numbers, pq)
+#   end
+#
+#   function generate(i ::Int, allowed ::AbstractSet{QN})
+#     if i == 0
+#       return (zero(QN) in allowed) ? Dict(zero(QN) => [BR(0x0)]) : Dict()
+#     end
+#     allowed_prev = Set{QN}()
+#     for q1 in quantum_numbers[i], q2 in allowed
+#       q = q2 - q1
+#       if q in possible_quantum_numbers[i]
+#         push!(allowed_prev, q)
+#       end
+#     end
+#     result_prev = generate(i-1, allowed_prev)
+#
+#     result = DefaultDict{QN, Vector{BR}}(Vector{BR})
+#     for (i_state, q_curr) in enumerate(quantum_numbers[i])
+#       for (q_prev, states_prev) in result_prev
+#         q = q_prev + q_curr
+#         if q in allowed
+#           append!(result[q], (s | (BR(i_state-1) << hs.bitoffsets[i])) for s in states_prev)
+#         end
+#       end
+#     end
+#     return result
+#   end
+#
+#   basis_list ::Vector{BR} = let
+#     basis_list = BR[]
+#     result = generate(n_sites, allowed)
+#     for (q, states) in result
+#       basis_list = merge_vec(basis_list, states)
+#     end
+#     basis_list
+#   end
+#
+#   sort!(basis_list)
+#   basis_lookup = FrozenSortedArrayIndex{BR}(basis_list)
+#   return HilbertSpaceRepresentation{QN, BR}(hs, basis_list, basis_lookup)
+# end
 
-function realize(hs ::HilbertSpace{QN},
-                 basis_list ::AbstractArray{BR}) where {QN, BR<:Unsigned}
+
+function represent(hs ::HilbertSpace{QN},
+                   basis_list ::AbstractArray{BR}) where {QN, BR<:Unsigned}
+  HS = HilbertSpace{QN}
   sort!(basis_list)
   #basis_lookup = Dict{BR, Int}(basis => ibasis for (ibasis, basis) in enumerate(basis_list))
   basis_lookup = FrozenSortedArrayIndex{BR}(basis_list)
-  return HilbertSpaceRealization{QN, BR}(hs, basis_list, basis_lookup)
+  return HilbertSpaceRepresentation(hs, basis_list, basis_lookup)
+end
+
+
+function represent(hss ::HilbertSpaceSector{QN},
+                   basis_list ::AbstractArray{BR}) where {QN, BR<:Unsigned}
+  HS = HilbertSpace{QN}
+  hs = hss.parent
+  sort!(basis_list)
+  #basis_lookup = Dict{BR, Int}(basis => ibasis for (ibasis, basis) in enumerate(basis_list))
+  basis_lookup = FrozenSortedArrayIndex{BR}(basis_list)
+  return HilbertSpaceRepresentation(basespace(hs), basis_list, basis_lookup)
 end

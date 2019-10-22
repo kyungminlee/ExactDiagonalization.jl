@@ -29,11 +29,11 @@ end
 
 
 import Base.eltype
-eltype(lhs ::PureOperator{S, BR}) where {S, BR} = S
-eltype(lhs ::Type{PureOperator{S, BR}}) where {S, BR} = S
+@inline eltype(lhs ::PureOperator{S, BR}) where {S, BR} = S
+@inline eltype(lhs ::Type{PureOperator{S, BR}}) where {S, BR} = S
 
-bintype(lhs ::PureOperator{S, BR}) where {S, BR} = BR
-bintype(lhs ::Type{PureOperator{S, BR}}) where {S, BR} = BR
+@inline bintype(lhs ::PureOperator{S, BR}) where {S, BR} = BR
+@inline bintype(lhs ::Type{PureOperator{S, BR}}) where {S, BR} = BR
 
 
 # === 1/6 (In)equality ===

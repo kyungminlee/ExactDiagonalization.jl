@@ -1,5 +1,5 @@
 export SparseStateIndexed
-export clean!
+export choptol!
 
 using LinearAlgebra
 
@@ -9,40 +9,40 @@ using LinearAlgebra
 Represents a row vector. Not Free. Access by Integer (1-based index)
 """
 mutable struct SparseStateIndexed{S<:Number, QN, BR}
-  hilbert_space_realization ::HilbertSpaceRealization{QN, BR}
+  hilbert_space_realization ::HilbertSpaceRepresentation{QN, BR}
   components ::Dict{Int, S}
 
   function SparseStateIndexed{S, QN, BR}(
-      hsr ::HilbertSpaceRealization{QN, BR},
+      hsr ::HilbertSpaceRepresentation{QN, BR},
       components ::Dict{Int, S}) where {S, QN, BR}
     return new{S, QN, BR}(hsr, components)
   end
 
   function SparseStateIndexed(
-      hsr ::HilbertSpaceRealization{QN, BR},
+      hsr ::HilbertSpaceRepresentation{QN, BR},
       components ::Dict{Int, S}) where {S, QN, BR}
     return new{S, QN, BR}(hsr, components)
   end
 
   function SparseStateIndexed{S, QN, BR}(
-      hsr ::HilbertSpaceRealization{QN, BR}) where {S, QN, BR}
+      hsr ::HilbertSpaceRepresentation{QN, BR}) where {S, QN, BR}
     return new{S, QN, BR}(hsr, Dict{Int, S}())
   end
 
   function SparseStateIndexed{S, QN, BR}(
-      hsr ::HilbertSpaceRealization{QN, BR},
+      hsr ::HilbertSpaceRepresentation{QN, BR},
       idx ::Integer) where {S, QN, BR}
     return new{S, QN, BR}(hsr, Dict{Int, S}(idx => one(S)))
   end
 
   function SparseStateIndexed{S, QN, BR}(
-      hsr ::HilbertSpaceRealization{QN, BR},
+      hsr ::HilbertSpaceRepresentation{QN, BR},
       components::Pair{<:Integer, <:Number}...) where {S, QN, BR}
     return new{S, QN, BR}(hsr, Dict{Int, S}(components))
   end
 
   function SparseStateIndexed{S, QN, BR}(
-      hsr ::HilbertSpaceRealization{QN, BR},
+      hsr ::HilbertSpaceRepresentation{QN, BR},
       components ::AbstractDict{<:Integer, S2}) where {S, QN, BR, S2 <:Number}
     # TODO bound checking
     return new{S, QN, BR}(hsr, Dict{Int, S}(components))
@@ -189,7 +189,7 @@ import Base.iterate
 Base.iterate(arg ::SparseStateIndexed{S, QN, BR}) where {S, QN, BR} = Base.iterate(arg.components)
 Base.iterate(arg ::SparseStateIndexed{S, QN, BR}, i::Int) where {S, QN, BR} = Base.iterate(arg.components, i)
 
-function clean!(arg ::SparseStateIndexed{S, QN, BR}; tol=sqrt(eps(Float64))) where {S, QN, BR}
+function choptol!(arg ::SparseStateIndexed{S, QN, BR}, tol::Real) where {S, QN, BR}
   to_delete = [k for (k, v) in arg.components if isapprox(v, 0; atol=tol)]
   for k in to_delete
     delete!(arg.components, k)

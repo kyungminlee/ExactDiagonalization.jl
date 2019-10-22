@@ -1,5 +1,5 @@
 export SparseState
-export clean!
+export choptol!
 
 using LinearAlgebra
 
@@ -167,7 +167,7 @@ function Base.iterate(iter ::SparseState{S, BR}, i::Int=iter.components.idxfloor
   return Base.iterate(iter.components, i)
 end
 
-function clean!(arg ::SparseState{S1, BR}; tol=sqrt(eps(Float64))) where {S1, BR}
+function choptol!(arg ::SparseState{S1, BR}, tol::Real) where {S1, BR}
   to_delete = [k for (k, v) in arg.components if isapprox(v, 0; atol=tol)]
   for k in to_delete
     delete!(arg.components, k)

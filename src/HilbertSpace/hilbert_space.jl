@@ -38,13 +38,27 @@ struct HilbertSpace{QN} <: AbstractHilbertSpace
 end
 
 import Base.eltype
-eltype(arg ::HilbertSpace{QN}) where QN = Bool
-eltype(arg ::Type{HilbertSpace{QN}}) where QN = Bool
+@inline eltype(arg ::HilbertSpace{QN}) where QN = Bool
+@inline eltype(arg ::Type{HilbertSpace{QN}}) where QN = Bool
+
+export qntype
+@inline qntype(arg ::HilbertSpace{QN}) where QN = QN
+@inline qntype(arg ::Type{HilbertSpace{QN}}) where QN = QN
+
+
+export bitwidth
+@inline bitwidth(hs::HilbertSpace) = hs.bitwidths[end]
+
+export basespace
+@inline basespace(hs::HilbertSpace) = hs
 
 import Base.==
-
 function ==(lhs ::HilbertSpace{Q1}, rhs ::HilbertSpace{Q2}) where {Q1, Q2}
   return (Q1 == Q2) && (lhs.sites == rhs.sites) #&& (lhs.bitwidths == rhs.bitwidths) && (lhs.bitoffsets == rhs.bitoffsets)
+end
+
+function (==)(lhs ::AbstractHilbertSpace, rhs::AbstractHilbertSpace)
+  return basespace(lhs) == basespace(rhs)
 end
 
 function get_bitmask(hs ::HilbertSpace, isite ::Integer; dtype ::DataType=UInt)
@@ -141,4 +155,22 @@ end
 
 function get_state(hs ::HilbertSpace, binrep ::U, isite ::Integer) where {U<:Unsigned}
   return hs.sites[isite].states[get_state_index(hs, binrep, isite)]
+end
+
+import Base.iterate
+@inline function iterate(hs ::HilbertSpace{QN}) where {QN}
+  subiterator = Iterators.product((1:length(site.states) for site in hs.sites)...)
+  next = Base.iterate(subiterator)
+  isnothing(next) && return nothing
+  value, next_substate = next
+  return (Int[value...], (subiterator, next_substate))
+end
+
+import Base.iterate
+@inline function iterate(hs ::HilbertSpace{QN}, state) where {QN}
+  (subiterator, substate) = state
+  next = Base.iterate(subiterator, substate)
+  isnothing(next) && return nothing
+  value, next_substate = next
+  return (Int[value...], (subiterator, next_substate))
 end

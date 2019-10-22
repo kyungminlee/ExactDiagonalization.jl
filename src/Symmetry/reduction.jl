@@ -2,10 +2,11 @@ export symmetry_reduce, symmetry_reduce_parallel
 export materialize, materialize_parallel
 
 function symmetry_reduce(
-    hsr ::HilbertSpaceRealization{QN, BR},
+    hsr ::HilbertSpaceRepresentation{QN, BR},
     trans_group ::TranslationGroup,
     fractional_momentum ::AbstractVector{Rational};
-    ComplexType::DataType=ComplexF64) where {QN, BR}
+    ComplexType::DataType=ComplexF64,
+    tol::Real=sqrt(eps(Float64))) where {QN, BR}
   ik = findfirst(collect(
     trans_group.fractional_momenta[ik] == fractional_momentum
     for ik in 1:length(trans_group.fractional_momenta) ))
@@ -31,12 +32,13 @@ function symmetry_reduce(
     bvec = hsr.basis_list[ivec_p]
 
     compatible = true
-    ψ = SparseState{ComplexType, BR}(hsr.hilbert_space)
+    ψ = Dict{BR, ComplexType}()
+    #ψ = SparseState{ComplexType, BR}(hsr.hilbert_space)
     for i in 1:length(trans_group.elements)
       t = trans_group.translations[i]
       g = trans_group.elements[i]
 
-      bvec_prime = apply_symmetry(hsr.hilbert_space, g, bvec)
+      bvec_prime = symmetry_apply(hsr.hilbert_space, g, bvec)
 
       if bvec_prime < bvec
         compatible = false
@@ -47,14 +49,14 @@ function symmetry_reduce(
       end
 
       p = phases[i]
-      ψ[bvec_prime] += p
+      ψ[bvec_prime] = get(ψ, bvec_prime, zero(ComplexType)) + p
     end
     (!compatible) && continue
 
-    clean!(ψ)
+    choptol!(ψ, tol)
     @assert !isempty(ψ)
 
-    ivec_p_primes = Int[hsr.basis_lookup[bvec_prime] for bvec_prime in keys(ψ.components)]
+    ivec_p_primes = Int[hsr.basis_lookup[bvec_prime] for bvec_prime in keys(ψ)]
 
     if any(visited[ivec_p_primes])
       continue
@@ -62,11 +64,12 @@ function symmetry_reduce(
       visited[ivec_p_primes] .= true
     end
 
-    normalize!(ψ)
+    norm = sqrt( sum( (abs.(values(ψ)).^2) ) )
+    # normalize!(ψ)
     push!(reduced_basis_list, bvec)
-    for (bvec_prime, amplitude) in ψ.components
+    for (bvec_prime, amplitude) in ψ
       ivec_p_prime = hsr.basis_lookup[bvec_prime]
-      representative_amplitude_list[ivec_p_prime] = (representative=ivec_p, amplitude=amplitude)
+      representative_amplitude_list[ivec_p_prime] = (representative=ivec_p, amplitude=amplitude / norm)
     end
   end
 
@@ -87,14 +90,15 @@ function symmetry_reduce(
     basis_mapping[ivec_p_prime] = (index=ivec_r, amplitude=amplitude)
   end
 
-  return ReducedHilbertSpaceRealization{QN, BR, ComplexType}(hsr, trans_group, reduced_basis_list, basis_mapping)
+  return ReducedHilbertSpaceRepresentation{QN, BR, ComplexType}(hsr, trans_group, reduced_basis_list, basis_mapping)
 end
 
 
-function symmetry_reduce_parallel(hsr ::HilbertSpaceRealization{QN, BR},
+function symmetry_reduce_parallel(hsr ::HilbertSpaceRepresentation{QN, BR},
                 trans_group ::TranslationGroup,
                 fractional_momentum ::AbstractVector{Rational};
-                ComplexType::DataType=ComplexF64) where {QN, BR}
+                ComplexType::DataType=ComplexF64,
+                tol::Real=sqrt(eps(Float64))) where {QN, BR}
   debug(LOGGER, "BEGIN symmetry_reduce_parallel")
   ik = findfirst(collect(
     trans_group.fractional_momenta[ik] == fractional_momentum
@@ -141,12 +145,13 @@ function symmetry_reduce_parallel(hsr ::HilbertSpaceRealization{QN, BR},
     bvec = hsr.basis_list[ivec_p]
 
     compatible = true
-    ψ = SparseState{ComplexType, BR}(hsr.hilbert_space)
+    ψ = Dict{BR, ComplexType}()
+    #ψ = SparseState{ComplexType, BR}(hsr.hilbert_space)
     for i in 1:length(trans_group.elements)
       t = trans_group.translations[i]
       g = trans_group.elements[i]
 
-      bvec_prime = apply_symmetry(hsr.hilbert_space, g, bvec)
+      bvec_prime = symmetry_apply(hsr.hilbert_space, g, bvec)
 
       if bvec_prime < bvec
         compatible = false
@@ -157,14 +162,14 @@ function symmetry_reduce_parallel(hsr ::HilbertSpaceRealization{QN, BR},
       end
 
       p = phases[i]
-      ψ[bvec_prime] += p
+      ψ[bvec_prime] = get(ψ, bvec_prime, zero(ComplexType)) + p
     end
     (!compatible) && continue
 
-    clean!(ψ)
+    choptol!(ψ, tol)
     @assert !isempty(ψ)
 
-    ivec_p_primes = Int[hsr.basis_lookup[bvec_prime] for bvec_prime in keys(ψ.components)]
+    ivec_p_primes = Int[hsr.basis_lookup[bvec_prime] for bvec_prime in keys(ψ)]
 
     lock(visit_lock)
     if any(visited[ivec_p_primes])
@@ -175,11 +180,12 @@ function symmetry_reduce_parallel(hsr ::HilbertSpaceRealization{QN, BR},
       unlock(visit_lock)
     end
 
-    normalize!(ψ)
     push!(local_reduced_basis_list[id], bvec)
-    for (bvec_prime, amplitude) in ψ.components
+
+    norm = sqrt( sum( (abs.(values(ψ)).^2) ) )
+    for (bvec_prime, amplitude) in ψ
       ivec_p_prime = hsr.basis_lookup[bvec_prime]
-      representative_amplitude_list[ivec_p_prime] = (representative=ivec_p, amplitude=amplitude)
+      representative_amplitude_list[ivec_p_prime] = (representative=ivec_p, amplitude=amplitude / norm)
     end
   end
   debug(LOGGER, "Finished reduction (parallel)")
@@ -213,127 +219,5 @@ function symmetry_reduce_parallel(hsr ::HilbertSpaceRealization{QN, BR},
     basis_mapping[ivec_p_prime] = (index=ivec_r, amplitude=amplitude)
   end
   debug(LOGGER, "END symmetry_reduce_parallel")
-  return ReducedHilbertSpaceRealization{QN, BR, ComplexType}(hsr, trans_group, reduced_basis_list, basis_mapping)
-end
-
-
-function materialize(
-    rhsr ::ReducedHilbertSpaceRealization{QN, BR, C},
-    operator ::AbstractOperator;
-    tol::Real=sqrt(eps(Float64))) where {QN, BR, C}
-
-  @assert is_invariant(rhsr.translation_group, operator)
-  hs = rhsr.parent.hilbert_space
-
-  rows = Int[]
-  cols = Int[]
-  vals = C[]
-  err  = 0.0
-
-  n_basis = length(rhsr.basis_list)
-  for irow_r in 1:n_basis
-    brow = rhsr.basis_list[irow_r]
-    irow_p = rhsr.parent.basis_lookup[brow]
-    irow_r2, ampl_row = rhsr.basis_mapping[irow_p]
-    @assert irow_r == irow_r2 "$irow_r != $irow_r2"
-    ψrow = SparseState{C, BR}(hs, brow=>1/ampl_row)
-    ψcol = SparseState{C, BR}(hs)
-    apply_unsafe!(ψcol, ψrow, operator)
-    clean!(ψcol)
-
-    for (bcol, ampl) in ψcol.components
-      if ! haskey(rhsr.parent.basis_lookup, bcol)
-        err += abs(ampl)^2
-        continue
-      end
-
-      icol_p = rhsr.parent.basis_lookup[bcol]
-      (icol_r, ampl_col) = rhsr.basis_mapping[icol_p]
-      if !(icol_r > 0)
-        err += abs(ampl)^2
-        continue
-      end
-      push!(rows, irow_r)
-      push!(cols, icol_r)
-      push!(vals, ampl * ampl_col)
-    end
-  end
-
-  if isempty(vals)
-    vals = Float64[]
-  elseif isapprox(maximum(abs.(imag.(vals))), 0; atol=tol)
-    vals = real.(vals)
-  end
-  spmat = sparse(rows, cols, vals, n_basis, n_basis)
-  droptol!(spmat, tol)
-  return (spmat, err)
-end
-
-
-
-function materialize_parallel(
-    rhsr :: ReducedHilbertSpaceRealization{QN, BR, C},
-    operator ::AbstractOperator;
-    tol::Real=sqrt(eps(Float64))) where {QN, BR, C}
-  debug(LOGGER, "BEGIN materialize_parallel for ReducedHilbertSpaceRealiation")
-  debug(LOGGER, "Checking whether the operator is translationally invariant")
-  @assert is_invariant(rhsr.translation_group, operator)
-  hs = rhsr.parent.hilbert_space
-
-  nthreads = Threads.nthreads()
-  debug(LOGGER, "Number of threads: $nthreads")
-  local_rows = [ Int[] for i in 1:nthreads]
-  local_cols = [ Int[] for i in 1:nthreads]
-  local_vals = [ C[] for i in 1:nthreads]
-  local_err =  Float64[0.0 for i in 1:nthreads]
-
-  n_basis = length(rhsr.basis_list)
-  debug(LOGGER, "Starting materialization (parallel)")
-  Threads.@threads for irow_r in 1:n_basis
-    id = Threads.threadid()
-    brow = rhsr.basis_list[irow_r]
-    irow_p = rhsr.parent.basis_lookup[brow]
-    irow_r2, ampl_row = rhsr.basis_mapping[irow_p]
-    @assert irow_r == irow_r2 "$irow_r != $irow_r2"
-    ψrow = SparseState{C, BR}(hs, brow=>1/ampl_row)
-    ψcol = SparseState{C, BR}(hs)
-    apply_unsafe!(ψcol, ψrow, operator)
-    clean!(ψcol)
-
-    for (bcol, ampl) in ψcol.components
-      if ! haskey(rhsr.parent.basis_lookup, bcol)
-        local_err[id] += abs(ampl^2)
-        continue
-      end
-      icol_p = rhsr.parent.basis_lookup[bcol]
-      (icol_r, ampl_col) = rhsr.basis_mapping[icol_p]
-      if !(icol_r > 0)
-        local_err[id] += abs(ampl)^2
-        continue
-      end
-      push!(local_rows[id], irow_r)
-      push!(local_cols[id], icol_r)
-      push!(local_vals[id], ampl * ampl_col)
-    end
-  end
-  debug(LOGGER, "Finished materialization (parallel)")
-
-  rows ::Vector{Int} = vcat(local_rows...)
-  cols ::Vector{Int} = vcat(local_cols...)
-  vals ::Vector{C} = vcat(local_vals...)
-  err ::Float64 = sum(local_err)
-
-  if isempty(vals)
-    debug(LOGGER, "Matrix empty")
-    vals = Float64[]
-  elseif isapprox(maximum(abs.(imag.(vals))), 0; atol=tol)
-    debug(LOGGER, "Matrix purely real")
-    vals = real.(vals)
-  end
-  spmat = sparse(rows, cols, vals, n_basis, n_basis)
-  debug(LOGGER, "Number of nonzero elements: $(length(spmat.nzval))")
-  droptol!(spmat, tol)
-  debug(LOGGER, "Number of nonzero elements after droptol!: $(length(spmat.nzval))")
-  debug(LOGGER, "END materialize_parallel for ReducedHilbertSpaceRealiation")
-  return (spmat, err)
+  return ReducedHilbertSpaceRepresentation{QN, BR, ComplexType}(hsr, trans_group, reduced_basis_list, basis_mapping)
 end

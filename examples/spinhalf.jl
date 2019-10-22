@@ -1,3 +1,5 @@
+using SparseArrays
+using LinearAlgebra
 using ExactDiagonalization
 
 QN = Int;
@@ -7,7 +9,8 @@ spin_site = Site{QN}([up, dn]);
 
 n_sites = 5;
 hs = HilbertSpace([spin_site for i in 1:n_sites]);
-hsr = realize(hs, QN(1));
+hss = HilbertSpaceSector(hs, 1)
+hsr = represent(hss);
 
 function pauli_matrix(hs::HilbertSpace, isite ::Integer, j ::Symbol)
   if j == :x
