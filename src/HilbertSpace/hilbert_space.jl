@@ -37,6 +37,10 @@ struct HilbertSpace{QN} <: AbstractHilbertSpace
   end
 end
 
+import Base.eltype
+eltype(arg ::HilbertSpace{QN}) where QN = Bool
+eltype(arg ::Type{HilbertSpace{QN}}) where QN = Bool
+
 import Base.==
 
 function ==(lhs ::HilbertSpace{Q1}, rhs ::HilbertSpace{Q2}) where {Q1, Q2}

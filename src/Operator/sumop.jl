@@ -1,5 +1,6 @@
 
 export SumOperator
+export bintype
 
 struct SumOperator{Scalar<:Number, BR <:Unsigned} <:AbstractOperator
   hilbert_space ::HilbertSpace
@@ -13,6 +14,19 @@ struct SumOperator{Scalar<:Number, BR <:Unsigned} <:AbstractOperator
   end
 end
 
+
+import Base.eltype
+eltype(lhs ::SumOperator{S, BR}) where {S, BR} = S
+eltype(lhs ::Type{SumOperator{S, BR}}) where {S, BR} = S
+
+bintype(lhs ::SumOperator{S, BR}) where {S, BR} = BR
+bintype(lhs ::Type{SumOperator{S, BR}}) where {S, BR} = BR
+
+import Base.size
+function size(arg::SumOperator{S, BR}) ::Tuple{Int, Int} where {S, BR}
+  dim = dimension(arg.hilbert_space)
+  return (dim, dim)
+end
 
 # === 1/6 Equality ===
 
@@ -129,10 +143,6 @@ end
 
 
 # === 6/6 Conversion ===
-
-import Base.eltype
-eltype(lhs ::SumOperator{S, BR}) where {S, BR} = S
-eltype(lhs ::Type{SumOperator{S, BR}}) where {S, BR} = S
 
 import Base.promote_rule
 function promote_rule(lhs::Type{SumOperator{S1, BR}}, rhs::Type{SumOperator{S2, BR}}) where {S1, S2, BR}

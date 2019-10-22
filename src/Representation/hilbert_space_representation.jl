@@ -1,7 +1,8 @@
 export HilbertSpaceRealization
 export dimension, realize, materialize
+export bintype
 
-using MinimalPerfectHash
+#using MinimalPerfectHash
 
 struct HilbertSpaceRealization{QN, BR <:Unsigned}
   hilbert_space :: HilbertSpace{QN}
@@ -27,10 +28,18 @@ function checkvalidbasis(hsr::HilbertSpaceRealization)
   end
 end
 
+import Base.eltype
+eltype(lhs ::HilbertSpaceRealization{QN, BR}) where {QN, BR} = Bool
+eltype(lhs ::Type{HilbertSpaceRealization{QN, BR}}) where {QN, BR} = Bool
+
+bintype(lhs ::HilbertSpaceRealization{QN, BR}) where {QN, BR} = BR
+bintype(lhs ::Type{HilbertSpaceRealization{QN, BR}}) where {QN, BR} = BR
+
 import Base.==
 function (==)(lhs ::HilbertSpaceRealization{H1, B1}, rhs ::HilbertSpaceRealization{H2, B2}) where {H1, B1, H2, B2}
   return (H1 == H2) && (B1 == B2) && (lhs.hilbert_space == rhs.hilbert_space) && (lhs.basis_list == rhs.basis_list)
 end
+
 
 """
     dimension

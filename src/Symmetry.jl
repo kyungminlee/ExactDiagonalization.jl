@@ -4,5 +4,7 @@ include("Symmetry/group.jl")
 include("Symmetry/translation.jl")
 include("Symmetry/application.jl")
 
+include("Symmetry/reduced_hilbert_space_representation.jl")
 include("Symmetry/reduction.jl")
+include("Symmetry/reduced_operator_representation.jl")
 include("Symmetry/reduced_sparse_state.jl")

@@ -1,13 +1,5 @@
-export ReducedHilbertSpaceRealization
 export symmetry_reduce, symmetry_reduce_parallel
 export materialize, materialize_parallel
-
-struct ReducedHilbertSpaceRealization{QN, BR, C<:Complex}
-  parent ::HilbertSpaceRealization{QN, BR}
-  translation_group ::TranslationGroup
-  basis_list ::Vector{BR}
-  basis_mapping ::Vector{NamedTuple{(:index, :amplitude), Tuple{Int, C}}} # has size of parent dimension. each index item contains index at reduced basis, or -1 if not included
-end
 
 function symmetry_reduce(
     hsr ::HilbertSpaceRealization{QN, BR},

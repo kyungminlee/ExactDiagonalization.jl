@@ -11,7 +11,7 @@ end
 @inline function get_slice(pureop ::PureOperator{S, BR}, bcol ::BR) where {S, BR}
   match(b ::BR) ::Bool = (b & pureop.bitmask) == pureop.bitcol
   element(b ::BR) ::Pair{BR, S} = (((b & ~pureop.bitmask) | pureop.bitrow) => pureop.amplitude)
-  return (element(b) for b in [bcol] if match(b))
+  return (element(b)  for b in [bcol] if match(b))
   # bm = pureop.bitmask
   # br = pureop.bitrow
   # bc = pureop.bitcol
@@ -38,6 +38,6 @@ end
   return Base.Iterators.flatten(get_slice(t, bcol) for t in sumop.terms)
 end
 
-@inline function get_slice(brow ::BR, pureop ::SumOperator{S, BR}) where {S, BR}
+@inline function get_slice(brow ::BR, sumop::SumOperator{S, BR}) where {S, BR}
   return Base.Iterators.flatten(get_slice(brow, t) for t in sumop.terms)
 end

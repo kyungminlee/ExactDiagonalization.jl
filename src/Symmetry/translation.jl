@@ -3,15 +3,17 @@ export is_compatible
 
 struct TranslationGroup <: AbstractSymmetryGroup
   generators ::Vector{Permutation}
-  
+
   translations ::Vector{Vector{Int}}
   elements ::Vector{Permutation}
   fractional_momenta ::Vector{Vector{Rational}}
-  
+
   conjugacy_classes ::Vector{Int}  # conjugacy class of element
   character_table ::Array{ComplexF64, 2}
 
-  function TranslationGroup(generators::AbstractArray{Permutation})
+  element_irreps ::Array{Array{ComplexF64, 2}, 2}
+
+  function TranslationGroup(generators::AbstractArray{Permutation}; tol::Real=sqrt(eps(Float64)))
     @assert all(g1 * g2 == g2 * g1 for g1 in generators, g2 in generators) "non-commuting set of generators"
 
     shape = [g.cycle_length for g in generators]
@@ -28,7 +30,17 @@ struct TranslationGroup <: AbstractSymmetryGroup
     character_table = ComplexF64[cis(dot(float.(kf) .* 2π, t))
                                  for kf in fractional_momenta, t in translations]
 
-    return new(generators, translations, elements, fractional_momenta, conjugacy_classes, character_table)
+    character_table_r = real.(character_table)
+    character_table_i = imag.(character_table)
+
+    character_table_r[abs.(character_table_r) .< tol] .= 0.0
+    character_table_i[abs.(character_table_i) .< tol] .= 0.0
+
+    character_table = character_table_r + im * character_table_i
+
+    element_irreps = [ c * ones(ComplexF64, 1, 1) for c in character_table ]
+
+    return new(generators, translations, elements, fractional_momenta, conjugacy_classes, character_table, element_irreps)
   end
 end
 
@@ -58,4 +70,3 @@ function is_compatible(
   )
   return all(is_compatible(fractional_momentum, t) for t in identity_translations)
 end
-
