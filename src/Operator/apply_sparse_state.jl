@@ -1,6 +1,5 @@
 export apply, apply!, apply_unsafe!
 
-
 function apply_unsafe!(out::SparseState{S1, BR}, nullop ::NullOperator, psi::SparseState{S2, BR}) where {S1, S2, BR}
   return out
 end
@@ -8,7 +7,6 @@ end
 function apply_unsafe!(out::SparseState{S1, BR}, psi::SparseState{S2, BR}, nullop ::NullOperator) where {S1, S2, BR}
   return out
 end
-
 
 function apply_unsafe!(out::SparseState{S1, BR}, pureop ::PureOperator{S2, BR}, psi::SparseState{S3, BR}) where {S1, S2, S3, BR}
   for (b, v) in psi.components
@@ -30,7 +28,6 @@ function apply_unsafe!(out::SparseState{S1, BR}, psi::SparseState{S3, BR}, pureo
   out
 end
 
-
 function apply_unsafe!(out::SparseState{S1, BR}, sumop ::SumOperator{S2, BR}, psi::SparseState{S3, BR}) where {S1, S2, S3, BR}
   for t in sumop.terms
     apply_unsafe!(out, t, psi)
@@ -44,7 +41,6 @@ function apply_unsafe!(out::SparseState{S1, BR}, psi::SparseState{S3, BR}, sumop
   end
   out
 end
-
 
 
 """
