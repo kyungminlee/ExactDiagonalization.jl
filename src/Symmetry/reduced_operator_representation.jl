@@ -12,9 +12,8 @@ bintype(lhs ::ReducedOperatorRepresentation{RHSR, O}) where {RHSR, O} = bintype(
 bintype(lhs ::Type{ReducedOperatorRepresentation{RHSR, O}}) where {RHSR, O} = bintype(RHSR)
 
 import Base.eltype
-#eltype(lhs ::ReducedOperatorRepresentation{RHSR, O}) where {RHSR, O} = promote_type(eltype(RHSR), eltype(O))
+@inline eltype(lhs ::ReducedOperatorRepresentation{RHSR, O}) where {RHSR, O} = promote_type(eltype(RHSR), eltype(O))
 @inline eltype(lhs ::Type{ReducedOperatorRepresentation{RHSR, O}}) where {RHSR, O} = promote_type(eltype(RHSR), eltype(O))
-
 
 import Base.size
 function size(arg::ReducedOperatorRepresentation{RHSR, O}) ::Tuple{Int, Int} where {RHSR, O}
@@ -89,7 +88,6 @@ function sparse(opr::ReducedOperatorRepresentation{RHSR, O}; tol ::Real=sqrt(eps
 
   colptr[1] = 1
   for icol in 1:n
-
     colvec = Dict{Int, S}()
     for (irow, ampl) in get_slice(opr, icol)
       colvec[irow] = get(colvec, irow, zero(S)) + ampl

@@ -29,15 +29,12 @@ function size(arg::OperatorRepresentation{HSR, O}) ::Tuple{Int, Int} where {HSR,
   return (dim, dim)
 end
 
-
-
 @inline bintype(lhs ::OperatorRepresentation{HSR, O}) where {HSR, O} = bintype(HSR)
 @inline bintype(lhs ::Type{OperatorRepresentation{HSR, O}}) where {HSR, O} = bintype(HSR)
 
 import Base.eltype
 @inline eltype(lhs ::OperatorRepresentation{HSR, O}) where {HSR, O} = eltype(O)
 @inline eltype(lhs ::Type{OperatorRepresentation{HSR, O}}) where {HSR, O} = eltype(O)
-
 
 function get_slice(opr ::OperatorRepresentation{HSR, O}, icol ::Integer) where {HSR, O}
   hsr = opr.hilbert_space_realization
@@ -57,33 +54,6 @@ function get_slice(irow ::Integer, opr ::OperatorRepresentation{HSR, O}) where {
   iter = ((get(hsr.basis_lookup, bcol, -1), amplitude) for (bcol, amplitude) in get_slice(brow, opr.operator))
   return ((irow => amplitude) for (icol, amplitude) in iter if 1 <= icol <= dim)
 end
-
-import SparseArrays.sparse
-function sparse(opr::OperatorRepresentation{HSR, O}; tol ::Real=sqrt(eps(Float64))) where {HSR, O}
-  S = eltype(opr)
-  m, n = size(opr)
-  colptr = zeros(Int, n+1)
-  rowval = Int[]
-  nzval = S[]
-
-  colptr[1] = 1
-  for icol in 1:n
-
-    colvec = Dict{Int, S}()
-    for (irow, ampl) in get_slice(opr, icol)
-      colvec[irow] = get(colvec, irow, zero(S)) + ampl
-    end
-    choptol!(colvec, tol)
-
-    colptr[icol+1] = colptr[icol] + length(colvec)
-    sorted_items = sort(collect(colvec), by = item -> item[1])
-    append!(rowval, irow for (irow, ampl) in sorted_items)
-    append!(nzval, ampl for (irow, ampl) in sorted_items)
-  end
-  return SparseMatrixCSC{S, Int}(m, n, colptr, rowval, nzval)
-end
-
-
 
 function apply_unsafe!(out ::Vector{S1},
                        opr ::OperatorRepresentation{HSR, O},
@@ -108,7 +78,6 @@ function apply_unsafe!(out ::Vector{S1},
   sqrt(err)
 end
 
-
 function apply_unsafe!(out ::Vector{S1},
                        state ::AbstractVector{S2},
                        opr ::OperatorRepresentation{HSR, O};
@@ -132,18 +101,17 @@ function apply_unsafe!(out ::Vector{S1},
   sqrt(err)
 end
 
-
-function splitblock(n ::Integer, b ::Integer) ::Vector{Int}
-  (n < 0) && throw(ArgumentError("n cannot be negative"))
-  (b <= 0) && throw(ArgumentError("b must be positive"))
-  #b >= n && return    # too many blocks
-  blocksize = n ÷ b
-  blocks = blocksize * ones(Int, b)
-  r = n - (blocksize * b)
-  blocks[1:r] .+= 1
-  return blocks
-end
-
+ 
+# function splitblock(n ::Integer, b ::Integer) ::Vector{Int}
+#   (n < 0) && throw(ArgumentError("n cannot be negative"))
+#   (b <= 0) && throw(ArgumentError("b must be positive"))
+#   #b >= n && return    # too many blocks
+#   blocksize = n ÷ b
+#   blocks = blocksize * ones(Int, b)
+#   r = n - (blocksize * b)
+#   blocks[1:r] .+= 1
+#   return blocks
+# end
 #
 # function apply_thread_unsafe!(out ::Vector{S1},
 #                               opr ::OperatorRepresentation{HS, O},
@@ -153,16 +121,15 @@ end
 #   nthreads = Threads.nthreads()
 #   nthreads == 1 && return apply_unsafe!(out, opr, stage, range)
 #
-#   nblocks = nthreads
-#
 #   hsr = opr.hilbert_space_realization
 #   dim = length(hsr.basis_list)
-#   counts = splitblock(dim, nblocks)
+#   counts = splitblock(dim, nthreads)
 #   offsets = cumsum([1, counts...])
-#   locks = [Threads.SpinLock() for i in 1:nblocks]
+#   locks = [Threads.SpinLock() for i in 1:nthreads]
+#   offdiagonals = [Dict(Int, S1) for i in 1:nthreads]
 #
 #   err = zero(Float64)
-#   Threads.@threads for b in 1:nblocks
+#   Threads.@threads for b in 1:nthreads
 #     lower = offsets[b]
 #     upper = offsets[b+1]-1
 #     for icol in lower:upper
@@ -174,7 +141,7 @@ end
 #         if lower <= irow <= upper
 #           out[irow] += amplitude * v
 #         elseif 1 <= irow <= dim
-#           offdiagonal term
+#           off diagonal
 #         else
 #           err += abs(amplitude*v)^2
 #         end
@@ -183,8 +150,6 @@ end
 #   end # for b
 #   sqrt(err)
 # end
-#
-
 
 
 import Base.*
@@ -193,15 +158,8 @@ function (*)(opr ::OperatorRepresentation{HSR, O}, state ::AbstractVector{S}) wh
   n = length(hsr.basis_list)
   T = promote_type(S, eltype(O))
   out = zeros(T, n)
-  for (bcol, v) in zip(hsr.basis_list, state)
-    for (brow, amplitude) in get_slice(opr.operator, bcol)
-      irow = get(hsr.basis_lookup, brow, -1)
-      if 1 <= irow <= n
-        out[irow] += amplitude * v
-      end
-    end
-  end
-  out
+  err = apply_unsafe!(out, opr, state)
+  return out
 end
 
 
@@ -211,13 +169,32 @@ function (*)(state ::AbstractVector{S}, opr ::OperatorRepresentation{HSR, O}) wh
   n = len(hsr.basis_list)
   T = promote_type(S, eltype(O))
   out = zeros(T, n)
-  for (brow, v) in zip(hsr.basis_list, state)
-    for (bcol, amplitude) in get_slice(brow, opr.operator)
-      icol = get(hsr.basis_lookup, bcol, -1)
-      if 1 <= icol <= n
-        out[icol] += v * amplitude
-      end
-    end
-  end
+  err = apply_unsafe!(out, state, opr)
   out
+end
+
+
+import SparseArrays.sparse
+function sparse(opr::OperatorRepresentation{HSR, O}; tol ::Real=sqrt(eps(Float64))) where {HSR, O}
+  S = eltype(opr)
+  m, n = size(opr)
+  colptr = zeros(Int, n+1)
+  rowval = Int[]
+  nzval = S[]
+
+  colptr[1] = 1
+  for icol in 1:n
+
+    colvec = Dict{Int, S}()
+    for (irow, ampl) in get_slice(opr, icol)
+      colvec[irow] = get(colvec, irow, zero(S)) + ampl
+    end
+    choptol!(colvec, tol)
+
+    colptr[icol+1] = colptr[icol] + length(colvec)
+    sorted_items = sort(collect(colvec), by = item -> item[1])
+    append!(rowval, irow for (irow, ampl) in sorted_items)
+    append!(nzval, ampl for (irow, ampl) in sorted_items)
+  end
+  return SparseMatrixCSC{S, Int}(m, n, colptr, rowval, nzval)
 end
