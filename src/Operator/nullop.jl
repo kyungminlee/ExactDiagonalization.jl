@@ -29,6 +29,9 @@ conj(arg::NullOperator) = arg
 transpose(arg::NullOperator) = arg
 adjoint(arg::NullOperator) = arg
 
+import Base.eltype
+eltype(lhs ::NullOperator) = Bool
+
 import Base.<
 # null operator is smaller than any other operators
 (<)(lhs ::NullOperator, rhs ::NullOperator) = false
