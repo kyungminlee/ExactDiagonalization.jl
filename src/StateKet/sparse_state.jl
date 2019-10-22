@@ -6,7 +6,7 @@ using LinearAlgebra
 """
     struct SparseState{Scalar<:Number, BR}
 
-Represents a row vector?
+Represents a row vector. Free.
 """
 mutable struct SparseState{Scalar<:Number, BR}
   hilbert_space ::HilbertSpace
