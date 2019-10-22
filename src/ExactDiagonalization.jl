@@ -15,10 +15,10 @@ include("util.jl")
 include("frozensortedarray.jl")
 
 include("HilbertSpace.jl")
-
 include("StateKet.jl")
-
 include("Operator.jl")
+
+include("Representation.jl")
 
 include("Symmetry.jl")
 

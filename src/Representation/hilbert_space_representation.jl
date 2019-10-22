@@ -61,28 +61,6 @@ function realize(hs ::HilbertSpace{QN}; BR ::DataType=UInt) where {QN}
   return HilbertSpaceRealization{QN, BR}(hs, basis_list, basis_lookup)
 end
 
-# function concretize_naive(
-#     hs ::HilbertSpace{QN},
-#     qn ::QN;
-#     BR ::DataType=UInt) where {QN}
-#   sectors = quantum_number_sectors(hs)
-#   if ! (qn in sectors)
-#     return HilbertSpaceRealization{QN, BR}(hs, [], Dict())
-#   end
-#   basis_list = BR[]
-#   for indexarray in Iterators.product((1:length(site.states) for site in hs.sites)...)
-#     indexarray = Int[indexarray...]
-#     q = get_quantum_number(hs, indexarray)
-#     if q == qn
-#       push!(basis_list, compress(hs, indexarray))
-#     end
-#   end
-#   basis_lookup = Dict{BR, Int}()
-#   for (ibasis, basis) in enumerate(basis_list)
-#     basis_lookup[basis] = ibasis
-#   end
-#   return HilbertSpaceRealization{QN, BR}(hs, basis_list, basis_lookup)
-# end
 
 function realize(
     hs::HilbertSpace{QN},
