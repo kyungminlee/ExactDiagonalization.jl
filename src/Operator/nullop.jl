@@ -31,6 +31,7 @@ adjoint(arg::NullOperator) = arg
 
 import Base.eltype
 eltype(lhs ::NullOperator) = Bool
+eltype(lhs ::Type{NullOperator}) = Bool
 
 import Base.<
 # null operator is smaller than any other operators
