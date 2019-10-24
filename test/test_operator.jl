@@ -16,14 +16,17 @@ end
 @testset "NullOperator" begin
   nop = NullOperator()
   @test isa(nop, NullOperator)
-  @test eltype(nop) === Bool
-  @test eltype(typeof(nop)) === Bool
-  @test bintype(nop) === Bool
-  @test bintype(typeof(nop)) === Bool
 
   nop2 = NullOperator()
   @test nop == nop2
   @test (nop < nop) == false
+
+  @testset "typetraits" begin
+    @test eltype(nop) === Bool
+    @test eltype(typeof(nop)) === Bool
+    @test bintype(nop) <: Unsigned
+    @test bintype(typeof(nop)) <: Unsigned
+  end
 
   @testset "unary" begin
     @test -nop == nop
@@ -303,10 +306,10 @@ end
     pop4 = PureOperator{Float64, UInt}(hs2, 0b0001, 0b0001, 0b0001, 3.0)
     @test_throws ArgumentError SumOperator{Float64, UInt}(hs, [pop1, pop4])
 
-    @test eltype(pop3) === ComplexF64
-    @test eltype(typeof(pop3)) === ComplexF64
-    @test eltype(pop4) === Float64
-    @test eltype(typeof(pop4)) === Float64
+    @test eltype(sop) === Float64
+    @test eltype(typeof(sop)) === Float64
+    @test bintype(sop) === UInt
+    @test bintype(typeof(sop)) === UInt
   end
 
   @testset "equality" begin

@@ -2,6 +2,10 @@ export AbstractHilbertSpace
 export State, Site
 export bitwidth, get_state, dimension
 export qntype
+export quantum_number_sectors
+export get_quantum_number
+export compress
+export get_state_index
 
 using StaticArrays
 
@@ -93,34 +97,29 @@ dimension(site ::Site) ::Int = length(site.states)
 
 Returns the state of `site` represented by the bits `binrep`.
 """
-function get_state(site ::Site{QN}, binrep ::BR) where {QN, BR<:Unsigned}
-  return site.states[Int(binrep) + 1]
+@inline function get_state(site::Site, binrep::U) where {U<:Unsigned}
+  return site.states[Int(binrep+1)]
 end
 
-export quantum_number_sectors
-function quantum_number_sectors(site ::Site{QN})::Vector{QN} where QN
-  return sort(collect(Set([state.quantum_number for state in site.states])))
-end
-
-export get_quantum_number
-function get_quantum_number(site ::Site{QN}, i ::Integer)::QN where QN
-  return site.states[i].quantum_number
-end
-
-export compress
-function compress(site ::Site, i ::Integer; BR::DataType=UInt)
+@inline function compress(site ::Site, i ::Integer; BR::DataType=UInt)
+  @boundscheck 1 <= i <= length(site) || throw(BoundsError("attempt to access a $(length(site))-state site at index $i"))
   return BR(i-1)
 end
 
-export get_state_index
-function get_state_index(site::Site, binrep::U) where {U<:Unsigned}
-  return Int(binrep+1)
+@inline function get_state_index(site::Site, binrep::U) where {U<:Unsigned}
+  i = Int(binrep+1)
+  @boundscheck 0 <= i <= length(site) || throw(BoundsError("attempt to access a $(length(site))-state site at index $i"))
+  return i
 end
 
-export get_state
-function get_state(site::Site, binrep::U) where {U<:Unsigned}
-  return site.states[Int(binrep+1)]
+@inline function quantum_number_sectors(site ::Site{QN})::Vector{QN} where QN
+  return sort(collect(Set([state.quantum_number for state in site.states])))
 end
+
+@inline function get_quantum_number(site ::Site{QN}, i ::Integer)::QN where QN
+  return site.states[i].quantum_number
+end
+
 
 import Base.keys
 keys(site::Site{QN}) where QN = 1:length(site.states)

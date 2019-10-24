@@ -9,7 +9,7 @@ using LinearAlgebra
 Represents a row vector. Not Free. Access by Integer (1-based index)
 """
 mutable struct SparseStateIndexed{S<:Number, QN, BR}
-  hilbert_space_realization ::HilbertSpaceRepresentation{QN, BR}
+  hilbert_space_representation ::HilbertSpaceRepresentation{QN, BR}
   components ::Dict{Int, S}
 
   function SparseStateIndexed{S, QN, BR}(
@@ -52,13 +52,13 @@ end
 import Base.getindex, Base.setindex!
 
 @inline function Base.getindex(state ::SparseStateIndexed{S, QN, BR}, idx ::Integer) where {S, QN, BR}
-  hsr = state.hilbert_space_realization
+  hsr = state.hilbert_space_representation
   @boundscheck (idx <= 0 || idx > dimension(hsr)) || throw(BoundsError("attempt to access SparseStateIndexed of dimension $(dimension(hsr)) at index [$idx]"))
   return get(state.components, idx, zero(S))
 end
 
 function Base.setindex!(state ::SparseStateIndexed{S, QN, BR}, value ::S, idx ::Integer) where {S, QN, BR}
-  hsr = state.hilbert_space_realization
+  hsr = state.hilbert_space_representation
   @boundscheck (idx <= 0 || idx > dimension(hsr)) || throw(BoundsError("attempt to access SparseStateIndexed of dimension $(dimension(hsr)) at index [$idx]"))
   state.components[idx] = value
   return state
@@ -74,13 +74,13 @@ isempty(psi::SparseStateIndexed{S, QN, BR}) where {S, QN, BR} = isempty(psi.comp
 
 import Base.==
 function (==)(lhs ::SparseStateIndexed{S1, QN, BR}, rhs::SparseStateIndexed{S2, QN, BR}) where {S1, S2, QN, BR}
-  return ((lhs.hilbert_space_realization === rhs.hilbert_space_realization)
+  return ((lhs.hilbert_space_representation === rhs.hilbert_space_representation)
           && (lhs.components == rhs.components))
 end
 
 import Base.isapprox
 function isapprox(lhs ::SparseStateIndexed{S1, QN, BR}, rhs::SparseStateIndexed{S2, QN, BR}; atol=sqrt(eps(Float64)), rtol=sqrt(eps(Float64))) where {S1, S2, QN, BR}
-  if lhs.hilbert_space_realization !== rhs.hilbert_space_realization
+  if lhs.hilbert_space_representation !== rhs.hilbert_space_representation
     return false
   end
   all_keys = union(keys(lhs.components), keys(rhs.components))
@@ -94,29 +94,29 @@ end
 
 import Base.copy
 function copy(arg ::SparseStateIndexed{S, QN, BR}) where {S, QN, BR}
-  return SparseStateIndexed{S, BR}(arg.hilbert_space_realization, copy(arg.components))
+  return SparseStateIndexed{S, BR}(arg.hilbert_space_representation, copy(arg.components))
 end
 
 import Base.real, Base.imag, Base.conj
 real(arg ::SparseStateIndexed{R, QN, BR}) where {R<:Real, QN, BR} = copy(arg)
-imag(arg ::SparseStateIndexed{R, QN, BR}) where {R<:Real, QN, BR} = SparseStateIndexed{R, QN, BR}(arg.hilbert_space_realization)
+imag(arg ::SparseStateIndexed{R, QN, BR}) where {R<:Real, QN, BR} = SparseStateIndexed{R, QN, BR}(arg.hilbert_space_representation)
 conj(arg ::SparseStateIndexed{R, QN, BR}) where {R<:Real, QN, BR} = copy(arg)
 
 function real(arg ::SparseStateIndexed{Complex{R}, QN, BR}) where {R<:Real, QN, BR}
-  hsr = arg.hilbert_space_realization
+  hsr = arg.hilbert_space_representation
   components = Dict{Int, R}((k, real(v)) for (k, v) in arg.components)
   return SparseStateIndexed{R, QN, BR}(hsr, components)
 end
 
 function imag(arg ::SparseStateIndexed{Complex{R}, QN, BR}) where {R<:Real, QN, BR}
-  hsr = arg.hilbert_space_realization
+  hsr = arg.hilbert_space_representation
   components = Dict{Int, R}((k, imag(v)) for (k, v) in arg.components)
   return SparseStateIndexed{R, QN, BR}(hsr, components)
 end
 
 function conj(arg ::SparseStateIndexed{Complex{R}, QN, BR}) where {R<:Real, QN, BR}
   C = Complex{R}
-  hsr = arg.hilbert_space_realization
+  hsr = arg.hilbert_space_representation
   components = Dict{Int, C}((k, conj(v)) for (k, v) in arg.components)
   return SparseStateIndexed{C, QN, BR}(hsr, components)
 end
@@ -126,16 +126,16 @@ import Base.-, Base.+, Base.*, Base./, Base.\
 (+)(arg ::SparseStateIndexed{S, QN, BR}) where {S, QN, BR} = copy(arg)
 
 function (-)(arg ::SparseStateIndexed{S, QN, BR}) where {S, QN, BR}
-  return SparseStateIndexed{S, QN, BR}(arg.hilbert_space_realization,
+  return SparseStateIndexed{S, QN, BR}(arg.hilbert_space_representation,
                                        Dict{Int, S}((k, -v) for (k, v) in arg.components))
 end
 
 function (+)(lhs ::SparseStateIndexed{S1, QN, BR}, rhs ::SparseStateIndexed{S2, QN, BR}) where {S1, S2, QN, BR}
-  if lhs.hilbert_space_realization !== rhs.hilbert_space_realization
+  if lhs.hilbert_space_representation !== rhs.hilbert_space_representation
     throw(ArgumentError("Hilbert spaces of lhs and rhs of + should match"))
   end
   S3 = promote_type(S1, S2)
-  hsr = arg.hilbert_space_realization
+  hsr = arg.hilbert_space_representation
   components = Dict{Int, S3}((k, S3(v)) for (k, v) in lhs.components)
   zero_value = zero(S3)
   for (i, v) in rhs.components
@@ -145,11 +145,11 @@ function (+)(lhs ::SparseStateIndexed{S1, QN, BR}, rhs ::SparseStateIndexed{S2, 
 end
 
 function (-)(lhs ::SparseStateIndexed{S1, QN, BR}, rhs ::SparseStateIndexed{S2, QN, BR}) where {S1, S2, QN, BR}
-  if lhs.hilbert_space_realization !== rhs.hilbert_space_realization
+  if lhs.hilbert_space_representation !== rhs.hilbert_space_representation
     throw(ArgumentError("Hilbert spaces of lhs and rhs of + should match"))
   end
   S3 = promote_type(S1, S2)
-  hsr = arg.hilbert_space_realization
+  hsr = arg.hilbert_space_representation
   components = Dict{Int, S3}((k, S3(v)) for (k, v) in lhs.components)
   zero_value = zero(S3)
   for (i, v) in rhs.components
@@ -159,29 +159,29 @@ function (-)(lhs ::SparseStateIndexed{S1, QN, BR}, rhs ::SparseStateIndexed{S2, 
 end
 
 function (*)(lhs ::SparseStateIndexed{S1, QN, BR}, rhs ::S2) where {S1, S2<:Number, QN, BR}
-  hsr = lhs.hilbert_space_realization
+  hsr = lhs.hilbert_space_representation
   return SparseStateIndexed(hsr, Dict((k, v * rhs) for (k, v) in lhs.components))
 end
 
 function (*)(lhs ::S1, rhs ::SparseStateIndexed{S2, QN, BR}) where {S1<:Number, S2<:Number, QN, BR}
-  hsr = rhs.hilbert_space_realization
+  hsr = rhs.hilbert_space_representation
   return SparseStateIndexed(hsr, Dict((k, lhs * v) for (k, v) in rhs.components))
 end
 
 function (/)(lhs ::SparseStateIndexed{S1, QN, BR}, rhs ::S2) where {S1, S2<:Number, QN, BR}
-  hsr = lhs.hilbert_space_realization
+  hsr = lhs.hilbert_space_representation
   return SparseStateIndexed(hsr, Dict((k, v / rhs) for (k, v) in lhs.components))
 end
 
 function (\)(lhs ::S1, rhs ::SparseStateIndexed{S2, QN, BR}) where {S1<:Number, S2<:Number, QN, BR}
-  hsr = rhs.hilbert_space_realization
+  hsr = rhs.hilbert_space_representation
   return SparseStateIndexed(hsr, Dict((k, lhs \ v) for (k, v) in rhs.components))
 end
 
 import Base.convert
 function convert(type ::Type{SparseStateIndexed{S1, QN, BR}},
                  obj::SparseStateIndexed{S2, QN, BR}) where {S1, S2, QN, BR}
-  return SparseStateIndexed{S1, QN, BR}(obj.hilbert_space_realization, Dict{Int, S1}(obj.components))
+  return SparseStateIndexed{S1, QN, BR}(obj.hilbert_space_representation, Dict{Int, S1}(obj.components))
 end
 
 

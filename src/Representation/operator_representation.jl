@@ -2,7 +2,7 @@ export OperatorRepresentation
 export represent
 
 struct OperatorRepresentation{HSR <:HilbertSpaceRepresentation, O <:AbstractOperator} <: AbstractOperatorRepresentation
-  hilbert_space_realization ::HSR
+  hilbert_space_representation ::HSR
   operator ::O
 
   function OperatorRepresentation(hsr ::HSR, op ::O) where {HSR<:HilbertSpaceRepresentation, O<:AbstractOperator}
@@ -20,7 +20,16 @@ end
 
 @inline spacetype(lhs::Type{OperatorRepresentation{HSR, O}}) where {HSR, O}= HSR
 @inline operatortype(lhs ::Type{OperatorRepresentation{HSR, O}}) where {HSR, O} = O
-@inline get_space(lhs ::OperatorRepresentation{HSR, O}) where {HSR, O} = lhs.hilbert_space_realization
+@inline get_space(lhs ::OperatorRepresentation{HSR, O}) where {HSR, O} = lhs.hilbert_space_representation
+
+
+import Base.==
+function (==)(opr1 ::HilbertSpaceRepresentation{HSR1, O1},
+              opr2 ::HilbertSpaceRepresentation{HSR2, O2}) where {HSR1, O1, HSR2, O2}
+  return ((opr1.hilbert_space_representation == opr2.hilbert_space_representation) &&
+          (opr1.operator == opr2.operator))
+end
+
 
 ## iterators
 
@@ -30,7 +39,7 @@ May contain duplicates
 function get_row_iterator(opr ::OperatorRepresentation{HSR, O},
                           irow ::Integer;
                           include_all::Bool=false) where {HSR, O}
-  hsr = opr.hilbert_space_realization
+  hsr = opr.hilbert_space_representation
   brow = hsr.basis_list[irow]
   iter = (get(hsr.basis_lookup, bcol, -1) => amplitude
             for (bcol, amplitude) in get_row_iterator(opr.operator, brow))
@@ -44,7 +53,7 @@ end
 
 
 function get_column_iterator(opr ::OperatorRepresentation{HSR, O}, icol ::Integer; include_all::Bool=false) where {HSR, O}
-  hsr = opr.hilbert_space_realization
+  hsr = opr.hilbert_space_representation
   bcol = hsr.basis_list[icol]
   iter = (get(hsr.basis_lookup, brow, -1) => amplitude
             for (brow, amplitude) in get_column_iterator(opr.operator, bcol))
@@ -60,9 +69,9 @@ end
 function apply_unsafe!(out ::Vector{S1},
                        opr ::OperatorRepresentation{HSR, O},
                        state ::AbstractVector{S2};
-                       range ::AbstractVector{<:Integer}=1:dimension(opr.hilbert_space_realization)
+                       range ::AbstractVector{<:Integer}=1:dimension(opr.hilbert_space_representation)
                        ) where {HSR, O, S1<:Number, S2<:Number}
-  hsr = opr.hilbert_space_realization
+  hsr = opr.hilbert_space_representation
   dim = length(hsr.basis_list)
   err = zero(Float64)
   for icol in range
@@ -83,9 +92,9 @@ end
 function apply_unsafe!(out ::Vector{S1},
                        state ::AbstractVector{S2},
                        opr ::OperatorRepresentation{HSR, O};
-                       range ::AbstractVector{<:Integer}=1:dimension(opr.hilbert_space_realization)
+                       range ::AbstractVector{<:Integer}=1:dimension(opr.hilbert_space_representation)
                        ) where {HSR, O, S1<:Number, S2<:Number}
-  hsr = opr.hilbert_space_realization
+  hsr = opr.hilbert_space_representation
   dim = length(hsr.basis_list)
   err = zero(Float64)
   for irow in range
@@ -106,7 +115,7 @@ end
 
 import Base.*
 function (*)(opr ::OperatorRepresentation{HSR, O}, state ::AbstractVector{S}) where {HSR, O, S<:Number}
-  hsr = opr.hilbert_space_realization
+  hsr = opr.hilbert_space_representation
   n = length(hsr.basis_list)
   T = promote_type(S, eltype(O))
   out = zeros(T, n)
@@ -117,7 +126,7 @@ end
 
 import Base.*
 function (*)(state ::AbstractVector{S}, opr ::OperatorRepresentation{HSR, O}) where {HSR, O, S<:Number}
-  hsr = opr.hilbert_space_realization
+  hsr = opr.hilbert_space_representation
   n = len(hsr.basis_list)
   T = promote_type(S, eltype(O))
   out = zeros(T, n)
@@ -146,7 +155,7 @@ end
 #   nthreads = Threads.nthreads()
 #   nthreads == 1 && return apply_unsafe!(out, opr, stage, range)
 #
-#   hsr = opr.hilbert_space_realization
+#   hsr = opr.hilbert_space_representation
 #   dim = length(hsr.basis_list)
 #   counts = splitblock(dim, nthreads)
 #   offsets = cumsum([1, counts...])

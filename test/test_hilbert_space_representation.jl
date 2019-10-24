@@ -5,18 +5,31 @@ using StaticArrays
 @testset "HSR" begin
 
   @testset "spin half" begin
+    up = State("Up", +1)
+    dn = State("Dn", -1)
+    spinsite = Site([up, dn])
     @testset "constructor" begin
-      up = State("Up", +1)
-      dn = State("Dn", -1)
-      spinsite = Site([up, dn])
+      hilbert_space = HilbertSpace([spinsite for i in 1:4])
+      hsr1 = represent(hilbert_space, UInt[0b0011, 0b0101, 0b0110, 0b1001, 0b1010, 0b1100])
+      hsr2 = represent(HilbertSpaceSector(hilbert_space, 0))
+      @test hsr1 == hsr2
+      @test basespace(hsr1) === hilbert_space
+    end
+
+    @testset "constructor-exceptions" begin
       hilbert_space = HilbertSpace([spinsite for i in 1:9])
-      basis_list = UInt8[0x0]
+      basis_list = UInt8[0b0101]
       @test_throws ArgumentError HilbertSpaceRepresentation(hilbert_space, basis_list, FrozenSortedArrayIndex(basis_list))
       @test_throws ArgumentError represent(hilbert_space; BR=UInt8)
       @test_throws ArgumentError HilbertSpaceRepresentation(HilbertSpaceSector(hilbert_space, 0), basis_list, FrozenSortedArrayIndex(basis_list))
       @test_throws ArgumentError represent(HilbertSpaceSector(hilbert_space, 0); BR=UInt8)
-      #@test_throws ArgumentError HilbertSpaceRepresentation(HilbertSpaceSector(hilbert_space, 0), basis_list, FrozenSortedArrayIndex(basis_list))
-      #@test_throws ArgumentError represent(HilbertSpaceSector(hilbert_space, 0); BR=UInt8)
+    end
+
+    @testset "typetraits" begin
+      hilbert_space = HilbertSpace([spinsite for i in 1:4])
+      hsr = represent(hilbert_space; BR=UInt32)
+      @test eltype(hsr) === Bool
+      @test bintype(hsr) === UInt32
     end
 
     @testset "validity" begin
