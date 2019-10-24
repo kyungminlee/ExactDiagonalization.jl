@@ -1,6 +1,9 @@
 export HilbertSpace
 export quantum_number_sectors, get_quantum_number, extract, compress, update, get_state, get_state_index
 export get_bitmask
+export bitwidth
+export qntype
+export basespace
 
 """
     HilbertSpace{QN}
@@ -9,8 +12,7 @@ Abstract Hilbert space with quantum number type `QN`.
 
 # Examples
 ```jldoctest
-julia> using ExactDiagonalization
-
+using ExactDiagonalization
 julia> spin_site = Site{Int64}([State{Int64}("Up", +1), State{Int64}("Dn", -1)])
 Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)])
 
@@ -41,15 +43,33 @@ import Base.eltype
 @inline eltype(arg ::HilbertSpace{QN}) where QN = Bool
 @inline eltype(arg ::Type{HilbertSpace{QN}}) where QN = Bool
 
-export qntype
+"""
+    qntype
+
+
+"""
 @inline qntype(arg ::HilbertSpace{QN}) where QN = QN
 @inline qntype(arg ::Type{HilbertSpace{QN}}) where QN = QN
 
 
-export bitwidth
-@inline bitwidth(hs::HilbertSpace) = hs.bitwidths[end]
+"""
+Total number of bits
 
-export basespace
+```jldoctest
+using ExactDiagonalization
+julia> spin_site = Site{Int64}([State{Int64}("Up", +1), State{Int64}("Dn", -1)])
+Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)])
+
+julia> hs = HilbertSpace{Int64}([spin_site, spin_site, spin_site,])
+HilbertSpace{Int64}(Site{Int64}[Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)]), Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)]), Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)])], [1, 1, 1], [0, 1, 2, 3])
+
+julia> bitwidth(hs)
+3
+```
+"""
+@inline bitwidth(hs::HilbertSpace) = hs.bitoffsets[end]
+
+
 @inline basespace(hs::HilbertSpace) = hs
 
 import Base.==
@@ -57,15 +77,13 @@ function (==)(lhs ::HilbertSpace{Q1}, rhs ::HilbertSpace{Q2}) where {Q1, Q2}
   return (Q1 == Q2) && (lhs.sites == rhs.sites) #&& (lhs.bitwidths == rhs.bitwidths) && (lhs.bitoffsets == rhs.bitoffsets)
 end
 
-function (==)(lhs ::AbstractHilbertSpace, rhs::AbstractHilbertSpace)
-  return basespace(lhs) == basespace(rhs)
-end
-
 function get_bitmask(hs ::HilbertSpace, isite ::Integer; dtype ::DataType=UInt)
   return make_bitmask(hs.bitoffsets[isite+1], hs.bitoffsets[isite]; dtype=dtype)
 end
 
-
+"""
+    quantum_number_sectors
+"""
 function quantum_number_sectors(hs ::HilbertSpace{QN})::Vector{QN} where QN
   qns = Set{QN}([zero(QN)])
   for site in hs.sites
@@ -80,6 +98,9 @@ function quantum_number_sectors(hs ::HilbertSpace{QN})::Vector{QN} where QN
   return sort(collect(qns))
 end
 
+"""
+    get_quantum_number
+"""
 function get_quantum_number(hs ::HilbertSpace{QN}, binrep ::BR) where {QN, BR}
   sum(
     let

@@ -103,7 +103,7 @@ function quantum_number_sectors(site ::Site{QN})::Vector{QN} where QN
 end
 
 export get_quantum_number
-function get_quantum_number(site ::Site{QN}, i ::Integer)::Vector{QN} where QN
+function get_quantum_number(site ::Site{QN}, i ::Integer)::QN where QN
   return site.states[i].quantum_number
 end
 
@@ -125,3 +125,6 @@ end
 import Base.iterate
 @inline iterate(site::Site{QN}) where {QN} = Base.iterate(1:length(site.states))
 @inline iterate(site::Site{QN}, i) where QN = Base.iterate(1:length(site.states), i)
+
+import Base.length
+@inline length(site::Site{QN}) where QN = length(site.states)

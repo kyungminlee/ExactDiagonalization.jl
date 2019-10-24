@@ -35,7 +35,7 @@ import Base.eltype
 
 import Base.==
 function (==)(lhs ::HilbertSpaceRepresentation{H1, B1}, rhs ::HilbertSpaceRepresentation{H2, B2}) where {H1, B1, H2, B2}
-  return (B1 == B2) && (lhs.hilbert_space == rhs.hilbert_space) && (lhs.basis_list == rhs.basis_list)
+  return (B1 == B2) && basespace(lhs) == basespace(rhs) && (lhs.basis_list == rhs.basis_list)
 end
 
 function checkvalidbasis(hsr::HilbertSpaceRepresentation{HS, BR}) where {HS <:AbstractHilbertSpace, BR <:Unsigned}
