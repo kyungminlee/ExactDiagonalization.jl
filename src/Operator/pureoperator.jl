@@ -172,9 +172,3 @@ function pure_operator(hilbert_space ::HilbertSpace,
   bc = dtype(istate_col - 1) << hilbert_space.bitoffsets[isite]
   return PureOperator{typeof(amplitude), dtype}(hilbert_space, bm, br, bc, amplitude)
 end
-
-import Base.size
-function size(arg::PureOperator{S, BR}) ::Tuple{Int, Int} where {S, BR}
-  dim = dimension(arg.hilbert_space)
-  return (dim, dim)
-end

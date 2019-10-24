@@ -22,11 +22,6 @@ import Base.eltype
 @inline bintype(lhs ::SumOperator{S, BR}) where {S, BR} = BR
 @inline bintype(lhs ::Type{SumOperator{S, BR}}) where {S, BR} = BR
 
-import Base.size
-function size(arg::SumOperator{S, BR}) ::Tuple{Int, Int} where {S, BR}
-  dim = dimension(arg.hilbert_space)
-  return (dim, dim)
-end
 
 # === 1/6 Equality ===
 
