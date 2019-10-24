@@ -268,10 +268,10 @@ end # testset NullOperator
 
   @testset "iterator" begin
     pop = PureOperator{Float64, UInt}(hs, 0b1010, 0b0010, 0b0000, 2.0)
-    #@show get_column_iterator(pop, 0b0000)
     @test collect(get_row_iterator(pop, 0b0000)) == []
+    @test collect(get_row_iterator(pop, 0b0010)) == [0b0000 => 2.0]
     @test collect(get_column_iterator(pop, 0b0000)) == [0b0010 => 2.0]
-    #@test collect(get_iterator(nop))
+    @test collect(get_column_iterator(pop, 0b1111)) == []
   end
 end
 
@@ -494,6 +494,26 @@ end
       @test sop2 * sop2 == SumOperator{ComplexF64, UInt}(hs, nonzeroterms)
     end
   end
+
+  @testset "iterator" begin
+    pop1 = PureOperator{Float64, UInt}(hs, 0b1010, 0b0010, 0b0000, 2.0)
+    pop2 = PureOperator{Float64, UInt}(hs, 0b0001, 0b0000, 0b0001, 3.0)
+    sop = pop1 + pop2
+
+    # 0_1_ , 0_0_ , 2.0
+    # ___0 , ___1 , 3.0
+
+    @test collect(get_row_iterator(sop, 0b1000)) == [0b1001 => 3.0]
+    @test collect(get_row_iterator(sop, 0b0010)) == [0b0000 => 2.0, 0b0011 => 3.0]
+
+    @test collect(get_column_iterator(sop, 0b1000)) == []
+    @test collect(get_column_iterator(sop, 0b0101)) == [0b0111 => 2.0, 0b0100 => 3.0]
+
+
+    # @test collect(get_column_iterator(pop, 0b0000)) == [0b0010 => 2.0]
+    # @test collect(get_column_iterator(pop, 0b1111)) == []
+  end
+
 end
 
   # popA00 = PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0000, 2.0)
