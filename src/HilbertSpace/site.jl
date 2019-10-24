@@ -102,13 +102,13 @@ Returns the state of `site` represented by the bits `binrep`.
 end
 
 @inline function compress(site ::Site, i ::Integer; BR::DataType=UInt)
-  @boundscheck 1 <= i <= length(site) || throw(BoundsError("attempt to access a $(length(site))-state site at index $i"))
+  @boundscheck 1 <= i <= dimension(site) || throw(BoundsError("attempt to access a $(dimension(site))-state site at index $i"))
   return BR(i-1)
 end
 
 @inline function get_state_index(site::Site, binrep::U) where {U<:Unsigned}
   i = Int(binrep+1)
-  @boundscheck 0 <= i <= length(site) || throw(BoundsError("attempt to access a $(length(site))-state site at index $i"))
+  @boundscheck 0 <= i <= dimension(site) || throw(BoundsError("attempt to access a $(dimension(site))-state site at index $i"))
   return i
 end
 
@@ -122,7 +122,7 @@ end
 
 
 import Base.keys
-keys(site::Site{QN}) where QN = 1:length(site.states)
+keys(site::Site{QN}) where QN = 1:dimension(site)
 # import Base.iterate
 # @inline iterate(site::Site{QN}) where {QN} = Base.iterate(1:length(site.states))
 # @inline iterate(site::Site{QN}, i) where QN = Base.iterate(1:length(site.states), i)
