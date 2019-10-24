@@ -3,6 +3,17 @@ using ExactDiagonalization
 using StaticArrays
 
 @testset "HSR" begin
+
+  @testset "constructor" begin
+    up = State("Up", +1)
+    dn = State("Dn", +1)
+    spinsite = Site([up, dn])
+    hilbert_space = HilbertSpace([spinsite for i in 1:9])
+    basis_list = UInt8[0x0]
+    @test_throws ArgumentError HilbertSpaceRepresentation(hilbert_space, basis_list, FrozenSortedArrayIndex(basis_list))
+    @test_throws ArgumentError represent(hilbert_space; BR=UInt8)
+  end
+
   QN = SVector{2, Int}
   em = State("Em", QN( 0, 0))  # charge and spin
   up = State("Up", QN( 1, 1))
@@ -12,7 +23,7 @@ using StaticArrays
   hs = HilbertSpace([site, spin_site, spin_site]) # f s s
   sectors = quantum_number_sectors(hs)
   @test sectors == QN[[2, -2], [2, 0], [2, 2], [3, -3], [3, -1], [3, 1], [3, 3]]
-  
+
   @testset "represent" begin
     hsr_all = represent(hs)
     @test hsr_all.basis_list == UInt[

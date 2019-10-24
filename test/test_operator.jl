@@ -1,6 +1,7 @@
 using Test
 using ExactDiagonalization
 
+using LinearAlgebra
 using StaticArrays
 
 @testset "AbstractOperator" begin

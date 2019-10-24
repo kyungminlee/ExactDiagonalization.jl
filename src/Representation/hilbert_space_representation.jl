@@ -63,6 +63,9 @@ Make a HilbertSpaceRepresentation with all the basis vectors of the specified Hi
 - `BR ::DataType=UInt`: Binary representation type
 """
 function represent(hs ::HilbertSpace{QN}; BR ::DataType=UInt) where {QN}
+  if count_ones(typemax(BR)) <= bitwidth(hs)
+    throw(ArgumentError("type $(BR) not enough to represent the hilbert space (need $(bitwidth(hs)) bits)"))
+  end
   HS = HilbertSpace{QN}
   basis_list = BR[]
   for indexarray in keys(hs)
