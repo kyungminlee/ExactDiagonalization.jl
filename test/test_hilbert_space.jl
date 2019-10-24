@@ -35,8 +35,10 @@ end
     dn = State("Dn",-1)
     site1 = Site([up, dn])
     site2 = Site{Int}([up, dn])
-    @test qntype(site1) == Int
-    @test qntype(site2) == Int
+    @test qntype(site1) === Int
+    @test qntype(site2) === Int
+    @test qntype(typeof(site1)) === Int
+    @test qntype(typeof(site2)) === Int
 
     @test site1 == site2
     @test dimension(site1) == 2
@@ -59,14 +61,15 @@ end
     up = State("Up", QN( 1, 1))
     dn = State("Dn", QN(-1, 1))
     ud = State("UpDn", QN( 0, 2))
-    @test qntype(em) == QN
-    @test qntype(up) == QN
-    @test qntype(dn) == QN
-    @test qntype(ud) == QN
+    @test qntype(em) === QN
+    @test qntype(up) === QN
+    @test qntype(dn) === QN
+    @test qntype(ud) === QN
     @test_throws MethodError State{QN}("X", 1)
 
     site = Site([em, up, dn])
-    @test qntype(site) == QN
+    @test qntype(site) === QN
+    @test qntype(typeof(site)) === QN
     @test_throws MethodError Site([em, up, dn, State("X", 1)])
     @test bitwidth(site) == 2
     @test dimension(site) == 3
