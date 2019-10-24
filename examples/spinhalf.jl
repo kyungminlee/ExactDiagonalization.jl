@@ -38,11 +38,11 @@ n = dimension(hsr)
 for icol in 1:n
   bcol = hsr.basis_list[icol]
   @show bcol
-  for (brow, v) in collect(get_slice(j1, bcol))
+  for (brow, v) in collect(get_column_iterator(j1, bcol))
     println(get(hsr.basis_lookup, brow, -1) => v)
   end
   @show icol
-  for (irow, v) in collect(get_slice(j1_r, icol))
+  for (irow, v) in collect(get_column_iterator(j1_r, icol))
     println(irow => v)
   end
   println()
