@@ -9,7 +9,8 @@ using StaticArrays
     @test typeof(s) == State{Int}
     @test s.name == "MyState"
     @test s.quantum_number == 0
-    @test qntype(s) == Int
+    @test qntype(s) === Int
+    @test qntype(typeof(s)) === Int
   end
 
   let
@@ -17,14 +18,16 @@ using StaticArrays
     @test typeof(s) == State{Int}
     @test s.name == "Up"
     @test s.quantum_number == 1
-    @test qntype(s) == Int
+    @test qntype(s) === Int
+    @test qntype(typeof(s)) === Int
   end
 
   let
     s = State{SVector{2, Int}}("Up", SVector{2, Int}([1, 1]))
     @test s.name == "Up"
     @test s.quantum_number == [1, 1]
-    @test qntype(s) == SVector{2, Int}
+    @test qntype(s) === SVector{2, Int}
+    @test qntype(typeof(s)) === SVector{2, Int}
   end
 end
 

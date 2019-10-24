@@ -16,6 +16,9 @@ using StaticArrays
       @test HilbertSpaceSector(hs, [2,4]).allowed_quantum_numbers == Set(Int[2,4])
       @test HilbertSpaceSector(hs, [1]).allowed_quantum_numbers == Set(Int[])
 
+      @test HilbertSpaceSector(hs) == HilbertSpaceSector(hs, [-4,-2,0,2,4])
+      @test HilbertSpaceSector(hs) != HilbertSpaceSector(hs, 0)
+
       hss = HilbertSpaceSector(hs, 0)
       @test eltype(hss) === Bool
       @test eltype(typeof(hss)) === Bool
