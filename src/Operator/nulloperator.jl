@@ -34,8 +34,8 @@ import Base.eltype
 @inline eltype(lhs ::Type{NullOperator}) = Bool
 
 export bintype
-@inline bintype(lhs ::NullOperator) = Bool # think whether this is necessary
-@inline bintype(lhs ::Type{NullOperator}) = Bool
+@inline bintype(lhs ::NullOperator) = UInt8 # think whether this is necessary
+@inline bintype(lhs ::Type{NullOperator}) = UInt8
 
 
 import Base.<
