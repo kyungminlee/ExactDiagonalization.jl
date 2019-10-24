@@ -32,6 +32,7 @@ end
 import Base.eltype
 @inline eltype(lhs ::Type{HilbertSpaceRepresentation{HS, BR}}) where {HS, BR} = Bool
 @inline bintype(lhs ::Type{HilbertSpaceRepresentation{HS, BR}}) where {HS, BR} = BR
+@inline basespace(lhs::HilbertSpaceRepresentation{HS, BR}) where {HS, BR} = lhs.hilbert_space
 
 import Base.==
 function (==)(lhs ::HilbertSpaceRepresentation{H1, B1}, rhs ::HilbertSpaceRepresentation{H2, B2}) where {H1, B1, H2, B2}
