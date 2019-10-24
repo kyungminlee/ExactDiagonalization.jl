@@ -1,13 +1,19 @@
+export AbstractFrozenSortedArray
+export FrozenSortedArrayIndex
+
 abstract type AbstractFrozenSortedArray{K, V} <: AbstractDict{K, V} end
 
 struct FrozenSortedArrayIndex{K} <:AbstractFrozenSortedArray{K, Int}
   keys ::Vector{K}
   function FrozenSortedArrayIndex{K}(keys::Vector{K}) where K
-    if issorted(keys)
-      return new{K}(keys)
-    else
-      throw(ArgumentError("vals must be sorted"))
+    issorted(keys) || throw(ArgumentError("vals must be sorted"))
+
+    if length(keys) > 1
+      for i in 2:length(keys)
+        keys[i-1] == keys[i] && throw(ArgumentError("vals contains duplicates $(keys[i])"))
+      end
     end
+    return new{K}(keys)
   end
 
   function FrozenSortedArrayIndex(keys::Vector{K}) where K
@@ -24,7 +30,7 @@ end
 import Base.getindex
 @inline function Base.getindex(arr::FrozenSortedArrayIndex{K}, key) ::Int where K
   idx = fs_index(arr, key)
-  @boundscheck idx <= 0 && throw(ArgumentError("key $key not found"))
+  @boundscheck idx <= 0 && throw(KeyError("key $key not found"))
   return idx
 end
 
@@ -48,3 +54,6 @@ end
 
 import Base.length
 @inline length(iter::FrozenSortedArrayIndex{K}) where K = length(iter.keys)
+
+import Base.keys
+@inline keys(iter::FrozenSortedArrayIndex{K}) where K = iter.keys
