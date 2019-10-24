@@ -29,8 +29,20 @@ conj(arg::NullOperator) = arg
 transpose(arg::NullOperator) = arg
 adjoint(arg::NullOperator) = arg
 
+import Base.eltype
+@inline eltype(lhs ::NullOperator) = Bool
+@inline eltype(lhs ::Type{NullOperator}) = Bool
+
+export bintype
+@inline bintype(lhs ::NullOperator) = Bool # think whether this is necessary
+@inline bintype(lhs ::Type{NullOperator}) = Bool
+
+
 import Base.<
 # null operator is smaller than any other operators
 (<)(lhs ::NullOperator, rhs ::NullOperator) = false
 (<)(lhs ::NullOperator, rhs ::AbstractOperator) = true
 (<)(lhs ::AbstractOperator, rhs ::NullOperator) = false
+
+# import Base.size
+# size(arg ::NullOperator) = (-1, -1)

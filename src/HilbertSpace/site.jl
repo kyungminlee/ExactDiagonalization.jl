@@ -1,6 +1,7 @@
 export AbstractHilbertSpace
 export State, Site
 export bitwidth, get_state, dimension
+export qntype
 
 using StaticArrays
 
@@ -8,6 +9,8 @@ abstract type AbstractHilbertSpace end
 
 ## TODO: Think about this
 AbstractQuantumNumber = Union{Int, SVector{N, Int} where N}
+
+@inline qntype(arg ::T) where T = qntype(T)
 
 """
     State{QN}
@@ -39,6 +42,8 @@ function ==(lhs ::State{Q1}, rhs ::State{Q2}) where {Q1, Q2}
   return (Q1 == Q2) && (lhs.name == rhs.name) && (lhs.quantum_number == rhs.quantum_number)
 end
 
+@inline qntype(::Type{State{QN}}) where QN = QN
+
 """
     Site{QN}
 
@@ -60,6 +65,8 @@ struct Site{QN<:AbstractQuantumNumber} <: AbstractHilbertSpace
   Site(states ::AbstractArray{State{QN}, 1}) where QN = new{QN}(states)
   Site{QN}(states ::AbstractArray{State{QN}, 1}) where QN = new{QN}(states)
 end
+
+@inline qntype(::Type{Site{QN}}) where QN = QN
 
 import Base.==
 function ==(lhs ::Site{Q1}, rhs ::Site{Q2}) where {Q1, Q2}
@@ -90,13 +97,31 @@ function get_state(site ::Site{QN}, binrep ::BR) where {QN, BR<:Unsigned}
   return site.states[Int(binrep) + 1]
 end
 
-# function get_state(site ::Site{QN}, bitrep ::BitArray{1}) where QN
-#   @assert let
-#     nd = bitwidth(site)
-#     length(bitrep == nd)
-#   end
-#   @assert length(bitrep.chunks) == 1
-#   binrep = bitrep.chunks[1]
-#   @assert binrep < length(site.states)
-#   return site.states[binrep + 1]
-# end
+export quantum_number_sectors
+function quantum_number_sectors(site ::Site{QN})::Vector{QN} where QN
+  return sort(collect(Set([state.quantum_number for state in site.states])))
+end
+
+export get_quantum_number
+function get_quantum_number(site ::Site{QN}, i ::Integer)::Vector{QN} where QN
+  return site.states[i].quantum_number
+end
+
+export compress
+function compress(site ::Site, i ::Integer; BR::DataType=UInt)
+  return BR(i-1)
+end
+
+export get_state_index
+function get_state_index(site::Site, binrep::U) where {U<:Unsigned}
+  return Int(binrep+1)
+end
+
+export get_state
+function get_state(site::Site, binrep::U) where {U<:Unsigned}
+  return site.states[Int(binrep+1)]
+end
+
+import Base.iterate
+@inline iterate(site::Site{QN}) where {QN} = Base.iterate(1:length(site.states))
+@inline iterate(site::Site{QN}, i) where QN = Base.iterate(1:length(site.states), i)

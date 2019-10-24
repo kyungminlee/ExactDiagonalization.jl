@@ -32,8 +32,8 @@ using ExactDiagonalization
   @test hs.bitoffsets == hs2.bitoffsets
   @test hs == hs2
 
-  # Test HilbertSpaceRealization
-  hsr = realize(hs; BR=UInt64)
+  # Test HilbertSpaceRepresentation
+  hsr = represent(hs; BR=UInt64)
   @test dimension(hsr) == 2^n
   @test hsr.basis_list == collect(UInt64(0):UInt64(2^n-1))
   @test all(hsr.basis_lookup[basis] == ibasis for (ibasis, basis) in enumerate(hsr.basis_list))
@@ -48,9 +48,9 @@ using ExactDiagonalization
   sectors = quantum_number_sectors(hs)
   @test sectors == sort(collect(keys(sector_bases)))
   for (q, target_basis) in sector_bases
-    hsr1 = realize(hs, Set([q]); BR=UInt64)
-    hsr2 = realize(hs, target_basis)
-    hsr3 = realize(hs, UInt64[0x1])
+    hsr1 = represent(hs, Set([q]); BR=UInt64)
+    hsr2 = represent(hs, target_basis)
+    hsr3 = represent(hs, UInt64[0x1])
     @test hsr1 == hsr1
     @test hsr1 == hsr2
     @test hsr1 != hsr3

@@ -8,6 +8,15 @@ makedocs(
     format=Documenter.HTML(prettyurls=!("local" in ARGS)),
     authors="Kyungmin Lee",
     checkdocs=:all,
+    pages = [
+      "Home" => "index.md",
+      "Types" => Any[
+        "Hilbert space" => "hilbertspace.md",
+        "Operator" => "operator.md",
+        "Representation" => "representation.md",
+        "Symmetry" => "symmetry.md"
+      ]
+    ]
   )
 
 deploydocs(

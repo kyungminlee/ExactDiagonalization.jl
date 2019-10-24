@@ -1,5 +1,6 @@
 export PureOperator
 export pure_operator
+export bintype
 
 using LinearAlgebra
 
@@ -25,6 +26,14 @@ struct PureOperator{Scalar<:Number, BR<:Unsigned} <:AbstractOperator
     return new{S, BR}(hilbert_space, zero(BR), zero(BR), zero(BR), s.λ)
   end
 end
+
+
+import Base.eltype
+@inline eltype(lhs ::PureOperator{S, BR}) where {S, BR} = S
+@inline eltype(lhs ::Type{PureOperator{S, BR}}) where {S, BR} = S
+
+@inline bintype(lhs ::PureOperator{S, BR}) where {S, BR} = BR
+@inline bintype(lhs ::Type{PureOperator{S, BR}}) where {S, BR} = BR
 
 
 # === 1/6 (In)equality ===
@@ -162,4 +171,10 @@ function pure_operator(hilbert_space ::HilbertSpace,
   br = dtype(istate_row - 1) << hilbert_space.bitoffsets[isite]
   bc = dtype(istate_col - 1) << hilbert_space.bitoffsets[isite]
   return PureOperator{typeof(amplitude), dtype}(hilbert_space, bm, br, bc, amplitude)
+end
+
+import Base.size
+function size(arg::PureOperator{S, BR}) ::Tuple{Int, Int} where {S, BR}
+  dim = dimension(arg.hilbert_space)
+  return (dim, dim)
 end
