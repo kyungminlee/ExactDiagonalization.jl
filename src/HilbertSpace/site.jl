@@ -97,13 +97,31 @@ function get_state(site ::Site{QN}, binrep ::BR) where {QN, BR<:Unsigned}
   return site.states[Int(binrep) + 1]
 end
 
-# function get_state(site ::Site{QN}, bitrep ::BitArray{1}) where QN
-#   @assert let
-#     nd = bitwidth(site)
-#     length(bitrep == nd)
-#   end
-#   @assert length(bitrep.chunks) == 1
-#   binrep = bitrep.chunks[1]
-#   @assert binrep < length(site.states)
-#   return site.states[binrep + 1]
-# end
+export quantum_number_sectors
+function quantum_number_sectors(site ::Site{QN})::Vector{QN} where QN
+  return sort(collect(Set([state.quantum_number for state in site.states])))
+end
+
+export get_quantum_number
+function get_quantum_number(site ::Site{QN}, i ::Integer)::Vector{QN} where QN
+  return site.states[i].quantum_number
+end
+
+export compress
+function compress(site ::Site, i ::Integer; BR::DataType=UInt)
+  return BR(i-1)
+end
+
+export get_state_index
+function get_state_index(site::Site, binrep::U) where {U<:Unsigned}
+  return Int(binrep+1)
+end
+
+export get_state
+function get_state(site::Site, binrep::U) where {U<:Unsigned}
+  return site.states[Int(binrep+1)]
+end
+
+import Base.iterate
+@inline iterate(site::Site{QN}) where {QN} = Base.iterate(1:length(site.states))
+@inline iterate(site::Site{QN}, i) where QN = Base.iterate(1:length(site.states), i)
