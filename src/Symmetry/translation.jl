@@ -14,14 +14,18 @@ struct TranslationGroup <: AbstractSymmetryGroup
   element_irreps ::Array{Array{ComplexF64, 2}, 2}
 
   function TranslationGroup(generators::AbstractArray{Permutation}; tol::Real=sqrt(eps(Float64)))
-    @assert all(g1 * g2 == g2 * g1 for g1 in generators, g2 in generators) "non-commuting set of generators"
+    if ! all(g1 * g2 == g2 * g1 for g1 in generators, g2 in generators)
+      throw(ArgumentError("non-commuting set of generators"))
+    end
 
     shape = [g.cycle_length for g in generators]
     translations = vcat( collect( Iterators.product([0:g.cycle_length-1 for g in generators]...) )...)
     translations = [ [x...] for x in translations]
     elements = [prod(gen^d for (gen, d) in zip(generators, dist)) for (ig, dist) in enumerate(translations)]
 
-    @assert length(Set(elements)) == length(elements) "elements not unique (generators not orthogonal)"
+    if length(Set(elements)) != length(elements)
+      throw(ArgumentError("elements not unique (generators not orthogonal)"))
+    end
 
     momentum(sub) = [x//d for (x, d) in zip(sub, shape)]
     fractional_momenta = [momentum(sub) for sub in translations]
