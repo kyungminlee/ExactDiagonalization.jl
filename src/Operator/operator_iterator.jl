@@ -37,7 +37,7 @@ end
 end
 
 @inline function get_row_iterator(sumop::SumOperator{S, BR}, brow ::BR2) where {S, BR<:Unsigned, BR2<:Unsigned}
-  return Base.Iterators.flatten(get_row_iterator(brow, t) for t in sumop.terms)
+  return Base.Iterators.flatten(get_row_iterator(t, brow) for t in sumop.terms)
 end
 
 # @inline function get_iterator(sumop::SumOperator{S, BR}) where {S, BR<:Unsigned}
