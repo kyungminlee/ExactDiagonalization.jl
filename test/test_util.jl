@@ -90,5 +90,8 @@ end
   @test collect(fsa) == [0x2 =>1, 0x4=>2, 0x6=>3]
   @test length(fsa) == 3
   @test_throws KeyError fsa[0x1]
+  @test haskey(fsa, 0x2)
+  @test !haskey(fsa, 0x3)
   @test get(fsa, 0x1, -1) == -1
+  @test keys(fsa) == UInt[0x2, 0x4, 0x6]
 end
