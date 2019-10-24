@@ -4,7 +4,7 @@
 export FermionPureOperator
 export fermion_pure_operator
 
-NOT IMPLEMENTED
+#NOT IMPLEMENTED
 
 #=
 # TODO: Fermion operator should be compatible with
