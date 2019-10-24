@@ -12,7 +12,8 @@ Abstract Hilbert space with quantum number type `QN`.
 
 # Examples
 ```jldoctest
-using ExactDiagonalization
+julia> using ExactDiagonalization
+
 julia> spin_site = Site{Int64}([State{Int64}("Up", +1), State{Int64}("Dn", -1)])
 Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)])
 
@@ -56,7 +57,8 @@ import Base.eltype
 Total number of bits
 
 ```jldoctest
-using ExactDiagonalization
+julia> using ExactDiagonalization
+
 julia> spin_site = Site{Int64}([State{Int64}("Up", +1), State{Int64}("Dn", -1)])
 Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)])
 
