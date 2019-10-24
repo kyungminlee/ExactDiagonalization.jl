@@ -135,20 +135,20 @@ using StaticArrays
     @test update(hs, 0b1111110, 1, 3) == 0b1111110
     @test_throws BoundsError update(hs, 0b1111110, 1, 4)
 
-    @test extract(hs, 0b0000000) == [1,1,1,1]
-    @test extract(hs, 0b0000001) == [2,1,1,1]
-    @test extract(hs, 0b0000010) == [3,1,1,1]
+    @test extract(hs, 0b0000000) == CartesianIndex(1,1,1,1)
+    @test extract(hs, 0b0000001) == CartesianIndex(2,1,1,1)
+    @test extract(hs, 0b0000010) == CartesianIndex(3,1,1,1)
     @test_throws BoundsError extract(hs, 0b0000011)
 
-    @test extract(hs, 0b0010000) == [1,1,2,1]
-    @test extract(hs, 0b0010001) == [2,1,2,1]
-    @test extract(hs, 0b0010010) == [3,1,2,1]
+    @test extract(hs, 0b0010000) == CartesianIndex(1,1,2,1)
+    @test extract(hs, 0b0010001) == CartesianIndex(2,1,2,1)
+    @test extract(hs, 0b0010010) == CartesianIndex(3,1,2,1)
     @test_throws BoundsError extract(hs, 0b0010011)
 
-    @test compress(hs, [1,1,2,1]) == 0b0010000
-    @test compress(hs, [2,1,2,1]) == 0b0010001
-    @test compress(hs, [3,1,2,1]) == 0b0010010
-    @test_throws BoundsError compress(hs, [4, 1, 2, 1])
-    @test_throws ArgumentError compress(hs, [1, 2])
+    @test compress(hs, CartesianIndex(1,1,2,1)) == 0b0010000
+    @test compress(hs, CartesianIndex(2,1,2,1)) == 0b0010001
+    @test compress(hs, CartesianIndex(3,1,2,1)) == 0b0010010
+    @test_throws BoundsError compress(hs, CartesianIndex(4, 1, 2, 1))
+    @test_throws ArgumentError compress(hs, CartesianIndex(1, 2))
   end
 end

@@ -122,9 +122,11 @@ function get_state(site::Site, binrep::U) where {U<:Unsigned}
   return site.states[Int(binrep+1)]
 end
 
-import Base.iterate
-@inline iterate(site::Site{QN}) where {QN} = Base.iterate(1:length(site.states))
-@inline iterate(site::Site{QN}, i) where QN = Base.iterate(1:length(site.states), i)
+import Base.keys
+keys(site::Site{QN}) where QN = 1:length(site.states)
+# import Base.iterate
+# @inline iterate(site::Site{QN}) where {QN} = Base.iterate(1:length(site.states))
+# @inline iterate(site::Site{QN}, i) where QN = Base.iterate(1:length(site.states), i)
 
-import Base.length
-@inline length(site::Site{QN}) where QN = length(site.states)
+# import Base.length
+# @inline length(site::Site{QN}) where QN = length(site.states)

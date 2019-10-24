@@ -71,8 +71,8 @@ end
 #
 # @inline bitwidth(hss::HilbertSpaceSector) = bitwidth(hss.parent)
 
-import Base.iterate
-@inline function iterate(hss ::HilbertSpaceSector{QN}) where {QN}
-  @warn "Use of iterate for HilbertSpaceSector is deprecated"
-  error("Not implemented")
-end
+# import Base.iterate
+# @inline function iterate(hss ::HilbertSpaceSector{QN}) where {QN}
+#   @warn "Use of iterate for HilbertSpaceSector is deprecated"
+#   error("Not implemented")
+# end

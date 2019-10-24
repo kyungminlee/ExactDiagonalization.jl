@@ -65,7 +65,7 @@ Make a HilbertSpaceRepresentation with all the basis vectors of the specified Hi
 function represent(hs ::HilbertSpace{QN}; BR ::DataType=UInt) where {QN}
   HS = HilbertSpace{QN}
   basis_list = BR[]
-  for indexarray in hs
+  for indexarray in keys(hs)
     push!(basis_list, compress(hs, indexarray))
   end
   sort!(basis_list)

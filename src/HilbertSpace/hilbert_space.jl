@@ -128,7 +128,7 @@ Examples
 ```
 ```
 """
-function extract(hs ::HilbertSpace{QN}, binrep ::U) where {QN, U <:Unsigned}
+function extract(hs ::HilbertSpace{QN}, binrep ::U) ::CartesianIndex where {QN, U <:Unsigned}
   out = Int[]
   for (isite, site) in enumerate(hs.sites)
     mask = make_bitmask(hs.bitwidths[isite]; dtype=U)
@@ -139,14 +139,15 @@ function extract(hs ::HilbertSpace{QN}, binrep ::U) where {QN, U <:Unsigned}
     push!(out, index)
     binrep = binrep >> hs.bitwidths[isite]
   end
-  return out
+  return CartesianIndex(out...)
 end
 
 
 """
 Convert an array of indices (of states) to binary representation
 """
-function compress(hs ::HilbertSpace{QN}, indexarray ::AbstractVector{I}; BR::DataType=UInt) where {QN, I<:Integer}
+#function compress(hs ::HilbertSpace{QN}, indexarray ::AbstractVector{I}; BR::DataType=UInt) where {QN, I<:Integer}
+function compress(hs ::HilbertSpace{QN}, indexarray ::CartesianIndex; BR::DataType=UInt) where QN
   if length(indexarray) != length(hs.sites)
     throw(ArgumentError("length of indexarray should be the number of sites"))
   end
@@ -178,20 +179,25 @@ function get_state(hs ::HilbertSpace, binrep ::U, isite ::Integer) where {U<:Uns
   return hs.sites[isite].states[get_state_index(hs, binrep, isite)]
 end
 
-import Base.iterate
-@inline function iterate(hs ::HilbertSpace{QN}) where {QN}
-  subiterator = Iterators.product((1:length(site.states) for site in hs.sites)...)
-  next = Base.iterate(subiterator)
-  next === nothing && return nothing
-  value, next_substate = next
-  return (Int[value...], (subiterator, next_substate))
-end
+# import Base.iterate
+# @inline function iterate(hs ::HilbertSpace{QN}) where {QN}
+#   subiterator = Iterators.product((1:length(site.states) for site in hs.sites)...)
+#   next = Base.iterate(subiterator)
+#   next === nothing && return nothing
+#   value, next_substate = next
+#   return (Int[value...], (subiterator, next_substate))
+# end
+#
+# import Base.iterate
+# @inline function iterate(hs ::HilbertSpace{QN}, state) where {QN}
+#   (subiterator, substate) = state
+#   next = Base.iterate(subiterator, substate)
+#   next === nothing && return nothing
+#   value, next_substate = next
+#   return (Int[value...], (subiterator, next_substate))
+# end
 
-import Base.iterate
-@inline function iterate(hs ::HilbertSpace{QN}, state) where {QN}
-  (subiterator, substate) = state
-  next = Base.iterate(subiterator, substate)
-  next === nothing && return nothing
-  value, next_substate = next
-  return (Int[value...], (subiterator, next_substate))
+import Base.keys
+@inline function keys(hs ::HilbertSpace{QN}) where QN
+  return CartesianIndices( ((1:length(site.states) for site in hs.sites)..., ) )
 end
