@@ -24,7 +24,6 @@ using StaticArrays
       @test eltype(typeof(hss)) === Bool
       @test qntype(typeof(hss)) === Int
 
-      @show basespace(hss)
       @test basespace(hss) != hss
       @test basespace(hss) == hs
       hss
