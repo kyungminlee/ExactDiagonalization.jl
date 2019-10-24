@@ -9,7 +9,6 @@ using StaticArrays
   x = Foo()
   @test_throws ErrorException get_row_iterator(x, 0x1)
   @test_throws ErrorException get_column_iterator(x, 0x1)
-  @test_throws ErrorException get_iterator(x)
 end
 
 
@@ -48,7 +47,13 @@ end
     @test 2.0 * nop == nop
     @test (2.0 + 1.0im) * nop == nop
   end
-end
+
+  @testset "iterator" begin
+    nop = NullOperator()
+    @test isempty(collect(get_row_iterator(nop, 0x0)))
+    @test isempty(collect(get_column_iterator(nop, 0x0)))
+  end
+end # testset NullOperator
 
 @testset "PureOperator" begin
   QN = Int
@@ -256,6 +261,16 @@ end
         @test pop1 * pop2 == NullOperator()
       end
     end
+  end
+
+
+
+  @testset "iterator" begin
+    pop = PureOperator{Float64, UInt}(hs, 0b1010, 0b0010, 0b0000, 2.0)
+    #@show get_column_iterator(pop, 0b0000)
+    @test collect(get_row_iterator(pop, 0b0000)) == []
+    @test collect(get_column_iterator(pop, 0b0000)) == [0b0010 => 2.0]
+    #@test collect(get_iterator(nop))
   end
 end
 
