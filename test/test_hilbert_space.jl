@@ -56,6 +56,7 @@ end
     @test get_state_index(site1, 0x0000001) == 2
 
     @test [i for i in eachindex(site1)] == [1,2]
+    @test collect(keys(site1)) == [1,2]
   end
 
   @testset "spin-charge" begin

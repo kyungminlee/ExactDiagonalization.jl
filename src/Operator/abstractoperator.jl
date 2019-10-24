@@ -1,4 +1,5 @@
 export AbstractOperator
+export get_row_iterator, get_column_iterator, get_iterator
 
 abstract type AbstractOperator end
 
