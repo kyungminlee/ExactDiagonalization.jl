@@ -24,11 +24,34 @@ end
 
 
 import Base.==
-function (==)(opr1 ::HilbertSpaceRepresentation{HSR1, O1},
-              opr2 ::HilbertSpaceRepresentation{HSR2, O2}) where {HSR1, O1, HSR2, O2}
-  return ((opr1.hilbert_space_representation == opr2.hilbert_space_representation) &&
-          (opr1.operator == opr2.operator))
+function (==)(lhs ::OperatorRepresentation{HSR1, O1},
+              rhs ::OperatorRepresentation{HSR2, O2}) where {HSR1, O1, HSR2, O2}
+  return ((lhs.hilbert_space_representation == rhs.hilbert_space_representation) &&
+          (lhs.operator == rhs.operator))
 end
+
+for uniop in [:+, :-]
+  expr = :(
+  @inline function ($uniop)(lhs ::OperatorRepresentation{HSR, O1}) where {HSR, O1}
+    return represent(lhs.hilbert_space_representation, ($uniop)(lhs.operator))
+  end
+  )
+  eval(expr)
+end
+
+for binop in [:+, :-, :*]
+  expr = :(
+  @inline function ($binop)(lhs ::OperatorRepresentation{HSR, O1},
+                            rhs ::OperatorRepresentation{HSR, O2}) where {HSR, O1, O2}
+    @boundscheck if (lhs.hilbert_space_representation != rhs.hilbert_space_representation)
+      throw(ArgumentError("The two OperatorRepresentation s do not have the same HilbertSpaceRepresentation"))
+    end
+    return represent(lhs.hilbert_space_representation, ($binop)(lhs.operator, rhs.operator))
+  end
+  )
+  eval(expr)
+end
+
 
 
 ## iterators
