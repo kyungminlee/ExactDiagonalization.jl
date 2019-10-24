@@ -38,7 +38,8 @@ import Base.eltype
 
 
 import Base.==
-function (==)(lhs ::HilbertSpaceRepresentation{H1, B1}, rhs ::HilbertSpaceRepresentation{H2, B2}) where {H1, B1, H2, B2}
+function (==)(lhs ::HilbertSpaceRepresentation{H1, B1},
+              rhs ::HilbertSpaceRepresentation{H2, B2}) where {H1, B1, H2, B2}
   return (B1 == B2) && basespace(lhs) == basespace(rhs) && (lhs.basis_list == rhs.basis_list)
 end
 
