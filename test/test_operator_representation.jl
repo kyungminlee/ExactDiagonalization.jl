@@ -38,10 +38,44 @@ end;
     @testset "constructor" begin
       opr1 = OperatorRepresentation(hsr, σ[1, :x])
       opr2 = OperatorRepresentation{typeof(hsr), typeof(σ[1,:x])}(hsr, σ[1, :x])
-      @show opr1.hilbert_space_representation == opr2.hilbert_space_representation
-      @show opr1.operator == opr2.operator
-      #@test opr1 == opr2
+      opr3 = represent(hsr, σ[1, :x])
+      @test opr1.hilbert_space_representation == hsr
+      @test opr1.operator == σ[1, :x]
+      @test opr2.hilbert_space_representation == hsr
+      @test opr2.operator == σ[1, :x]
+      @test opr1 == opr2
+      @test opr1 == opr3
     end
+
+    @testset "typetraits" begin
+      opr1 = OperatorRepresentation(hsr, σ[1, :x])
+      OR = typeof(opr1)
+      @test spacetype(OR) == typeof(hsr)
+      @test operatortype(OR) == typeof(σ[1, :x])
+      @test get_space(opr1) === hsr
+    end
+
+    @testset "unary operator" begin
+      op = σ[1, :x]
+      opr = OperatorRepresentation(hsr, op)
+      @test +opr == opr
+      @test -opr == represent(hsr, -op)
+    end
+
+    @testset "binary operator" begin
+      op1 = σ[1, :x]
+      op2 = σ[3, :z]
+      opr1 = OperatorRepresentation(hsr, op1)
+      opr2 = OperatorRepresentation(hsr, op2)
+      @test opr1 + opr2 == represent(hsr, op1 + op2)
+      @test opr1 - opr2 == represent(hsr, op1 - op2)
+      @test opr1 * opr2 == represent(hsr, op1 * op2)
+    end
+
+    @testset "iterator" begin
+
+    end
+
 
   end
 end
