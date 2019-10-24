@@ -1,10 +1,5 @@
-
-export AbstractOperatorRepresentation
 export OperatorRepresentation
 export represent
-export bintype
-
-abstract type AbstractOperatorRepresentation end
 
 struct OperatorRepresentation{HSR <:HilbertSpaceRepresentation, O <:AbstractOperator} <: AbstractOperatorRepresentation
   hilbert_space_realization ::HSR
@@ -23,37 +18,44 @@ function represent(hsr ::HSR, op ::O) where {HSR<:HilbertSpaceRepresentation, O<
 end
 
 
-import Base.size
-function size(arg::OperatorRepresentation{HSR, O}) ::Tuple{Int, Int} where {HSR, O}
-  dim = dimension(arg.hilbert_space_realization)
-  return (dim, dim)
-end
+@inline spacetype(lhs::Type{OperatorRepresentation{HSR, O}}) where {HSR, O}= HSR
+@inline operatortype(lhs ::Type{OperatorRepresentation{HSR, O}}) where {HSR, O} = O
+@inline get_space(lhs ::OperatorRepresentation{HSR, O}) where {HSR, O} = lhs.hilbert_space_realization
 
-@inline bintype(lhs ::OperatorRepresentation{HSR, O}) where {HSR, O} = bintype(HSR)
-@inline bintype(lhs ::Type{OperatorRepresentation{HSR, O}}) where {HSR, O} = bintype(HSR)
-
-import Base.eltype
-@inline eltype(lhs ::OperatorRepresentation{HSR, O}) where {HSR, O} = eltype(O)
-@inline eltype(lhs ::Type{OperatorRepresentation{HSR, O}}) where {HSR, O} = eltype(O)
-
-function get_slice(opr ::OperatorRepresentation{HSR, O}, icol ::Integer) where {HSR, O}
-  hsr = opr.hilbert_space_realization
-  dim = length(hsr.basis_list)
-  bcol = hsr.basis_list[icol]
-  iter = ((get(hsr.basis_lookup, brow, -1), amplitude) for (brow, amplitude) in get_slice(opr.operator, bcol))
-  return ((irow => amplitude) for (irow, amplitude) in iter if 1 <= irow <= dim)
-end
+## iterators
 
 """
 May contain duplicates
 """
-function get_slice(irow ::Integer, opr ::OperatorRepresentation{HSR, O}) where {HSR, O}
+function get_row_iterator(opr ::OperatorRepresentation{HSR, O},
+                          irow ::Integer;
+                          include_all::Bool=false) where {HSR, O}
   hsr = opr.hilbert_space_realization
-  dim = length(hsr.basis_list)
   brow = hsr.basis_list[irow]
-  iter = ((get(hsr.basis_lookup, bcol, -1), amplitude) for (bcol, amplitude) in get_slice(brow, opr.operator))
-  return ((irow => amplitude) for (icol, amplitude) in iter if 1 <= icol <= dim)
+  iter = (get(hsr.basis_lookup, bcol, -1) => amplitude
+            for (bcol, amplitude) in get_row_iterator(opr.operator, brow))
+  if include_all
+    return iter
+  else
+    dim = size(opr, 2)
+    return (icol => amplitude for (icol, amplitude) in iter if 1 <= icol <= dim)
+  end
 end
+
+
+function get_column_iterator(opr ::OperatorRepresentation{HSR, O}, icol ::Integer; include_all::Bool=false) where {HSR, O}
+  hsr = opr.hilbert_space_realization
+  bcol = hsr.basis_list[icol]
+  iter = (get(hsr.basis_lookup, brow, -1) => amplitude
+            for (brow, amplitude) in get_column_iterator(opr.operator, bcol))
+  if include_all
+    return iter
+  else
+    dim = size(opr, 1)
+    return (irow => amplitude for (irow, amplitude) in iter if 1 <= irow <= dim)
+  end
+end
+
 
 function apply_unsafe!(out ::Vector{S1},
                        opr ::OperatorRepresentation{HSR, O},
@@ -66,7 +68,7 @@ function apply_unsafe!(out ::Vector{S1},
   for icol in range
     bcol = hsr.basis_list[icol]
     v = state[icol]
-    for ((brow, _), amplitude) in get_slice(opr.operator, bcol)
+    for ((brow, _), amplitude) in get_column_iterator(opr.operator, bcol)
       irow = get(hsr.basis_lookup, brow, -1)
       if 1 <= irow <= dim
         out[irow] += amplitude * v
@@ -89,7 +91,7 @@ function apply_unsafe!(out ::Vector{S1},
   for irow in range
     brow = hsr.basis_list[irow]
     v = state[irow]
-    for (bcol, amplitude) in get_slice(brow, opr.operator)
+    for (bcol, amplitude) in get_row_iterator(brow, opr.operator)
       icol = get(hsr.basis_lookup, bcol, -1)
       if 1 <= icol <= dim
         out[icol] += v * amplitude
@@ -101,7 +103,30 @@ function apply_unsafe!(out ::Vector{S1},
   sqrt(err)
 end
 
- 
+
+import Base.*
+function (*)(opr ::OperatorRepresentation{HSR, O}, state ::AbstractVector{S}) where {HSR, O, S<:Number}
+  hsr = opr.hilbert_space_realization
+  n = length(hsr.basis_list)
+  T = promote_type(S, eltype(O))
+  out = zeros(T, n)
+  err = apply_unsafe!(out, opr, state)
+  return out
+end
+
+
+import Base.*
+function (*)(state ::AbstractVector{S}, opr ::OperatorRepresentation{HSR, O}) where {HSR, O, S<:Number}
+  hsr = opr.hilbert_space_realization
+  n = len(hsr.basis_list)
+  T = promote_type(S, eltype(O))
+  out = zeros(T, n)
+  err = apply_unsafe!(out, state, opr)
+  out
+end
+
+
+
 # function splitblock(n ::Integer, b ::Integer) ::Vector{Int}
 #   (n < 0) && throw(ArgumentError("n cannot be negative"))
 #   (b <= 0) && throw(ArgumentError("b must be positive"))
@@ -135,7 +160,7 @@ end
 #     for icol in lower:upper
 #       bcol = hsr.basis_list[icol]
 #       v = state[icol]
-#       for (brow, amplitude) in get_slice(opr.operator, bcol)
+#       for (brow, amplitude) in get_column_iterator(opr.operator, bcol)
 #         irow = get(hsr.basis_lookup, brow, -1)
 #
 #         if lower <= irow <= upper
@@ -150,51 +175,3 @@ end
 #   end # for b
 #   sqrt(err)
 # end
-
-
-import Base.*
-function (*)(opr ::OperatorRepresentation{HSR, O}, state ::AbstractVector{S}) where {HSR, O, S<:Number}
-  hsr = opr.hilbert_space_realization
-  n = length(hsr.basis_list)
-  T = promote_type(S, eltype(O))
-  out = zeros(T, n)
-  err = apply_unsafe!(out, opr, state)
-  return out
-end
-
-
-import Base.*
-function (*)(state ::AbstractVector{S}, opr ::OperatorRepresentation{HSR, O}) where {HSR, O, S<:Number}
-  hsr = opr.hilbert_space_realization
-  n = len(hsr.basis_list)
-  T = promote_type(S, eltype(O))
-  out = zeros(T, n)
-  err = apply_unsafe!(out, state, opr)
-  out
-end
-
-
-import SparseArrays.sparse
-function sparse(opr::OperatorRepresentation{HSR, O}; tol ::Real=sqrt(eps(Float64))) where {HSR, O}
-  S = eltype(opr)
-  m, n = size(opr)
-  colptr = zeros(Int, n+1)
-  rowval = Int[]
-  nzval = S[]
-
-  colptr[1] = 1
-  for icol in 1:n
-
-    colvec = Dict{Int, S}()
-    for (irow, ampl) in get_slice(opr, icol)
-      colvec[irow] = get(colvec, irow, zero(S)) + ampl
-    end
-    choptol!(colvec, tol)
-
-    colptr[icol+1] = colptr[icol] + length(colvec)
-    sorted_items = sort(collect(colvec), by = item -> item[1])
-    append!(rowval, irow for (irow, ampl) in sorted_items)
-    append!(nzval, ampl for (irow, ampl) in sorted_items)
-  end
-  return SparseMatrixCSC{S, Int}(m, n, colptr, rowval, nzval)
-end

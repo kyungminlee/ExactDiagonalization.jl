@@ -1,8 +1,7 @@
 export HilbertSpaceRepresentation
 export dimension, represent, materialize
-export bintype
 
-struct HilbertSpaceRepresentation{HS <:HilbertSpace, BR <:Unsigned}
+struct HilbertSpaceRepresentation{HS <:HilbertSpace, BR <:Unsigned} <:AbstractHilbertSpaceRepresentation
   hilbert_space ::HS
   basis_list ::Vector{BR}
   basis_lookup ::FrozenSortedArrayIndex{BR}
@@ -28,7 +27,15 @@ struct HilbertSpaceRepresentation{HS <:HilbertSpace, BR <:Unsigned}
     end
     return new{HilbertSpace{QN}, BR}(hilbert_space_sector.parent, basis_list, basis_lookup)
   end
+end
 
+import Base.eltype
+@inline eltype(lhs ::Type{HilbertSpaceRepresentation{HS, BR}}) where {HS, BR} = Bool
+@inline bintype(lhs ::Type{HilbertSpaceRepresentation{HS, BR}}) where {HS, BR} = BR
+
+import Base.==
+function (==)(lhs ::HilbertSpaceRepresentation{H1, B1}, rhs ::HilbertSpaceRepresentation{H2, B2}) where {H1, B1, H2, B2}
+  return (B1 == B2) && (lhs.hilbert_space == rhs.hilbert_space) && (lhs.basis_list == rhs.basis_list)
 end
 
 function checkvalidbasis(hsr::HilbertSpaceRepresentation{HS, BR}) where {HS <:AbstractHilbertSpace, BR <:Unsigned}
@@ -37,19 +44,6 @@ function checkvalidbasis(hsr::HilbertSpaceRepresentation{HS, BR}) where {HS <:Ab
     @assert ivec == ivec2
   end
 end
-
-import Base.eltype
-@inline eltype(lhs ::HilbertSpaceRepresentation{HS, BR}) where {HS, BR} = Bool
-@inline eltype(lhs ::Type{HilbertSpaceRepresentation{HS, BR}}) where {HS, BR} = Bool
-
-@inline bintype(lhs ::HilbertSpaceRepresentation{HS, BR}) where {HS, BR} = BR
-@inline bintype(lhs ::Type{HilbertSpaceRepresentation{HS, BR}}) where {HS, BR} = BR
-
-import Base.==
-function (==)(lhs ::HilbertSpaceRepresentation{H1, B1}, rhs ::HilbertSpaceRepresentation{H2, B2}) where {H1, B1, H2, B2}
-  return (B1 == B2) && (lhs.hilbert_space == rhs.hilbert_space) && (lhs.basis_list == rhs.basis_list)
-end
-
 
 """
     dimension

@@ -24,11 +24,9 @@ end
 function simplify(so ::SumOperator{S, BR}; tol::AbstractFloat=sqrt(eps(Float64))) where {S, BR}
 
   terms ::Vector{PureOperator{S, BR}} = filter((x) -> !isa(x, NullOperator), simplify.(so.terms))
-  
-  if isempty(terms)
-    return NullOperator()
-  end
-  
+
+  isempty(terms) && return NullOperator()
+
   sort!(terms; lt=(<))
   new_terms = PureOperator{S, BR}[]
 
@@ -74,5 +72,5 @@ function simplify(so ::SumOperator{S, BR}; tol::AbstractFloat=sqrt(eps(Float64))
       return SumOperator{S, BR}(so.hilbert_space, new_terms)
     end
   end
-  
+
 end

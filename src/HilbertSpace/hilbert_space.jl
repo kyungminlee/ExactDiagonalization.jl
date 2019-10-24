@@ -53,7 +53,7 @@ export basespace
 @inline basespace(hs::HilbertSpace) = hs
 
 import Base.==
-function ==(lhs ::HilbertSpace{Q1}, rhs ::HilbertSpace{Q2}) where {Q1, Q2}
+function (==)(lhs ::HilbertSpace{Q1}, rhs ::HilbertSpace{Q2}) where {Q1, Q2}
   return (Q1 == Q2) && (lhs.sites == rhs.sites) #&& (lhs.bitwidths == rhs.bitwidths) && (lhs.bitoffsets == rhs.bitoffsets)
 end
 

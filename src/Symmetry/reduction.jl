@@ -7,6 +7,7 @@ function symmetry_reduce(
     fractional_momentum ::AbstractVector{Rational};
     ComplexType::DataType=ComplexF64,
     tol::Real=sqrt(eps(Float64))) where {QN, BR}
+
   ik = findfirst(collect(
     trans_group.fractional_momenta[ik] == fractional_momentum
     for ik in 1:length(trans_group.fractional_momenta) ))
@@ -100,13 +101,17 @@ function symmetry_reduce_parallel(
     fractional_momentum ::AbstractVector{Rational};
     ComplexType::DataType=ComplexF64,
     tol::Real=sqrt(eps(Float64))) where {QN, BR}
+
   HSR = HilbertSpaceRepresentation{QN, BR}
   debug(LOGGER, "BEGIN symmetry_reduce_parallel")
   ik = findfirst(collect(
     trans_group.fractional_momenta[ik] == fractional_momentum
     for ik in 1:length(trans_group.fractional_momenta) ))
 
-  isnothing(ik) && throw(ArgumentError("fractional momentum $(fractional_momentum) not an irrep of the translation group"))
+  if isnothing(ik)
+    throw(ArgumentError("fractional momentum $(fractional_momentum)" *
+                        " not an irrep of the translation group"))
+  end
   phases = trans_group.character_table[ik, :]
   n_basis = length(hsr.basis_list)
   debug(LOGGER, "Original Hilbert space dimension: $n_basis")
