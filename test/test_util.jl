@@ -78,7 +78,22 @@ using ExactDiagonalization
 
   end
 
+  @testset "choptol!" begin
+    let
+      d = Dict("A" => 0.0, "B" => 1E-9)
+      choptol!(d, 1E-12)
+      @test d == Dict("B"=>1E-9)
+    end
+    let
+      d = Dict("A" => 0.0, "B" => 1E-9)
+      choptol!(d, 1E-6)
+      @test d == Dict()
+    end
+  end
+
 end
+
+
 
 @testset "FrozenSortedArray" begin
   @test_throws ArgumentError FrozenSortedArrayIndex{UInt}(UInt[0x2, 0x1, 0x3])
