@@ -4,11 +4,15 @@ function apply_unsafe!(out::SparseState{S1, BR}, nullop ::NullOperator, psi::Spa
   return out
 end
 
-function apply_unsafe!(out::SparseState{S1, BR}, psi::SparseState{S2, BR}, nullop ::NullOperator) where {S1, S2, BR}
+function apply_unsafe!(out::SparseState{S1, BR},
+                       psi::SparseState{S2, BR},
+                       nullop ::NullOperator) where {S1, S2, BR}
   return out
 end
 
-function apply_unsafe!(out::SparseState{S1, BR}, pureop ::PureOperator{S2, BR}, psi::SparseState{S3, BR}) where {S1, S2, S3, BR}
+function apply_unsafe!(out::SparseState{S1, BR},
+                       pureop ::PureOperator{S2, BR},
+                       psi::SparseState{S3, BR}) where {S1, S2, S3, BR}
   for (b, v) in psi.components
     if (b & pureop.bitmask) == pureop.bitcol
       b2 = (b & ~pureop.bitmask) | pureop.bitrow
@@ -18,7 +22,9 @@ function apply_unsafe!(out::SparseState{S1, BR}, pureop ::PureOperator{S2, BR}, 
   out
 end
 
-function apply_unsafe!(out::SparseState{S1, BR}, psi::SparseState{S3, BR}, pureop ::PureOperator{S2, BR}) where {S1, S2, S3, BR}
+function apply_unsafe!(out::SparseState{S1, BR},
+                       psi::SparseState{S3, BR},
+                       pureop ::PureOperator{S2, BR}) where {S1, S2, S3, BR}
   for (b, v) in psi.components
     if (b & pureop.bitmask) == pureop.bitrow
       b2 = (b & ~pureop.bitmask) | pureop.bitcol
@@ -28,14 +34,18 @@ function apply_unsafe!(out::SparseState{S1, BR}, psi::SparseState{S3, BR}, pureo
   out
 end
 
-function apply_unsafe!(out::SparseState{S1, BR}, sumop ::SumOperator{S2, BR}, psi::SparseState{S3, BR}) where {S1, S2, S3, BR}
+function apply_unsafe!(out::SparseState{S1, BR},
+                       sumop ::SumOperator{S2, BR},
+                       psi::SparseState{S3, BR}) where {S1, S2, S3, BR}
   for t in sumop.terms
     apply_unsafe!(out, t, psi)
   end
   out
 end
 
-function apply_unsafe!(out::SparseState{S1, BR}, psi::SparseState{S3, BR}, sumop ::SumOperator{S2, BR}) where {S1, S2, S3, BR}
+function apply_unsafe!(out::SparseState{S1, BR},
+                       psi::SparseState{S3, BR},
+                       sumop ::SumOperator{S2, BR}) where {S1, S2, S3, BR}
   for t in sumop.terms
     apply_unsafe!(out, psi, t)
   end
@@ -48,22 +58,30 @@ end
 
 Apply operator to `psi` and add it to `out`.
 """
-function apply!(out::SparseState{S1, BR}, nullop ::NullOperator, psi::SparseState{S2, BR}) where {S1, S2, BR}
+function apply!(out::SparseState{S1, BR},
+                nullop ::NullOperator,
+                psi::SparseState{S2, BR}) where {S1, S2, BR}
   return out
 end
 
-function apply!(out::SparseState{S1, BR}, psi::SparseState{S2, BR}, nullop ::NullOperator) where {S1, S2, BR}
+function apply!(out::SparseState{S1, BR},
+                psi::SparseState{S2, BR},
+                nullop ::NullOperator) where {S1, S2, BR}
   return out
 end
 
-function apply!(out::SparseState{S1, BR}, pureop ::PureOperator{S2, BR}, psi::SparseState{S3, BR}) where {S1, S2, S3, BR}
+function apply!(out::SparseState{S1, BR},
+                pureop ::PureOperator{S2, BR},
+                psi::SparseState{S3, BR}) where {S1, S2, S3, BR}
   if pureop.hilbert_space !== psi.hilbert_space || out.hilbert_space !== psi.hilbert_space
     throw(ArgumentError("Hilbert spaces of lhs and rhs of + should match"))
   end
   apply_unsafe!(out, pureop, psi)
 end
 
-function apply!(out::SparseState{S1, BR}, psi::SparseState{S3, BR}, pureop ::PureOperator{S2, BR}) where {S1, S2, S3, BR}
+function apply!(out::SparseState{S1, BR},
+                psi::SparseState{S3, BR},
+                pureop ::PureOperator{S2, BR}) where {S1, S2, S3, BR}
   if pureop.hilbert_space !== psi.hilbert_space || out.hilbert_space !== psi.hilbert_space
     throw(ArgumentError("Hilbert spaces of lhs and rhs of + should match"))
   end
@@ -71,14 +89,18 @@ function apply!(out::SparseState{S1, BR}, psi::SparseState{S3, BR}, pureop ::Pur
 end
 
 
-function apply!(out::SparseState{S1, BR}, sumop ::SumOperator{S2, BR}, psi::SparseState{S3, BR}) where {S1, S2, S3, BR}
+function apply!(out::SparseState{S1, BR},
+                sumop ::SumOperator{S2, BR},
+                psi::SparseState{S3, BR}) where {S1, S2, S3, BR}
   if sumop.hilbert_space !== psi.hilbert_space || out.hilbert_space !== psi.hilbert_space
     throw(ArgumentError("Hilbert spaces should match"))
   end
   apply_unsafe!(out, sumop, psi)
 end
 
-function apply!(out::SparseState{S1, BR}, psi::SparseState{S3, BR}, sumop ::SumOperator{S2, BR}) where {S1, S2, S3, BR}
+function apply!(out::SparseState{S1, BR},
+                psi::SparseState{S3, BR},
+                sumop ::SumOperator{S2, BR}) where {S1, S2, S3, BR}
   if sumop.hilbert_space !== psi.hilbert_space || out.hilbert_space !== psi.hilbert_space
     throw(ArgumentError("Hilbert spaces should match"))
   end
