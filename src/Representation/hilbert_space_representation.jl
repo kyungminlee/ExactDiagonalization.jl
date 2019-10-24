@@ -12,7 +12,7 @@ struct HilbertSpaceRepresentation{HS <:HilbertSpace, BR <:Unsigned} <:AbstractHi
       basis_lookup::FrozenSortedArrayIndex{BR}) where {QN, BR <:Unsigned}
     if count_ones(typemax(BR)) <= bitwidth(hilbert_space)
       # equality added such that the MSB checks overflow
-      throw(ArgumentError("type $(BR) not enough to represent the hilbert space (need $(hilbert_space.bitoffsets[end]) bits)"))
+      throw(ArgumentError("type $(BR) not enough to represent the hilbert space (need $(bitwidth(hilbert_space)) bits)"))
     end
     return new{HilbertSpace{QN}, BR}(hilbert_space, basis_list, basis_lookup)
   end
@@ -21,9 +21,9 @@ struct HilbertSpaceRepresentation{HS <:HilbertSpace, BR <:Unsigned} <:AbstractHi
       hilbert_space_sector ::HilbertSpaceSector{QN},
       basis_list::AbstractVector{BR},
       basis_lookup::FrozenSortedArrayIndex{BR}) where {QN, BR <:Unsigned}
-    if count_ones(typemax(BR)) <= bitwidth(hilbert_space)
+    if count_ones(typemax(BR)) <= bitwidth(hilbert_space_sector)
       # equality added such that the MSB checks overflow
-      throw(ArgumentError("type $(BR) not enough to represent the hilbert space (need $(hilbert_space.bitoffsets[end]) bits)"))
+      throw(ArgumentError("type $(BR) not enough to represent the hilbert space (need $(bitwidth(hilbert_space_sector)) bits)"))
     end
     return new{HilbertSpace{QN}, BR}(hilbert_space_sector.parent, basis_list, basis_lookup)
   end
@@ -33,6 +33,9 @@ import Base.eltype
 @inline eltype(lhs ::Type{HilbertSpaceRepresentation{HS, BR}}) where {HS, BR} = Bool
 @inline bintype(lhs ::Type{HilbertSpaceRepresentation{HS, BR}}) where {HS, BR} = BR
 @inline basespace(lhs::HilbertSpaceRepresentation{HS, BR}) where {HS, BR} = lhs.hilbert_space
+
+@inline bitwidth(hss::HilbertSpaceSector{QN}) where QN = bitwidth(hss.parent)
+
 
 import Base.==
 function (==)(lhs ::HilbertSpaceRepresentation{H1, B1}, rhs ::HilbertSpaceRepresentation{H2, B2}) where {H1, B1, H2, B2}
@@ -145,6 +148,28 @@ function represent(
   return HilbertSpaceRepresentation(hs, basis_list, basis_lookup)
 end
 
+
+function represent(hs ::AbstractHilbertSpace,
+                   basis_list ::AbstractVector{BR}) where {BR<:Unsigned}
+  #HS = HilbertSpace{QN}
+  basis_list = sort(basis_list)
+  #basis_lookup = Dict{BR, Int}(basis => ibasis for (ibasis, basis) in enumerate(basis_list))
+  basis_lookup = FrozenSortedArrayIndex{BR}(basis_list)
+  return HilbertSpaceRepresentation(basespace(hs), basis_list, basis_lookup)
+end
+
+# function represent(hss ::HilbertSpaceSector{QN},
+#                    basis_list ::AbstractVector{BR}) where {QN, BR<:Unsigned}
+#   HS = HilbertSpace{QN}
+#   hs = hss.parent
+#   basis_list = sort(basis_list)
+#   #basis_lookup = Dict{BR, Int}(basis => ibasis for (ibasis, basis) in enumerate(basis_list))
+#   basis_lookup = FrozenSortedArrayIndex{BR}(basis_list)
+#   return HilbertSpaceRepresentation(basespace(hs), basis_list, basis_lookup)
+# end
+#
+
+
 #
 # function represent(
 #     hs::HilbertSpace{QN},
@@ -203,24 +228,3 @@ end
 #   basis_lookup = FrozenSortedArrayIndex{BR}(basis_list)
 #   return HilbertSpaceRepresentation{QN, BR}(hs, basis_list, basis_lookup)
 # end
-
-
-function represent(hs ::HilbertSpace{QN},
-                   basis_list ::AbstractArray{BR}) where {QN, BR<:Unsigned}
-  HS = HilbertSpace{QN}
-  sort!(basis_list)
-  #basis_lookup = Dict{BR, Int}(basis => ibasis for (ibasis, basis) in enumerate(basis_list))
-  basis_lookup = FrozenSortedArrayIndex{BR}(basis_list)
-  return HilbertSpaceRepresentation(hs, basis_list, basis_lookup)
-end
-
-
-function represent(hss ::HilbertSpaceSector{QN},
-                   basis_list ::AbstractArray{BR}) where {QN, BR<:Unsigned}
-  HS = HilbertSpace{QN}
-  hs = hss.parent
-  sort!(basis_list)
-  #basis_lookup = Dict{BR, Int}(basis => ibasis for (ibasis, basis) in enumerate(basis_list))
-  basis_lookup = FrozenSortedArrayIndex{BR}(basis_list)
-  return HilbertSpaceRepresentation(basespace(hs), basis_list, basis_lookup)
-end
