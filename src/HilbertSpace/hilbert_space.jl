@@ -161,7 +161,7 @@ import Base.iterate
 @inline function iterate(hs ::HilbertSpace{QN}) where {QN}
   subiterator = Iterators.product((1:length(site.states) for site in hs.sites)...)
   next = Base.iterate(subiterator)
-  isnothing(next) && return nothing
+  next === nothing && return nothing
   value, next_substate = next
   return (Int[value...], (subiterator, next_substate))
 end
@@ -170,7 +170,7 @@ import Base.iterate
 @inline function iterate(hs ::HilbertSpace{QN}, state) where {QN}
   (subiterator, substate) = state
   next = Base.iterate(subiterator, substate)
-  isnothing(next) && return nothing
+  next === nothing && return nothing
   value, next_substate = next
   return (Int[value...], (subiterator, next_substate))
 end

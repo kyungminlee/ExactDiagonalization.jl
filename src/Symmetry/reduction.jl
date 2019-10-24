@@ -12,7 +12,7 @@ function symmetry_reduce(
     trans_group.fractional_momenta[ik] == fractional_momentum
     for ik in 1:length(trans_group.fractional_momenta) ))
   HSR = HilbertSpaceRepresentation{QN, BR}
-  isnothing(ik) && throw(ArgumentError("fractional momentum $(fractional_momentum) not an irrep of the translation group"))
+  ik === nothing & throw(ArgumentError("fractional momentum $(fractional_momentum) not an irrep of the translation group"))
 
   phases = trans_group.character_table[ik, :]
   n_basis = length(hsr.basis_list)
