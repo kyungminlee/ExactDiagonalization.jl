@@ -7,7 +7,6 @@ abstract type AbstractHilbertSpaceRepresentation end
 # symmetry reduction
 import Base.eltype
 @inline eltype(lhs ::AbstractHilbertSpaceRepresentation) = eltype(typeof(lhs))
-@inline eltype(lhs ::Type{AbstractHilbertSpaceRepresentation}) = error("eltype not implemented")
-
 @inline bintype(lhs ::AbstractHilbertSpaceRepresentation) = bintype(typeof(lhs))
-@inline bintype(lhs ::Type{AbstractHilbertSpaceRepresentation}) = error("bintype not implemented")
+# @inline eltype(lhs ::Type{AbstractHilbertSpaceRepresentation}) = error("eltype not implemented")
+# @inline bintype(lhs ::Type{AbstractHilbertSpaceRepresentation}) = error("bintype not implemented")

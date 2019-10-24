@@ -12,32 +12,26 @@ mutable struct SparseState{Scalar<:Number, BR}
   hilbert_space ::HilbertSpace
   components ::Dict{BR, Scalar}
   function SparseState{Scalar, BR}(hs ::HilbertSpace) where {Scalar, BR}
-    @warn "Use of SparseStates deprecated"
     return new{Scalar, BR}(hs, Dict{BR, Scalar}())
   end
 
   function SparseState{Scalar, BR}(hs ::HilbertSpace, components ::Dict{BR, Scalar}) where {Scalar, BR}
-    @warn "Use of SparseStates deprecated"
     return new{Scalar, BR}(hs, components)
   end
 
   function SparseState(hs ::HilbertSpace, components ::Dict{BR, Scalar}) where {Scalar, BR}
-    @warn "Use of SparseStates deprecated"
     return new{Scalar, BR}(hs, components)
   end
 
   function SparseState{Scalar, BR}(hs ::HilbertSpace, binrep ::BR) where {Scalar, BR}
-    @warn "Use of SparseStates deprecated"
     return new{Scalar, BR}(hs, Dict{BR, Scalar}(binrep => one(Scalar)))
   end
 
   function SparseState{Scalar, BR}(hs ::HilbertSpace, components::Pair{BR2, <:Number}...) where {Scalar, BR, BR2<:Unsigned}
-    @warn "Use of SparseStates deprecated"
     return new{Scalar, BR}(hs, Dict{BR, Scalar}(components))
   end
 
   function SparseState{Scalar, BR}(hs ::HilbertSpace, components ::AbstractDict{BR, S2}) where {Scalar, BR, S2}
-    @warn "Use of SparseStates deprecated"
     return new{Scalar, BR}(hs, components)
   end
 end
