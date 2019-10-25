@@ -61,7 +61,8 @@ end;
 
       @test eltype(opr1) === Int
       @test eltype(opr2) === Complex{Int}
-
+      @test eltype(typeof(opr1)) === Int
+      @test eltype(typeof(opr2)) === Complex{Int}
     end
 
     @testset "size" begin
@@ -135,5 +136,9 @@ end;
       end
     end # testset iterator
 
-  end
-end
+    @testset "apply" begin
+      
+    end
+
+  end # testset spin half
+end # testset OperatorRepresentation
