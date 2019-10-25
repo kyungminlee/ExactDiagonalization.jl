@@ -1,5 +1,6 @@
 export OperatorRepresentation
 export represent
+export apply!, apply_threaded!
 
 struct OperatorRepresentation{HSR <:HilbertSpaceRepresentation, O <:AbstractOperator} <: AbstractOperatorRepresentation
   hilbert_space_representation ::HSR
@@ -59,48 +60,206 @@ function get_column_iterator(opr ::OperatorRepresentation{HSR, O}, icol ::Intege
 end
 
 
-function apply_unsafe!(out ::Vector{S1},
-                       opr ::OperatorRepresentation{HSR, O},
-                       state ::AbstractVector{S2};
-                       range ::AbstractVector{<:Integer}=1:dimension(opr.hilbert_space_representation)
-                       ) where {HSR, O, S1<:Number, S2<:Number}
+function apply!(out ::Vector{S1},
+                opr ::OperatorRepresentation{HSR, O},
+                state ::AbstractVector{S2};
+                range ::AbstractVector{<:Integer}=1:dimension(opr.hilbert_space_representation)
+               ) where {HSR, O, S1<:Number, S2<:Number}
   hsr = opr.hilbert_space_representation
-  dim = length(hsr.basis_list)
-  err = zero(Float64)
+  nrows, ncols = size(opr)
+  length(out) != nrows && throw(ArgumentError("out has length $(length(out)) != dimension $(nrows)"))
+  length(state) != ncols && throw(ArgumentError("state has length $(length(state)) != dimension $(ncols)"))
+  dim = dimension(hsr)
+  @assert nrows == dim && ncols == dim
 
+  err = zero(S1)
+  err_sq = zero(real(S1))
   for icol in range
     v = state[icol]
     for (irow, amplitude) in get_column_iterator(opr, icol; include_all=true)
-      if 1 <= irow <= dim
-        out[irow] += amplitude * v
+      if 1 <= irow <= nrows
+        @inbounds out[irow] += amplitude * v
       else
-        err += abs(amplitude*v)^2
+        err += amplitude * v
+        err_sq += abs(amplitude * v)^2
       end
     end
   end
-  sqrt(err)
+  return err, err_sq
 end
 
-function apply_unsafe!(out ::Vector{S1},
-                       state ::AbstractVector{S2},
-                       opr ::OperatorRepresentation{HSR, O};
-                       range ::AbstractVector{<:Integer}=1:dimension(opr.hilbert_space_representation)
-                       ) where {HSR, O, S1<:Number, S2<:Number}
+function apply!(out ::Vector{S1},
+                state ::AbstractVector{S2},
+                opr ::OperatorRepresentation{HSR, O};
+                range ::AbstractVector{<:Integer}=1:dimension(opr.hilbert_space_representation)
+               ) where {HSR, O, S1<:Number, S2<:Number}
   hsr = opr.hilbert_space_representation
+  nrows, ncols = size(opr)
+  length(out) != ncols && throw(ArgumentError("out has length $(length(out)) != dimension $(ncols)"))
+  length(state) != nrows && throw(ArgumentError("state has length $(length(state)) != dimension $(nrows)"))
   dim = dimension(hsr)
-  err = zero(Float64)
+  @assert nrows == dim && ncols == dim
+            
+  err = zero(S1)
+  err_sq = zero(real(S1))
   for irow in range
     v = state[irow]
     for (icol, amplitude) in get_row_iterator(opr, irow; include_all=true)
       if 1 <= icol <= dim
-        out[icol] += v * amplitude
+        @inbounds out[icol] += v * amplitude
       else
-        err += abs(v * amplitude)^2
+        err += amplitude * v
+        err_sq += abs(amplitude * v)^2
       end
     end
   end
-  sqrt(err)
+  return err, err_sq
 end
+
+
+"""
+    splitblock
+
+Split n into b blocks
+
+"""
+function splitblock(n ::Integer, b ::Integer) ::Vector{Int}
+  (n < 0) && throw(ArgumentError("n cannot be negative"))
+  (b <= 0) && throw(ArgumentError("b must be positive"))
+  blocksize = n ÷ b
+  blocks = blocksize * ones(Int, b)
+  r = n - (blocksize * b)
+  blocks[1:r] .+= 1
+  return blocks
+end
+
+function splitrange(range::AbstractVector{<:Integer}, b::Integer)
+  #nblocks = min(b, length(range))
+  nblocks = b
+  block_sizes = splitblock(length(range), nblocks)
+  block_offsets = cumsum([1, block_sizes...])
+  return [range[block_offsets[iblock]:block_offsets[iblock+1]-1] for iblock in 1:nblocks]
+end
+
+function apply_threaded!(out ::Vector{S1},
+                         opr ::OperatorRepresentation{HSR, O},
+                         state ::AbstractVector{S2}
+                         ;range ::AbstractVector{<:Integer}=1:size(opr, 2)
+                         ) where {HSR, O, S1<:Number, S2<:Number}
+  hsr = opr.hilbert_space_representation
+  nrows, ncols = size(opr)
+  length(out) != nrows && throw(ArgumentError("out has length $(length(out)) != dimension $(nrows)"))
+  length(state) != ncols && throw(ArgumentError("state has length $(length(state)) != dimension $(ncols)"))
+  dim = dimension(hsr)
+  @assert nrows == dim && ncols == dim
+
+  # check bounds first before multithreading
+  for i in range
+    (1<=i<=ncols) || throw(BoundsError("attempt to access $ncols-element $(typeof(state)) at index [$i]"))
+  end
+  
+  nblocks = Threads.nthreads()
+  block_ranges = splitrange(range, nblocks)
+
+  err = zero(S1)
+  err_sq = zero(real(S1))
+  spinlock = Threads.SpinLock()
+  Threads.@threads for iblock in 1:nblocks
+    local_err = zero(S1)
+    local_err_sq = zero(S1)
+    local_offdiag = Dict{Int, S1}()
+
+    subrange = block_ranges[iblock]
+    for icol in subrange
+      @inbounds v = state[icol]
+      for (irow, amplitude) in get_column_iterator(opr, icol; include_all=true)
+        if 1 <= irow <= nrows
+          if irow in subrange
+            @inbounds out[irow] += amplitude * v
+          else
+            local_offdiag[irow] = get(local_offdiag, irow, zero(S1)) + amplitude * v
+          end
+        else
+          local_err += amplitude * v
+          local_err_sq += abs(amplitude * v)^2
+        end
+      end
+    end
+
+    lock(spinlock)
+    err += local_err
+    err_sq += local_err_sq
+
+    for (irow, ampl) in local_offdiag
+      @inbounds out[irow] += ampl
+    end
+    unlock(spinlock)
+  end
+  return (err, err_sq)
+end
+
+
+
+function apply_threaded!(out ::Vector{S1},
+                         state ::AbstractVector{S2},
+                         opr ::OperatorRepresentation{HSR, O};
+                         range ::AbstractVector{<:Integer}=1:size(opr, 1)
+                         ) where {HSR, O, S1<:Number, S2<:Number}
+  hsr = opr.hilbert_space_representation
+  nrows, ncols = size(opr)
+  length(out) != ncols && throw(ArgumentError("out has length $(length(out)) != dimension $(ncols)"))
+  length(state) != nrows && throw(ArgumentError("state has length $(length(state)) != dimension $(nrows)"))
+
+  dim = dimension(hsr)
+  @assert nrows == dim && ncols == dim
+
+  # check bounds first before multithreading
+  for i in range
+    (1<=i<=nrows) || throw(BoundsError("attempt to access $nrows-element $(typeof(state)) at index [$i]"))
+  end
+  
+  nblocks = Threads.nthreads()
+  block_ranges = splitrange(range, nblocks)
+
+  err = zero(S1)
+  err_sq = zero(real(S1))
+  
+  spinlock = Threads.SpinLock()
+
+  Threads.@threads for iblock in 1:nblocks
+    local_err = zero(S1)
+    local_err_sq = zero(S1)
+    local_offdiag = Dict{Int, S1}()
+
+    subrange = block_ranges[iblock]
+    for irow in subrange
+      @inbounds v = state[irow]
+      for (icol, amplitude) in get_row_iterator(opr, irow; include_all=true)
+        if 1 <= icol <= ncols
+          if icol in subrange
+            @inbounds out[icol] += amplitude * v
+          else
+            local_offdiag[icol] = get(local_offdiag, icol, zero(S1)) + v * amplitude
+          end
+        else
+          local_err += v * amplitude
+          local_err_sq += abs(v * amplitude)^2
+        end
+      end
+    end
+
+    lock(spinlock)
+    err += local_err
+    err_sq += local_err_sq
+
+    for (icol, ampl) in local_offdiag
+      @inbounds out[icol] += ampl
+    end
+    unlock(spinlock)
+  end
+  return (err, err_sq)
+end
+
 
 
 import Base.*
@@ -109,7 +268,7 @@ function (*)(opr ::OperatorRepresentation{HSR, O}, state ::AbstractVector{S}) wh
   n = dimension(hsr)
   T = promote_type(S, eltype(O))
   out = zeros(T, n)
-  err = apply_unsafe!(out, opr, state)
+  err = apply!(out, opr, state)
   return out
 end
 
@@ -120,7 +279,7 @@ function (*)(state ::AbstractVector{S}, opr ::OperatorRepresentation{HSR, O}) wh
   n = dimension(hsr)
   T = promote_type(S, eltype(O))
   out = zeros(T, n)
-  err = apply_unsafe!(out, state, opr)
+  err = apply!(out, state, opr)
   out
 end
 
