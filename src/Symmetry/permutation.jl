@@ -9,22 +9,20 @@ struct Permutation <: AbstractSymmetryOperation
   cycle_length ::Int
   function Permutation(perms ::AbstractVector{Int}; max_cycle=2048)
     n = length(perms)
-    for (i, j) in enumerate(perms)
-      if ! (1 <= i <= n)
-        throw(ArgumentError("argument is not a proper permutation (domain != universe)"))
-      elseif !(1 <= j <= n)
+    for j in perms
+      if !(1 <= j <= n)
         throw(ArgumentError("argument is not a proper permutation (target != universe)"))
       end
     end
     map = Vector{Int}(perms)
-    
+
     cycle_length = 1
     current = Int[map[x] for x in 1:n]
-    while !issorted(current) && cycle_length < max_cycle
+    while !issorted(current) && cycle_length <= max_cycle
       current = Int[map[x] for x in current]
       cycle_length += 1
     end
-    if cycle_length == max_cycle
+    if cycle_length > max_cycle
       throw(OverflowError("cycle length exceeds maximum value (max = $max_cycle)"))
     end
     return new(map, cycle_length)
@@ -56,3 +54,5 @@ function ==(p1 ::Permutation, p2::Permutation)
   return p1.map == p2.map
 end
 
+import Base.hash
+hash(p ::Permutation) = hash(p.map)
