@@ -136,8 +136,58 @@ end;
       end
     end # testset iterator
 
-    @testset "apply" begin
-      
+    @testset "apply" begin # complete space
+      hsr_0 = represent(hs)
+      dim = dimension(hsr_0)
+
+      @testset "type" begin
+        opr_x = represent(hsr_0, σ[2, :x])
+
+        @test typeof(opr_x * rand(Int, dim)) === Vector{Int}
+        @test typeof(opr_x * rand(Float64, dim)) === Vector{Float64}
+        @test typeof(opr_x * rand(ComplexF64, dim)) === Vector{ComplexF64}
+
+        opr_y = represent(hsr_0, σ[2, :y]) # operator has eltype Complex{Int}
+        @test typeof(opr_y * rand(Int, dim)) === Vector{Complex{Int}}
+        @test typeof(opr_y * rand(Float64, dim)) === Vector{ComplexF64}
+        @test typeof(opr_y * rand(ComplexF64, dim)) === Vector{ComplexF64}
+      end
+
+      @testset "value" begin
+        opr = represent(hsr_0, σ[2, :+])
+        
+        σ₊ = [0 1; 0 0]
+        σ₀ = [1 0; 0 1]
+        
+        op_dense = kron(σ₀, σ₀, σ₊, σ₀)
+        state = rand(ComplexF64, dim)
+        
+        out1 = zeros(ComplexF64, dim)
+
+        # matrix * columnvector
+        out0 = op_dense * state
+        apply_unsafe!(out1, opr, state)
+        out2 = opr * state
+        @test isapprox(out0, out1, atol=1E-6)
+        @test isapprox(out0, out2, atol=1E-6)
+        
+        # add to the previous (do not overwrite)
+        apply_unsafe!(out1, opr, state)
+        @test !isapprox(out0, out1, atol=1E-6)
+        
+        # rowvector * matrix
+        out1[:] .= zero(ComplexF64)
+        
+        out0 = transpose( transpose(state) * op_dense )
+        apply_unsafe!(out1, state, opr)
+        out2 = state * opr
+        @test isapprox(out0, out1, atol=1E-6)
+        @test isapprox(out0, out2, atol=1E-6)
+
+        # add to the previous (do not overwrite)
+        apply_unsafe!(out1, state, opr)
+        @test !isapprox(out0, out1, atol=1E-6)
+      end
     end
 
   end # testset spin half

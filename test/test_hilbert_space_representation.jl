@@ -10,9 +10,16 @@ using StaticArrays
     spinsite = Site([up, dn])
     @testset "constructor" begin
       hilbert_space = HilbertSpace([spinsite for i in 1:4])
-      hsr1 = represent(hilbert_space, UInt[0b0011, 0b0101, 0b0110, 0b1001, 0b1010, 0b1100])
+      basis_list = UInt[0b0011, 0b0101, 0b0110, 0b1001, 0b1010, 0b1100] # for Sz=0 sector
+      basis_lookup = FrozenSortedArrayIndex(basis_list)
+
+      hsr1 = represent(hilbert_space, basis_list)
       hsr2 = represent(HilbertSpaceSector(hilbert_space, 0))
+      hsr3 = HilbertSpaceRepresentation(hilbert_space, basis_list, basis_lookup)
+      hsr4 = HilbertSpaceRepresentation(HilbertSpaceSector(hilbert_space, 0), basis_list, basis_lookup)
       @test hsr1 == hsr2
+      @test hsr1 == hsr3
+      @test hsr1 == hsr4
       @test basespace(hsr1) === hilbert_space
     end
 
