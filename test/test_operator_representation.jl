@@ -153,7 +153,7 @@ end;
         @test typeof(opr_y * rand(ComplexF64, dim)) === Vector{ComplexF64}
       end
 
-      @testset "value" begin
+      @testset "single-threaded" begin
         opr = represent(hsr_0, σ[2, :+])
         
         σ₊ = [0 1; 0 0]
@@ -166,28 +166,67 @@ end;
 
         # matrix * columnvector
         out0 = op_dense * state
-        apply_unsafe!(out1, opr, state)
+        apply!(out1, opr, state)
         out2 = opr * state
         @test isapprox(out0, out1, atol=1E-6)
         @test isapprox(out0, out2, atol=1E-6)
         
         # add to the previous (do not overwrite)
-        apply_unsafe!(out1, opr, state)
+        apply!(out1, opr, state)
         @test !isapprox(out0, out1, atol=1E-6)
         
         # rowvector * matrix
         out1[:] .= zero(ComplexF64)
         
         out0 = transpose( transpose(state) * op_dense )
-        apply_unsafe!(out1, state, opr)
+        apply!(out1, state, opr)
         out2 = state * opr
         @test isapprox(out0, out1, atol=1E-6)
         @test isapprox(out0, out2, atol=1E-6)
 
         # add to the previous (do not overwrite)
-        apply_unsafe!(out1, state, opr)
+        apply!(out1, state, opr)
         @test !isapprox(out0, out1, atol=1E-6)
+
+        @test_throws BoundsError apply!(out1, opr, state; range=1:100)
+        @test_throws BoundsError apply!(out1, state, opr; range=1:100)
       end
+      
+      @testset "multi-threaded" begin
+        opr = represent(hsr_0, σ[2, :+])
+        
+        σ₊ = [0 1; 0 0]
+        σ₀ = [1 0; 0 1]
+        
+        op_dense = kron(σ₀, σ₀, σ₊, σ₀)
+        state = rand(ComplexF64, dim)
+        
+        out1 = zeros(ComplexF64, dim)
+
+        # matrix * columnvector
+        out0 = op_dense * state
+        apply_threaded!(out1, opr, state)
+        @test isapprox(out0, out1, atol=1E-6)
+        
+        # add to the previous (do not overwrite)
+        apply_threaded!(out1, opr, state)
+        @test !isapprox(out0, out1, atol=1E-6)
+        
+        # rowvector * matrix
+        out1[:] .= zero(ComplexF64)
+        
+        out0 = transpose( transpose(state) * op_dense )
+        apply_threaded!(out1, state, opr)
+        @test isapprox(out0, out1, atol=1E-6)
+
+        # add to the previous (do not overwrite)
+        apply_threaded!(out1, state, opr)
+        @test !isapprox(out0, out1, atol=1E-6)
+
+        @test_throws BoundsError apply_threaded!(out1, opr, state; range=1:100)
+        @test_throws BoundsError apply_threaded!(out1, state, opr; range=1:100)
+      end
+      # TODO(kyungminlee): Check for bounds error with range.
     end
 
   end # testset spin half
