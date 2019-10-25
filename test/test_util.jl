@@ -109,4 +109,8 @@ end
   @test !haskey(fsa, 0x3)
   @test get(fsa, 0x1, -1) == -1
   @test keys(fsa) == UInt[0x2, 0x4, 0x6]
+
+  @test eltype(fsa) === Pair{UInt, Int}
+  @test [k for (k, v) in fsa] == UInt[0x2, 0x4, 0x6]
+  @test [v for (k, v) in fsa] == UInt[0x1, 0x2, 0x3]
 end
