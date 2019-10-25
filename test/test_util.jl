@@ -111,6 +111,7 @@ end
   @test keys(fsa) == UInt[0x2, 0x4, 0x6]
 
   @test eltype(fsa) === Pair{UInt, Int}
+  @test eltype(typeof(fsa)) === Pair{UInt, Int}
   @test [k for (k, v) in fsa] == UInt[0x2, 0x4, 0x6]
   @test [v for (k, v) in fsa] == UInt[0x1, 0x2, 0x3]
 end
