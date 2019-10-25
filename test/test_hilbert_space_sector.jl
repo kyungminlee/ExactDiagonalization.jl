@@ -20,8 +20,8 @@ using StaticArrays
       @test HilbertSpaceSector(hs) != HilbertSpaceSector(hs, 0)
 
       hss = HilbertSpaceSector(hs, 0)
-      @test eltype(hss) === Bool
-      @test eltype(typeof(hss)) === Bool
+      @test scalartype(hss) === Bool
+      @test scalartype(typeof(hss)) === Bool
       @test qntype(typeof(hss)) === Int
 
       @test basespace(hss) != hss
@@ -29,9 +29,9 @@ using StaticArrays
       hss
     end
     @test qntype(hs) === Int
-    @test eltype(hs) === Bool
+    @test scalartype(hs) === Bool
     @test qntype(typeof(hs)) === Int
-    @test eltype(typeof(hs)) === Bool
+    @test scalartype(typeof(hs)) === Bool
 
     @test get_bitmask(hs, 1) == 0b0001
     @test get_bitmask(hs, 2) == 0b0010
@@ -70,9 +70,9 @@ using StaticArrays
     hs = HilbertSpace([site, site, spin_site, site])
 
     @test qntype(hs) === QN
-    @test eltype(hs) === Bool
+    @test scalartype(hs) === Bool
     @test qntype(typeof(hs)) === QN
-    @test eltype(typeof(hs)) === Bool
+    @test scalartype(typeof(hs)) === Bool
     @test basespace(hs) === hs
 
 

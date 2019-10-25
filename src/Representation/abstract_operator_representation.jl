@@ -25,9 +25,8 @@ abstract type AbstractOperatorRepresentation end
 @inline bintype(lhs ::AbstractOperatorRepresentation) = bintype(typeof(lhs))
 @inline bintype(lhs ::Type{<:AbstractOperatorRepresentation}) = bintype(spacetype(lhs))
 
-import Base.eltype
-@inline eltype(lhs::AbstractOperatorRepresentation) = eltype(typeof(lhs))
-@inline eltype(lhs::Type{<:AbstractOperatorRepresentation}) = promote_type(eltype(spacetype(lhs)), eltype(operatortype(lhs)))
+@inline scalartype(lhs::AbstractOperatorRepresentation) = scalartype(typeof(lhs))
+@inline scalartype(lhs::Type{<:AbstractOperatorRepresentation}) = promote_type(scalartype(spacetype(lhs)), scalartype(operatortype(lhs)))
 
 import Base.size
 @inline function size(arg::AbstractOperatorRepresentation) ::Tuple{Int, Int}
@@ -77,7 +76,7 @@ end
 
 import SparseArrays.sparse
 function sparse(opr::AbstractOperatorRepresentation; tol ::Real=sqrt(eps(Float64)))
-  S = eltype(opr)
+  S = scalartype(opr)
   m, n = size(opr)
   colptr = zeros(Int, n+1)
   rowval = Int[]
@@ -100,7 +99,7 @@ function sparse(opr::AbstractOperatorRepresentation; tol ::Real=sqrt(eps(Float64
 end
 
 function get_row(opr ::AbstractOperatorRepresentation, irow::Integer)
-  S = eltype(opr)
+  S = scalartype(opr)
   Z = zero(S)
   dim = size(opr, 2)
   items = Dict{Int, S}()
@@ -112,7 +111,7 @@ function get_row(opr ::AbstractOperatorRepresentation, irow::Integer)
 end
 
 function get_column(opr ::AbstractOperatorRepresentation, icol::Integer)
-  S = eltype(opr)
+  S = scalartype(opr)
   Z = zero(S)
   dim = size(opr, 1)
   items = Dict{Int, S}()

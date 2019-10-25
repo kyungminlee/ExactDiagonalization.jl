@@ -29,9 +29,9 @@ struct HilbertSpaceRepresentation{HS <:HilbertSpace, BR <:Unsigned} <:AbstractHi
   end
 end
 
-import Base.eltype
-@inline eltype(lhs ::Type{HilbertSpaceRepresentation{HS, BR}}) where {HS, BR} = Bool
+@inline scalartype(lhs ::Type{HilbertSpaceRepresentation{HS, BR}}) where {HS, BR} = Bool
 @inline bintype(lhs ::Type{HilbertSpaceRepresentation{HS, BR}}) where {HS, BR} = BR
+
 @inline basespace(lhs::HilbertSpaceRepresentation{HS, BR}) where {HS, BR} = lhs.hilbert_space
 
 @inline bitwidth(hss::HilbertSpaceSector{QN}) where QN = bitwidth(hss.parent)

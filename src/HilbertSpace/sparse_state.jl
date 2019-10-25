@@ -1,5 +1,6 @@
 export SparseState
 export choptol!
+export bintype
 
 using LinearAlgebra
 
@@ -49,12 +50,10 @@ function Base.setindex!(state ::SparseState{Scalar, BR}, value ::S, basis ::BR2)
   return state
 end
 
-import Base.eltype
-Base.eltype(state ::SparseState{Scalar, BR}) where {Scalar, BR} = Scalar
 
-
-import Base.isempty
-isempty(psi::SparseState{S, BR}) where {S, BR} = isempty(psi.components)
+scalartype(::Type{SparseState{Scalar, BR}}) where {Scalar, BR} = Scalar
+bintype(::SparseState{Scalar, BR}) where {Scalar, BR} = BR
+bintype(::Type{SparseState{Scalar, BR}}) where {Scalar, BR} = BR
 
 
 import Base.==
@@ -161,9 +160,21 @@ function convert(type ::Type{SparseState{S1, BR}}, obj::SparseState{S2, BR}) whe
   return SparseState{S1, BR}(obj.hilbert_space, Dict{BR, S1}(obj.components))
 end
 
+import Base.eltype
+Base.eltype(::Type{SparseState{Scalar, BR}}) where {Scalar, BR} = Pair{BR, Scalar}
+
+import Base.isempty
+isempty(psi::SparseState{S, BR}) where {S, BR} = isempty(psi.components)
+
+import Base.length
+length(psi::SparseState{S, BR}) where {S, BR} = length(psi.components)
 
 import Base.iterate
-function Base.iterate(iter ::SparseState{S, BR}, i::Int=iter.components.idxfloor) ::Tuple{Tuple{BR, S}, Int} where {S, BR}
+function Base.iterate(iter ::SparseState{S, BR}) where {S, BR}
+  return Base.iterate(iter.components)
+end
+
+function Base.iterate(iter ::SparseState{S, BR}, i) where {S, BR}
   return Base.iterate(iter.components, i)
 end
 

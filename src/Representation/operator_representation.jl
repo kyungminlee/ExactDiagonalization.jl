@@ -265,7 +265,7 @@ import Base.*
 function (*)(opr ::OperatorRepresentation{HSR, O}, state ::AbstractVector{S}) where {HSR, O, S<:Number}
   hsr = opr.hilbert_space_representation
   n = dimension(hsr)
-  T = promote_type(S, eltype(O))
+  T = promote_type(S, scalartype(O))
   out = zeros(T, n)
   err = apply!(out, opr, state)
   return out
@@ -276,7 +276,7 @@ import Base.*
 function (*)(state ::AbstractVector{S}, opr ::OperatorRepresentation{HSR, O}) where {HSR, O, S<:Number}
   hsr = opr.hilbert_space_representation
   n = dimension(hsr)
-  T = promote_type(S, eltype(O))
+  T = promote_type(S, scalartype(O))
   out = zeros(T, n)
   err = apply!(out, state, opr)
   out

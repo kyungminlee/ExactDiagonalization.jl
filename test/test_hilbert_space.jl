@@ -99,9 +99,9 @@ end
     @test hs == hs2
 
     @test qntype(hs) === Int
-    @test eltype(hs) === Bool
+    @test scalartype(hs) === Bool
     @test qntype(typeof(hs)) === Int
-    @test eltype(typeof(hs)) === Bool
+    @test scalartype(typeof(hs)) === Bool
     @test basespace(hs) === hs
 
     @test get_bitmask(hs, 1) == 0b0001
@@ -141,9 +141,9 @@ end
     hs = HilbertSpace([site, site, spin_site, site])
 
     @test qntype(hs) === QN
-    @test eltype(hs) === Bool
+    @test scalartype(hs) === Bool
     @test qntype(typeof(hs)) === QN
-    @test eltype(typeof(hs)) === Bool
+    @test scalartype(typeof(hs)) === Bool
     @test basespace(hs) === hs
 
 

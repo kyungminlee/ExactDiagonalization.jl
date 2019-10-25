@@ -29,9 +29,9 @@ conj(arg::NullOperator) = arg
 transpose(arg::NullOperator) = arg
 adjoint(arg::NullOperator) = arg
 
-import Base.eltype
-@inline eltype(lhs ::NullOperator) = Bool
-@inline eltype(lhs ::Type{NullOperator}) = Bool
+export scalartype
+@inline scalartype(lhs ::NullOperator) = Bool
+@inline scalartype(lhs ::Type{NullOperator}) = Bool
 
 export bintype
 @inline bintype(lhs ::NullOperator) = UInt8 # think whether this is necessary

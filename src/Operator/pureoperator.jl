@@ -28,9 +28,8 @@ struct PureOperator{Scalar<:Number, BR<:Unsigned} <:AbstractOperator
 end
 
 
-import Base.eltype
-@inline eltype(lhs ::PureOperator{S, BR}) where {S, BR} = S
-@inline eltype(lhs ::Type{PureOperator{S, BR}}) where {S, BR} = S
+@inline scalartype(lhs ::PureOperator{S, BR}) where {S, BR} = S
+@inline scalartype(lhs ::Type{PureOperator{S, BR}}) where {S, BR} = S
 
 @inline bintype(lhs ::PureOperator{S, BR}) where {S, BR} = BR
 @inline bintype(lhs ::Type{PureOperator{S, BR}}) where {S, BR} = BR

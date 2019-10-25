@@ -23,8 +23,8 @@ using StaticArrays
   @test (nop < nop) == false
 
   @testset "typetraits" begin
-    @test eltype(nop) === Bool
-    @test eltype(typeof(nop)) === Bool
+    @test scalartype(nop) === Bool
+    @test scalartype(typeof(nop)) === Bool
     @test bintype(nop) <: Unsigned
     @test bintype(typeof(nop)) <: Unsigned
   end
@@ -88,8 +88,8 @@ end # testset NullOperator
     for t1 in types, bt in bintypes
       pop = PureOperator{t1, bt}(hs, 0b0010, 0b0000, 0b0000, t1(2))
       @test pop.amplitude == t1(2)
-      @test eltype(pop) === t1
-      @test eltype(typeof(pop)) === t1
+      @test scalartype(pop) === t1
+      @test scalartype(typeof(pop)) === t1
       @test bintype(pop) === bt
       @test bintype(typeof(pop)) === bt
       for t2 in types
@@ -307,8 +307,8 @@ end
     pop4 = PureOperator{Float64, UInt}(hs2, 0b0001, 0b0001, 0b0001, 3.0)
     @test_throws ArgumentError SumOperator{Float64, UInt}(hs, [pop1, pop4])
 
-    @test eltype(sop) === Float64
-    @test eltype(typeof(sop)) === Float64
+    @test scalartype(sop) === Float64
+    @test scalartype(typeof(sop)) === Float64
     @test bintype(sop) === UInt
     @test bintype(typeof(sop)) === UInt
   end

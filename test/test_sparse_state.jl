@@ -30,6 +30,17 @@ using StaticArrays
 
     ψ4 = SparseState{ComplexF64, UInt}(hs, UInt(0b0000001) => 2.0, UInt(0b0010001) => 3.0 )
     @test ψ4.components == Dict(UInt(0x11) => 3.0 + 0.0im, UInt(0x1) => 2.0 + 0.0im)
+
+    ψ5 = SparseState{ComplexF64, UInt}(hs, Dict(UInt(0b0000001) => 2.0, UInt(0b0010001) => 3.0 ))
+    @test ψ5.components == Dict(UInt(0x11) => 3.0 + 0.0im, UInt(0x1) => 2.0 + 0.0im)
+  end
+
+  @testset "type" begin
+    ψ1 = SparseState{ComplexF64, UInt32}(hs, UInt32(0b0010001))
+    @test scalartype(ψ1) === ComplexF64
+    @test scalartype(typeof(ψ1)) === ComplexF64
+    @test bintype(ψ1) === UInt32
+    @test bintype(typeof(ψ1)) === UInt32
   end
 
   @testset "hilbert" begin
@@ -72,6 +83,11 @@ using StaticArrays
       @test isapprox(ψ1, ψ2)
       @test ψ1 != ψ2
     end
+  end
+
+  @testset "iterate" begin
+    ψ = SparseState{ComplexF64, UInt}(hs, Dict(UInt(0b0000001) => 2.0, UInt(0b0010001) => 3.0 ))
+    @show collect(ψ)
   end
 
   @testset "convert" begin

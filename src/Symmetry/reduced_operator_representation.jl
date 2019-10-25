@@ -25,7 +25,7 @@ function get_row_iterator(opr ::ReducedOperatorRepresentation{RHSR, O},
                           include_all::Bool=false) where {RHSR, O}
   rhsr = opr.reduced_hilbert_space_representation
   hsr = rhsr.parent
-  S = eltype(opr)
+  S = scalartype(opr)
   dim = dimension(opr.reduced_hilbert_space_representation)
 
   brow = rhsr.basis_list[irow_r]
@@ -57,7 +57,7 @@ function get_column_iterator(opr ::ReducedOperatorRepresentation{RHSR, O}, icol_
                              include_all::Bool=false) where {RHSR, O}
   rhsr = opr.reduced_hilbert_space_representation
   hsr = rhsr.parent
-  S = eltype(opr)
+  S = scalartype(opr)
   dim = dimension(opr.reduced_hilbert_space_representation)
 
   bcol = rhsr.basis_list[icol_r]

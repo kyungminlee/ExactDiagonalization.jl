@@ -14,14 +14,8 @@ struct SumOperator{Scalar<:Number, BR <:Unsigned} <:AbstractOperator
   end
 end
 
-
-import Base.eltype
-#eltype(lhs ::SumOperator{S, BR}) where {S, BR} = S
-@inline eltype(lhs ::Type{SumOperator{S, BR}}) where {S, BR} = S
-
-@inline bintype(lhs ::SumOperator{S, BR}) where {S, BR} = BR
+@inline scalartype(lhs ::Type{SumOperator{S, BR}}) where {S, BR} = S
 @inline bintype(lhs ::Type{SumOperator{S, BR}}) where {S, BR} = BR
-
 
 # === 1/6 Equality ===
 

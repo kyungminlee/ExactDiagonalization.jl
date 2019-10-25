@@ -21,9 +21,9 @@ struct HilbertSpaceSector{QN} <: AbstractHilbertSpace
   end
 end
 
-import Base.eltype
-@inline eltype(arg ::HilbertSpaceSector{QN}) where QN = Bool
-@inline eltype(arg ::Type{HilbertSpaceSector{QN}}) where QN = Bool
+export scalartype
+@inline scalartype(arg ::HilbertSpaceSector{QN}) where QN = Bool
+@inline scalartype(arg ::Type{HilbertSpaceSector{QN}}) where QN = Bool
 
 export qntype
 @inline qntype(arg ::HilbertSpaceSector{QN}) where QN = QN

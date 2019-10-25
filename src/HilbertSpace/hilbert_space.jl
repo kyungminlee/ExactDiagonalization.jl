@@ -40,9 +40,8 @@ struct HilbertSpace{QN} <: AbstractHilbertSpace
   end
 end
 
-import Base.eltype
-@inline eltype(arg ::HilbertSpace{QN}) where QN = Bool
-@inline eltype(arg ::Type{HilbertSpace{QN}}) where QN = Bool
+@inline scalartype(arg ::HilbertSpace{QN}) where QN = Bool
+@inline scalartype(arg ::Type{HilbertSpace{QN}}) where QN = Bool
 
 """
     qntype

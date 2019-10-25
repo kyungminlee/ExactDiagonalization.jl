@@ -59,10 +59,10 @@ end;
       @test bintype(OR) == UInt
       @test bintype(opr1) == UInt
 
-      @test eltype(opr1) === Int
-      @test eltype(opr2) === Complex{Int}
-      @test eltype(typeof(opr1)) === Int
-      @test eltype(typeof(opr2)) === Complex{Int}
+      @test scalartype(opr1) === Int
+      @test scalartype(opr2) === Complex{Int}
+      @test scalartype(typeof(opr1)) === Int
+      @test scalartype(typeof(opr2)) === Complex{Int}
     end
 
     @testset "size" begin
@@ -147,7 +147,7 @@ end;
         @test typeof(opr_x * rand(Float64, dim)) === Vector{Float64}
         @test typeof(opr_x * rand(ComplexF64, dim)) === Vector{ComplexF64}
 
-        opr_y = represent(hsr_0, σ[2, :y]) # operator has eltype Complex{Int}
+        opr_y = represent(hsr_0, σ[2, :y]) # operator has scalartype Complex{Int}
         @test typeof(opr_y * rand(Int, dim)) === Vector{Complex{Int}}
         @test typeof(opr_y * rand(Float64, dim)) === Vector{ComplexF64}
         @test typeof(opr_y * rand(ComplexF64, dim)) === Vector{ComplexF64}

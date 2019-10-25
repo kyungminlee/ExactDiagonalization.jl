@@ -35,9 +35,9 @@ using StaticArrays
     @testset "typetraits" begin
       hilbert_space = HilbertSpace([spinsite for i in 1:4])
       hsr = represent(hilbert_space; BR=UInt32)
-      @test eltype(hsr) === Bool
+      @test scalartype(hsr) === Bool
       @test bintype(hsr) === UInt32
-      @test eltype(typeof(hsr)) === Bool
+      @test scalartype(typeof(hsr)) === Bool
       @test bintype(typeof(hsr)) === UInt32
     end
 
