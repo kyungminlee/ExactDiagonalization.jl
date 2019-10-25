@@ -11,9 +11,9 @@ struct ReducedOperatorRepresentation{RHSR <:ReducedHilbertSpaceRepresentation, O
   operator ::O
 end
 
-@inline spacetype(lhs::Type{ReducedOperatorRepresentation{RHSR, O}}) where {RHSR, O} = RHSR
-@inline operatortype(lhs ::Type{ReducedOperatorRepresentation{RHSR, O}}) where {RHSR, O} = O
-@inline get_space(lhs ::ReducedOperatorRepresentation{RHSR, O}) where {RHSR, O} = lhs.reduced_hilbert_space_representation
+@inline spacetype(lhs::Type{ReducedOperatorRepresentation{RHSR, O}}) where {RHSR<:ReducedHilbertSpaceRepresentation, O<:AbstractOperator} = RHSR
+@inline operatortype(lhs ::Type{ReducedOperatorRepresentation{RHSR, O}}) where {RHSR<:ReducedHilbertSpaceRepresentation, O<:AbstractOperator} = O
+@inline get_space(lhs ::ReducedOperatorRepresentation{RHSR, O}) where {RHSR<:ReducedHilbertSpaceRepresentation, O<:AbstractOperator} = lhs.reduced_hilbert_space_representation ::RHSR
 
 function represent(rhsr ::RHSR, op ::O) where {RHSR <:ReducedHilbertSpaceRepresentation, O <:AbstractOperator}
     return ReducedOperatorRepresentation{RHSR, O}(rhsr, op)

@@ -14,19 +14,19 @@ abstract type AbstractOperatorRepresentation end
 # a subclass of AbstractOperatorRepresentation should implement
 # spacetype, operatortype, and get_space.
 
-@inline spacetype(lhs::AbstractOperatorRepresentation) = spacetype(typeof(lhs))
-@inline operatortype(lhs ::AbstractOperatorRepresentation) = operatortype(typeof(lhs))
+@inline spacetype(lhs::AbstractOperatorRepresentation) = spacetype(typeof(lhs)) ::Type{<:AbstractHilbertSpaceRepresentation}
+@inline operatortype(lhs ::AbstractOperatorRepresentation) = operatortype(typeof(lhs)) ::Type{<:AbstractOperator}
 
 #if not specialized
 # @inline spacetype(lhs::Type{AbstractOperatorRepresentation}) = error("spacetype not implemented")
 # @inline operatortype(lhs ::Type{AbstractOperatorRepresentation}) = error("operatortype not implemented")
 #@inline get_space(lhs::AbstractOperatorRepresentation) = error("get_space not implemented")
 
-@inline bintype(lhs ::AbstractOperatorRepresentation) = bintype(typeof(lhs))
-@inline bintype(lhs ::Type{<:AbstractOperatorRepresentation}) = bintype(spacetype(lhs))
+@inline bintype(lhs ::AbstractOperatorRepresentation) = bintype(typeof(lhs)) ::DataType
+@inline bintype(lhs ::Type{<:AbstractOperatorRepresentation}) = bintype(spacetype(lhs)) ::DataType
 
-@inline scalartype(lhs::AbstractOperatorRepresentation) = scalartype(typeof(lhs))
-@inline scalartype(lhs::Type{<:AbstractOperatorRepresentation}) = promote_type(scalartype(spacetype(lhs)), scalartype(operatortype(lhs)))
+@inline scalartype(lhs::AbstractOperatorRepresentation) ::DataType = scalartype(typeof(lhs)) ::DataType
+@inline scalartype(lhs::Type{<:AbstractOperatorRepresentation}) ::DataType = promote_type(scalartype(spacetype(lhs)), scalartype(operatortype(lhs))) ::DataType
 
 import Base.size
 @inline function size(arg::AbstractOperatorRepresentation) ::Tuple{Int, Int}

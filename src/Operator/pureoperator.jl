@@ -28,11 +28,11 @@ struct PureOperator{Scalar<:Number, BR<:Unsigned} <:AbstractOperator
 end
 
 
-@inline scalartype(lhs ::PureOperator{S, BR}) where {S, BR} = S
-@inline scalartype(lhs ::Type{PureOperator{S, BR}}) where {S, BR} = S
+@inline scalartype(lhs ::PureOperator{S, BR}) where {S, BR} = S ::DataType
+@inline scalartype(lhs ::Type{PureOperator{S, BR}}) where {S, BR} = S ::DataType
 
-@inline bintype(lhs ::PureOperator{S, BR}) where {S, BR} = BR
-@inline bintype(lhs ::Type{PureOperator{S, BR}}) where {S, BR} = BR
+@inline bintype(lhs ::PureOperator{S, BR}) where {S, BR} = BR ::DataType
+@inline bintype(lhs ::Type{PureOperator{S, BR}}) where {S, BR} = BR ::DataType
 
 
 # === 1/6 (In)equality ===

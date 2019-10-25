@@ -51,10 +51,10 @@ function Base.setindex!(state ::SparseState{Scalar, BR}, value ::S, basis ::BR2)
 end
 
 
-scalartype(::SparseState{Scalar, BR}) where {Scalar, BR} = Scalar
-scalartype(::Type{SparseState{Scalar, BR}}) where {Scalar, BR} = Scalar
-bintype(::SparseState{Scalar, BR}) where {Scalar, BR} = BR
-bintype(::Type{SparseState{Scalar, BR}}) where {Scalar, BR} = BR
+@inline scalartype(::SparseState{Scalar, BR}) where {Scalar, BR} = Scalar ::DataType
+@inline scalartype(::Type{SparseState{Scalar, BR}}) where {Scalar, BR} = Scalar ::DataType
+@inline bintype(::SparseState{Scalar, BR}) where {Scalar, BR} = BR ::DataType
+@inline bintype(::Type{SparseState{Scalar, BR}}) where {Scalar, BR} = BR ::DataType
 
 
 import Base.==
@@ -184,10 +184,11 @@ function choptol!(arg ::SparseState{S1, BR}, tol::Real) where {S1, BR}
   for k in to_delete
     delete!(arg.components, k)
   end
+  arg
 end
 
 import LinearAlgebra.norm
-function norm(arg ::SparseState{S1, BR}) where {S1, BR}
+function norm(arg ::SparseState{S1, BR}) where {S1<:Number, BR<:Unsigned}
   if isempty(arg.components)
     return zero(real(S1))
   else
@@ -196,7 +197,7 @@ function norm(arg ::SparseState{S1, BR}) where {S1, BR}
 end
 
 import LinearAlgebra.normalize
-function normalize(arg ::SparseState{S1, BR}) where {S1, BR}
+function normalize(arg ::SparseState{S1, BR}) where {S1<:Number, BR<:Unsigned}
   norm_val = norm(arg)
   S2 = promote_type(typeof(norm_val), S1)
   components = Dict{BR, S2}(k => v/norm_val for (k, v) in arg.components)
@@ -204,7 +205,7 @@ function normalize(arg ::SparseState{S1, BR}) where {S1, BR}
 end
 
 import LinearAlgebra.normalize!
-function normalize!(arg ::SparseState{S1, BR}) where {S1, BR}
+function normalize!(arg ::SparseState{S1, BR}) where {S1<:Number, BR<:Unsigned}
   norm_val = norm(arg)
   for (k, v) in arg.components
     arg[k] = v / norm_val

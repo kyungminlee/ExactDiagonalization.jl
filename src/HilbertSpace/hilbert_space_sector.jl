@@ -30,7 +30,7 @@ export qntype
 @inline qntype(arg ::Type{HilbertSpaceSector{QN}}) where QN = QN
 
 export basespace
-@inline basespace(hs::HilbertSpaceSector) = basespace(hs.parent)
+@inline basespace(hs::HilbertSpaceSector{QN}) where QN = basespace(hs.parent) ::HilbertSpace{QN}
 
 import Base.==
 function ==(lhs ::HilbertSpaceSector{Q1}, rhs ::HilbertSpaceSector{Q2}) where {Q1, Q2}

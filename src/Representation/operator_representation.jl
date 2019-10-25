@@ -19,9 +19,9 @@ function represent(hsr ::HSR, op ::O) where {HSR<:HilbertSpaceRepresentation, O<
 end
 
 
-@inline spacetype(lhs::Type{OperatorRepresentation{HSR, O}}) where {HSR, O}= HSR
-@inline operatortype(lhs ::Type{OperatorRepresentation{HSR, O}}) where {HSR, O} = O
-@inline get_space(lhs ::OperatorRepresentation{HSR, O}) where {HSR, O} = lhs.hilbert_space_representation
+@inline spacetype(lhs::Type{OperatorRepresentation{HSR, O}}) where {HSR<:HilbertSpaceRepresentation, O<:AbstractOperator} = HSR
+@inline operatortype(lhs ::Type{OperatorRepresentation{HSR, O}}) where {HSR<:HilbertSpaceRepresentation, O<:AbstractOperator} = O
+@inline get_space(lhs ::OperatorRepresentation{HSR, O}) where {HSR<:HilbertSpaceRepresentation, O<:AbstractOperator} = lhs.hilbert_space_representation ::HSR
 
 
 
@@ -99,7 +99,7 @@ function apply!(out ::Vector{S1},
   length(state) != nrows && throw(ArgumentError("state has length $(length(state)) != dimension $(nrows)"))
   dim = dimension(hsr)
   @assert nrows == dim && ncols == dim
-            
+
   err = zero(S1)
   err_sq = zero(real(S1))
   for irow in range
@@ -156,7 +156,7 @@ function apply_threaded!(out ::Vector{S1},
   for i in range
     (1<=i<=ncols) || throw(BoundsError("attempt to access $ncols-element $(typeof(state)) at index [$i]"))
   end
-  
+
   nblocks = Threads.nthreads()
   block_ranges = splitrange(range, nblocks)
 
@@ -216,13 +216,13 @@ function apply_threaded!(out ::Vector{S1},
   for i in range
     (1<=i<=nrows) || throw(BoundsError("attempt to access $nrows-element $(typeof(state)) at index [$i]"))
   end
-  
+
   nblocks = Threads.nthreads()
   block_ranges = splitrange(range, nblocks)
 
   err = zero(S1)
   err_sq = zero(real(S1))
-  
+
   spinlock = Threads.SpinLock()
 
   Threads.@threads for iblock in 1:nblocks

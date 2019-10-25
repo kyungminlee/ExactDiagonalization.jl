@@ -1,7 +1,7 @@
 export HilbertSpaceRepresentation
 export dimension, represent, materialize
 
-struct HilbertSpaceRepresentation{HS <:HilbertSpace, BR <:Unsigned} <:AbstractHilbertSpaceRepresentation
+struct HilbertSpaceRepresentation{HS <:AbstractHilbertSpace, BR <:Unsigned} <:AbstractHilbertSpaceRepresentation
   hilbert_space ::HS
   basis_list ::Vector{BR}
   basis_lookup ::FrozenSortedArrayIndex{BR}
@@ -30,11 +30,11 @@ struct HilbertSpaceRepresentation{HS <:HilbertSpace, BR <:Unsigned} <:AbstractHi
 end
 
 @inline scalartype(lhs ::Type{HilbertSpaceRepresentation{HS, BR}}) where {HS, BR} = Bool
-@inline bintype(lhs ::Type{HilbertSpaceRepresentation{HS, BR}}) where {HS, BR} = BR
+@inline bintype(lhs ::Type{HilbertSpaceRepresentation{HS, BR}}) where {HS, BR} = BR ::DataType
 
-@inline basespace(lhs::HilbertSpaceRepresentation{HS, BR}) where {HS, BR} = lhs.hilbert_space
+@inline basespace(lhs::HilbertSpaceRepresentation{HS, BR}) where {HS<:AbstractHilbertSpace, BR<:UInt} = lhs.hilbert_space ::HS
 
-@inline bitwidth(hss::HilbertSpaceSector{QN}) where QN = bitwidth(hss.parent)
+@inline bitwidth(hss::HilbertSpaceSector{QN}) where QN = bitwidth(hss.parent) ::Int
 
 
 import Base.==
