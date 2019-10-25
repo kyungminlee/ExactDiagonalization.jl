@@ -56,6 +56,8 @@ end;
       @test operatortype(OR) == typeof(σ[1, :x])
       @test spacetype(opr1) == typeof(hsr)
       @test operatortype(opr1) == typeof(σ[1, :x])
+      @test bintype(OR) == UInt
+      @test bintype(opr1) == UInt
 
       @test eltype(opr1) === Int
       @test eltype(opr2) === Complex{Int}
@@ -86,9 +88,33 @@ end;
       @test opr1 + opr2 == represent(hsr, op1 + op2)
       @test opr1 - opr2 == represent(hsr, op1 - op2)
       @test opr1 * opr2 == represent(hsr, op1 * op2)
+
+      hs3 = HilbertSpace([spinsite, spinsite])
+      op3 = pure_operator(hs3, 1, 1, 1)
+      hsr3 = represent(hs3)
+      opr3 = represent(hsr3, op3)
+      @test_throws ArgumentError opr1 + opr3
+      @test_throws ArgumentError opr1 - opr3
+      @test_throws ArgumentError opr1 * opr3
     end
 
+
     @testset "iterator" begin
+      hs2 = HilbertSpace([spinsite, spinsite])
+      op2 = pure_operator(hs2, 2, 1, 2)*2.0 + pure_operator(hs2, 2, 2, 1)*3.0 # 2 σ⁻₂ + 3 σ⁺₂
+      hsr2 = represent(hs, UInt[0b00, 0b01])
+      opr2 = represent(hsr2, op2)
+      @test collect(get_row_iterator(opr2, 1; include_all=true)) == [-1 => 2.0]
+      @test collect(get_row_iterator(opr2, 2; include_all=true)) == [-1 => 2.0]
+      @test collect(get_column_iterator(opr2, 1; include_all=true)) == [-1 => 3.0]
+      @test collect(get_column_iterator(opr2, 2; include_all=true)) == [-1 => 3.0]
+      @test collect(get_row_iterator(opr2, 1)) == []
+      @test collect(get_row_iterator(opr2, 2)) == []
+      @test collect(get_column_iterator(opr2, 1)) == []
+      @test collect(get_column_iterator(opr2, 2)) == []
+    end
+
+    @testset "get" begin
       opr = OperatorRepresentation(hsr, σ[2, :+]) # non-Hermitian
       dim = dimension(hsr)
       σ₊ = [0 1; 0 0]
