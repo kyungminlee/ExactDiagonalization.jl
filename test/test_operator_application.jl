@@ -64,6 +64,11 @@ using ExactDiagonalization
         @test psi2 == SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
         apply!(psi2, NullOperator(), psi)
         @test psi2 == SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
+
+        apply_unsafe!(psi2, psi, NullOperator())
+        @test psi2 == SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
+        apply_unsafe!(psi2, NullOperator(), psi)
+        @test psi2 == SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
       end
 
       let
