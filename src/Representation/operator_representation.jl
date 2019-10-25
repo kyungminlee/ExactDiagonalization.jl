@@ -134,7 +134,6 @@ function splitblock(n ::Integer, b ::Integer) ::Vector{Int}
 end
 
 function splitrange(range::AbstractVector{<:Integer}, b::Integer)
-  #nblocks = min(b, length(range))
   nblocks = b
   block_sizes = splitblock(length(range), nblocks)
   block_offsets = cumsum([1, block_sizes...])
@@ -282,54 +281,3 @@ function (*)(state ::AbstractVector{S}, opr ::OperatorRepresentation{HSR, O}) wh
   err = apply!(out, state, opr)
   out
 end
-
-
-
-# function splitblock(n ::Integer, b ::Integer) ::Vector{Int}
-#   (n < 0) && throw(ArgumentError("n cannot be negative"))
-#   (b <= 0) && throw(ArgumentError("b must be positive"))
-#   #b >= n && return    # too many blocks
-#   blocksize = n ÷ b
-#   blocks = blocksize * ones(Int, b)
-#   r = n - (blocksize * b)
-#   blocks[1:r] .+= 1
-#   return blocks
-# end
-#
-# function apply_thread_unsafe!(out ::Vector{S1},
-#                               opr ::OperatorRepresentation{HS, O},
-#                               state ::AbstractVector{S2}
-#                               ) where {HS, O, S1<:Number, S2<:Number}
-#
-#   nthreads = Threads.nthreads()
-#   nthreads == 1 && return apply_unsafe!(out, opr, stage, range)
-#
-#   hsr = opr.hilbert_space_representation
-#   dim = length(hsr.basis_list)
-#   counts = splitblock(dim, nthreads)
-#   offsets = cumsum([1, counts...])
-#   locks = [Threads.SpinLock() for i in 1:nthreads]
-#   offdiagonals = [Dict(Int, S1) for i in 1:nthreads]
-#
-#   err = zero(Float64)
-#   Threads.@threads for b in 1:nthreads
-#     lower = offsets[b]
-#     upper = offsets[b+1]-1
-#     for icol in lower:upper
-#       bcol = hsr.basis_list[icol]
-#       v = state[icol]
-#       for (brow, amplitude) in get_column_iterator(opr.operator, bcol)
-#         irow = get(hsr.basis_lookup, brow, -1)
-#
-#         if lower <= irow <= upper
-#           out[irow] += amplitude * v
-#         elseif 1 <= irow <= dim
-#           off diagonal
-#         else
-#           err += abs(amplitude*v)^2
-#         end
-#       end # for brow
-#     end # for icol
-#   end # for b
-#   sqrt(err)
-# end
