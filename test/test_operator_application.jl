@@ -39,7 +39,9 @@ using ExactDiagonalization
     end
 
     @testset "apply" begin
-      @test apply(NullOperator(), psi) == SparseState{Float64, UInt}(hs)
+      #psi = SparseState{Float64, UInt}(hs, UInt(0b0011) => 2.0, UInt(0b0101) => 10.0)
+
+      @test apply(psi, NullOperator()) == SparseState{Float64, UInt}(hs)
 
       @test apply(psi, σ(1, :+)) == SparseState{Float64, UInt}(hs)
       @test apply(psi, σ(1, :-)) == SparseState{Float64, UInt}(hs, UInt(0b0010) => 2.0, UInt(0b0100) => 10.0)
@@ -47,11 +49,27 @@ using ExactDiagonalization
       @test apply(psi, σ(2, :+)) == SparseState{Float64, UInt}(hs, UInt(0b0111) => 10.0)
       @test apply(psi, σ(2, :-)) == SparseState{Float64, UInt}(hs, UInt(0b0001) => 2.0)
 
+      @test apply(NullOperator(), psi) == SparseState{Float64, UInt}(hs)
+
+      @test apply(σ(1, :+), psi) == SparseState{Float64, UInt}(hs, UInt(0b0010) => 2.0, UInt(0b0100) => 10.0)
+      @test apply(σ(1, :-), psi) == SparseState{Float64, UInt}(hs)
+
+      @test apply(σ(2, :+), psi) == SparseState{Float64, UInt}(hs, UInt(0b0001) => 2.0)
+      @test apply(σ(2, :-), psi) == SparseState{Float64, UInt}(hs, UInt(0b0111) => 10.0)
+
+
       for i1 in 1:4, j1 in [:x, :y, :z, :+, :-]
         for i2 in 1:4, j2 in [:x, :y, :z, :+, :-]
-          ϕ1 = apply(apply(psi, σ(i1, j1)), σ(i2, j2))
-          ϕ2 = apply(psi, σ(i1, j1) * σ(i2,j2))
-          @test ϕ1 == ϕ2
+          let
+            ϕ1 = apply(apply(psi, σ(i1, j1)), σ(i2, j2))
+            ϕ2 = apply(psi, σ(i1, j1) * σ(i2,j2))
+            @test ϕ1 == ϕ2
+          end
+          let
+            ϕ1 = apply(σ(i1, j1), apply(σ(i2, j2), psi))
+            ϕ2 = apply(σ(i1, j1) * σ(i2,j2), psi)
+            @test ϕ1 == ϕ2
+          end
         end
       end
 
