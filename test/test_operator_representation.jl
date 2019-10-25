@@ -194,13 +194,14 @@ end;
       end
 
       @testset "multi-threaded" begin
-        opr = represent(hsr_0, σ[1, :+] * σ[4, :-])
+        opr = represent(hsr_0, σ[1, :+] * σ[4, :-] + σ[2, :z] * 3)
 
         σ₊ = [0 1; 0 0]
         σ₋ = [0 0; 1 0]
         σ₀ = [1 0; 0 1]
+        σ₃ = [1 0; 0 -1]
 
-        op_dense = kron(σ₋, σ₀, σ₀, σ₊)
+        op_dense = kron(σ₋, σ₀, σ₀, σ₊) + kron(σ₀, σ₀, σ₃, σ₀) * 3
         state = rand(ComplexF64, dim)
 
         out1 = zeros(ComplexF64, dim)
