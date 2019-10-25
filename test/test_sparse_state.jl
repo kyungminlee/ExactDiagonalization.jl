@@ -87,7 +87,20 @@ using StaticArrays
 
   @testset "iterate" begin
     ψ = SparseState{ComplexF64, UInt}(hs, Dict(UInt(0b0000001) => 2.0, UInt(0b0010001) => 3.0 ))
-    @show collect(ψ)
+    @test Dict(collect(ψ)) == Dict(UInt(0b0000001) => 2.0+0.0im, UInt(0b0010001) => 3.0+0.0im)
+  end
+
+  @testset "choptol!" begin
+    let
+      d = SparseState{ComplexF64, UInt}(hs, UInt(0b0000001) => 0.0, UInt(0b0010001) => 1E-9)
+      choptol!(d, 1E-12)
+      @test d.components == Dict(UInt(0b0010001)=>1E-9 + 0.0im)
+    end
+    let
+      d = SparseState{ComplexF64, UInt}(hs, UInt(0b0000001) => 0.0, UInt(0b0010001) => 1E-9)
+      choptol!(d, 1E-6)
+      @test d.components == Dict()
+    end
   end
 
   @testset "convert" begin
