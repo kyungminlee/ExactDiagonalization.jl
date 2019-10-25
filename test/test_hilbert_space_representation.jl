@@ -30,6 +30,8 @@ using StaticArrays
       hsr = represent(hilbert_space; BR=UInt32)
       @test eltype(hsr) === Bool
       @test bintype(hsr) === UInt32
+      @test eltype(typeof(hsr)) === Bool
+      @test bintype(typeof(hsr)) === UInt32
     end
 
     @testset "validity" begin
