@@ -29,12 +29,7 @@ conj(arg::NullOperator) = arg
 transpose(arg::NullOperator) = arg
 adjoint(arg::NullOperator) = arg
 
-export scalartype
-@inline scalartype(lhs ::NullOperator) = Bool
 @inline scalartype(lhs ::Type{NullOperator}) = Bool
-
-export bintype
-@inline bintype(lhs ::NullOperator) = UInt8 # think whether this is necessary
 @inline bintype(lhs ::Type{NullOperator}) = UInt8
 
 
