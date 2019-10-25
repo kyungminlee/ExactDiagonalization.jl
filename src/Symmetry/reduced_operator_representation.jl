@@ -25,7 +25,7 @@ function get_row_iterator(opr ::ReducedOperatorRepresentation{RHSR, O},
                           include_all::Bool=false) where {RHSR, O}
   rhsr = opr.reduced_hilbert_space_realization
   hsr = rhsr.parent
-  S = eltype(opr.operator)
+  S = eltype(opr)
   dim = dimension(opr.reduced_hilbert_space_realization)
 
   brow = rhsr.basis_list[irow_r]
@@ -33,7 +33,7 @@ function get_row_iterator(opr ::ReducedOperatorRepresentation{RHSR, O},
   irow_r2, ampl_row = rhsr.basis_mapping[irow_p]
   @assert irow_r == irow_r2 "$irow_r != $irow_r2"
 
-  zero_val = 0.0 #zero(S)
+  zero_val = zero(S)
   missing_val = (-1 => zero_val)
 
   function element(bcol, ampl)
@@ -57,7 +57,7 @@ function get_column_iterator(opr ::ReducedOperatorRepresentation{RHSR, O}, icol_
                              include_all::Bool=false) where {RHSR, O}
   rhsr = opr.reduced_hilbert_space_realization
   hsr = rhsr.parent
-  S = eltype(opr.operator)
+  S = eltype(opr)
   dim = dimension(opr.reduced_hilbert_space_realization)
 
   bcol = rhsr.basis_list[icol_r]
@@ -65,7 +65,7 @@ function get_column_iterator(opr ::ReducedOperatorRepresentation{RHSR, O}, icol_
   icol_r2, ampl_col = rhsr.basis_mapping[icol_p]
   @assert icol_r == icol_r2 "$icol_r != $icol_r2"
 
-  zero_val = 0.0 #zero(S)
+  zero_val = zero(S)
   missing_val = (-1 => zero_val)
 
   function element(brow, ampl)
