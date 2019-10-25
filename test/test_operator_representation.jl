@@ -3,7 +3,7 @@ using ExactDiagonalization
 
 using StaticArrays
 using LinearAlgebra
-
+using SparseArrays
 
 function pauli_matrix(hs::HilbertSpace, isite ::Integer, j ::Symbol)
   if j == :x
@@ -45,15 +45,31 @@ end;
       @test opr2.operator == σ[1, :x]
       @test opr1 == opr2
       @test opr1 == opr3
+      @test get_space(opr1) === hsr
     end
 
     @testset "typetraits" begin
       opr1 = OperatorRepresentation(hsr, σ[1, :x])
+      opr2 = OperatorRepresentation(hsr, σ[1, :y])
       OR = typeof(opr1)
       @test spacetype(OR) == typeof(hsr)
       @test operatortype(OR) == typeof(σ[1, :x])
-      @test get_space(opr1) === hsr
+      @test spacetype(opr1) == typeof(hsr)
+      @test operatortype(opr1) == typeof(σ[1, :x])
+
+      @test eltype(opr1) === Int
+      @test eltype(opr2) === Complex{Int}
     end
+
+    @testset "size" begin
+      opr = OperatorRepresentation(hsr, σ[1, :x])
+      dim = dimension(hsr)
+      @test size(opr) == (dim, dim)
+      @test size(opr, 1) == dim
+      @test size(opr, 2) == dim
+      @test_throws BoundsError size(opr, 3)
+    end
+
 
     @testset "unary operator" begin
       op = σ[1, :x]
@@ -73,9 +89,24 @@ end;
     end
 
     @testset "iterator" begin
+      opr = OperatorRepresentation(hsr, σ[2, :+]) # non-Hermitian
+      dim = dimension(hsr)
+      σ₊ = [0 1; 0 0]
+      σ₀ = [1 0; 0 1]
+      H0 = kron(σ₀, σ₀, σ₊, σ₀)
+      opr_s = sparse(opr)
+      @test opr_s == H0
+      @test opr[:,:] == opr_s
+      @test isa(opr_s, SparseMatrixCSC)
+      for i in 1:dim
+        @test get_row(opr, i) == H0[i, :]
+        @test get_column(opr, i) == H0[:, i]
+        @test get_row(opr, i) != get_column(opr, i) # all rows and columns are different
 
-    end
-
+        @test get_row(opr, i) == opr[i, :]
+        @test get_column(opr, i) == opr[:, i]
+      end
+    end # testset iterator
 
   end
 end
