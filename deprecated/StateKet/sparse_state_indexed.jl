@@ -194,6 +194,7 @@ function choptol!(arg ::SparseStateIndexed{S, QN, BR}, tol::Real) where {S, QN, 
   for k in to_delete
     delete!(arg.components, k)
   end
+  arg
 end
 
 import LinearAlgebra.norm
