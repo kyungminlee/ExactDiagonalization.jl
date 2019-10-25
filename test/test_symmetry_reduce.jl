@@ -33,34 +33,36 @@ end;
 
   translation_group = TranslationGroup([Permutation([2,3,4,1])])
 
-  rhsr = symmetry_reduce(hsr, translation_group, [0//1])
-  @test rhsr.basis_list == UInt[0b0011, 0b0101]
-  @test rhsr.parent === hsr
+  for symred in [symmetry_reduce, symmetry_reduce_parallel]
+    rhsr = symred(hsr, translation_group, [0//1])
+    @test rhsr.basis_list == UInt[0b0011, 0b0101]
+    @test rhsr.parent === hsr
 
-  rhsr = symmetry_reduce(hsr, translation_group, [1//4])
-  @test rhsr.basis_list == UInt[0b0011]
-  @test rhsr.parent === hsr
+    rhsr = symred(hsr, translation_group, [1//4])
+    @test rhsr.basis_list == UInt[0b0011]
+    @test rhsr.parent === hsr
 
-  rhsr = symmetry_reduce(hsr, translation_group, [2//4])
-  @test rhsr.basis_list == UInt[0b0011, 0b0101]
-  @test rhsr.parent === hsr
+    rhsr = symred(hsr, translation_group, [2//4])
+    @test rhsr.basis_list == UInt[0b0011, 0b0101]
+    @test rhsr.parent === hsr
 
-  rhsr = symmetry_reduce(hsr, translation_group, [3//4])
-  @test rhsr.basis_list == UInt[0b0011]
-  @test rhsr.parent === hsr
+    rhsr = symred(hsr, translation_group, [3//4])
+    @test rhsr.basis_list == UInt[0b0011]
+    @test rhsr.parent === hsr
 
-  for k in translation_group.fractional_momenta
-    rhsr = symmetry_reduce(hsr, translation_group, k)
-    for (i_p, b) in enumerate(hsr.basis_list)
-      if b in rhsr.basis_list
-        @test 1 <= rhsr.basis_mapping[i_p].index <= dimension(rhsr)
-        @test rhsr.basis_list[rhsr.basis_mapping[i_p].index] == b
-        @test isapprox(imag(rhsr.basis_mapping[i_p].amplitude), 0; atol=sqrt(eps(Float64)))
+    for k in translation_group.fractional_momenta
+      rhsr = symred(hsr, translation_group, k)
+      for (i_p, b) in enumerate(hsr.basis_list)
+        if b in rhsr.basis_list
+          @test 1 <= rhsr.basis_mapping[i_p].index <= dimension(rhsr)
+          @test rhsr.basis_list[rhsr.basis_mapping[i_p].index] == b
+          @test isapprox(imag(rhsr.basis_mapping[i_p].amplitude), 0; atol=sqrt(eps(Float64)))
+        end
       end
-    end
-    for (i_p, (i_r, amplitude)) in enumerate(rhsr.basis_mapping)
-      if i_r == -1
-        @test ! (rhsr.parent.basis_list[i_p] in rhsr.basis_list)
+      for (i_p, (i_r, amplitude)) in enumerate(rhsr.basis_mapping)
+        if i_r == -1
+          @test ! (rhsr.parent.basis_list[i_p] in rhsr.basis_list)
+        end
       end
     end
   end
