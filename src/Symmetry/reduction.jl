@@ -4,7 +4,7 @@ export materialize, materialize_parallel
 function symmetry_reduce(
     hsr ::HilbertSpaceRepresentation{QN, BR},
     trans_group ::TranslationGroup,
-    fractional_momentum ::AbstractVector{Rational};
+    fractional_momentum ::AbstractVector{<:Rational};
     ComplexType::DataType=ComplexF64,
     tol::Real=sqrt(eps(Float64))) where {QN, BR}
 
@@ -98,7 +98,7 @@ end
 function symmetry_reduce_parallel(
     hsr ::HilbertSpaceRepresentation{QN, BR},
     trans_group ::TranslationGroup,
-    fractional_momentum ::AbstractVector{Rational};
+    fractional_momentum ::AbstractVector{<:Rational};
     ComplexType::DataType=ComplexF64,
     tol::Real=sqrt(eps(Float64))) where {QN, BR}
 
