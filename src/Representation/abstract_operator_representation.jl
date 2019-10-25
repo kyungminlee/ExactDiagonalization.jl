@@ -77,7 +77,7 @@ function get_row(opr ::AbstractOperatorRepresentation, irow::Integer)
 end
 
 function get_column(opr ::AbstractOperatorRepresentation, icol::Integer)
-  S = eltype(O)
+  S = eltype(opr)
   Z = zero(S)
   dim = size(opr, 1)
   items = Dict{Int, S}()
