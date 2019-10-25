@@ -22,22 +22,57 @@ abstract type AbstractOperatorRepresentation end
 # @inline operatortype(lhs ::Type{AbstractOperatorRepresentation}) = error("operatortype not implemented")
 @inline get_space(lhs::AbstractOperatorRepresentation) = error("get_space not implemented")
 
-@inline bintype(lhs ::AbstractOperatorRepresentation) = bintype(spacetype(lhs))
-@inline bintype(lhs ::Type{AbstractOperatorRepresentation}) = bintype(spacetype(lhs))
+@inline bintype(lhs ::AbstractOperatorRepresentation) = bintype(typeof(lhs))
+@inline bintype(lhs ::Type{<:AbstractOperatorRepresentation}) = bintype(spacetype(lhs))
 
 import Base.eltype
-@inline eltype(lhs::AbstractOperatorRepresentation) = promote_type(eltype(spacetype(lhs)), eltype(operatortype(lhs)))
-@inline eltype(lhs::Type{AbstractOperatorRepresentation}) = promote_type(eltype(spacetype(lhs)), eltype(operatortype(lhs)))
+@inline eltype(lhs::AbstractOperatorRepresentation) = eltype(typeof(lhs))
+@inline eltype(lhs::Type{<:AbstractOperatorRepresentation}) = promote_type(eltype(spacetype(lhs)), eltype(operatortype(lhs)))
 
 import Base.size
-function size(arg::AbstractOperatorRepresentation) ::Tuple{Int, Int}
+@inline function size(arg::AbstractOperatorRepresentation) ::Tuple{Int, Int}
   dim = dimension(get_space(arg))
   return (dim, dim)
 end
 
-function size(arg::AbstractOperatorRepresentation, i::Integer) ::Int
+@inline function size(arg::AbstractOperatorRepresentation, i::Integer) ::Int
   return size(arg)[i]
 end
+
+
+import Base.==
+function (==)(lhs ::AbstractOperatorRepresentation,
+              rhs ::AbstractOperatorRepresentation)
+  return ((get_space(lhs) == get_space(rhs)) && (lhs.operator == rhs.operator))
+end
+
+import Base.+, Base.-, Base.*
+
+for uniop in [:+, :-]
+  expr = :(
+  @inline function ($uniop)(lhs ::AbstractOperatorRepresentation)
+    return represent(lhs.hilbert_space_representation, ($uniop)(lhs.operator))
+  end
+  )
+  eval(expr)
+end
+
+for binop in [:+, :-, :*]
+  expr = :(
+  @inline function ($binop)(lhs ::AbstractOperatorRepresentation,
+                            rhs ::AbstractOperatorRepresentation)
+    @boundscheck if (get_space(lhs) != get_space(rhs))
+      throw(ArgumentError("The two OperatorRepresentation s do not have the same HilbertSpaceRepresentation"))
+    end
+    return represent(lhs.hilbert_space_representation, ($binop)(lhs.operator, rhs.operator))
+  end
+  )
+  eval(expr)
+end
+
+
+
+
 
 
 import SparseArrays.sparse
