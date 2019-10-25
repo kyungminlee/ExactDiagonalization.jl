@@ -52,6 +52,9 @@ function iterate(iter::FrozenSortedArrayIndex{K}, state::Int=1) ::Union{Nothing,
   return ((iter.keys[state] => state), state+1)
 end
 
+import Base.eltype
+@inline eltype(iter::Type{FrozenSortedArrayIndex{K}}) = Pair{K, Int}
+
 import Base.length
 @inline length(iter::FrozenSortedArrayIndex{K}) where K = length(iter.keys)
 
