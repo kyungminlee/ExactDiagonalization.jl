@@ -190,8 +190,9 @@ end;
 
         @test_throws BoundsError apply!(out1, opr, state; range=1:100)
         @test_throws BoundsError apply!(out1, state, opr; range=1:100)
+
       end
-      
+
       @testset "multi-threaded" begin
         opr = represent(hsr_0, σ[2, :+])
         
@@ -227,6 +228,27 @@ end;
         @test_throws BoundsError apply_threaded!(out1, state, opr; range=1:100)
       end
       # TODO(kyungminlee): Check for bounds error with range.
+
+      @testset "error" begin
+        hsr_small = represent(HilbertSpaceSector(hs, 0))
+        opr = represent(hsr_small, σ[2, :x])
+        dim_small = dimension(hsr_small)
+        state = 2im*ones(ComplexF64, dim_small)
+        
+        out1 = zeros(ComplexF64, dim_small)
+        e1, e2 = apply!(out1, opr, state)
+        tol = sqrt(eps(Float64))
+        @test isapprox(e1, 12im; atol=tol)
+        @test isapprox(e2, 24.0; atol=tol)
+        @test all(isapprox.(out1, 0; atol=tol))
+        
+        out1[:] .= zero(ComplexF64)
+        e1, e2 = apply_threaded!(out1, opr, state)
+        @test isapprox(e1, 12im; atol=tol)
+        @test isapprox(e2, 24.0; atol=tol)
+        @test all(isapprox.(out1, 0; atol=tol))
+      end
+
     end
 
   end # testset spin half
