@@ -1,9 +1,6 @@
 export AbstractSymmetryOperation
 export Permutation
 
-
-abstract type AbstractSymmetryOperation end
-
 struct Permutation <: AbstractSymmetryOperation
   map ::Vector{Int}
   cycle_length ::Int
