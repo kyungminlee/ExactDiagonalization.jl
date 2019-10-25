@@ -78,7 +78,7 @@ function (==)(lhs ::HilbertSpace{Q1}, rhs ::HilbertSpace{Q2}) where {Q1, Q2}
   return (Q1 == Q2) && (lhs.sites == rhs.sites) #&& (lhs.bitwidths == rhs.bitwidths) && (lhs.bitoffsets == rhs.bitoffsets)
 end
 
-function get_bitmask(hs ::HilbertSpace, isite ::Integer; dtype ::DataType=UInt)
+function get_bitmask(hs ::HilbertSpace, isite ::Integer; dtype ::Type{T}=UInt) ::T where {T<:Unsigned}
   return make_bitmask(hs.bitoffsets[isite+1], hs.bitoffsets[isite]; dtype=dtype)
 end
 
