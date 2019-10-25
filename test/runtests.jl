@@ -14,5 +14,6 @@ include("test_hilbert_space_representation.jl")
 include("test_operator_representation.jl")
 
 include("test_symmetry.jl")
+include("test_symmetry_reduce.jl")
 
 include("test_prettyprintln.jl")

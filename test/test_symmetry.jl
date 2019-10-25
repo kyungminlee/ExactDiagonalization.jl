@@ -1,6 +1,8 @@
 using Test
 using ExactDiagonalization
 
+using LinearAlgebra
+
 @testset "Permutation" begin
   @test_throws ArgumentError Permutation([1,2,4])
   @test_throws OverflowError Permutation([mod(x, 4096)+1 for x in 1:4096])
@@ -20,15 +22,18 @@ using ExactDiagonalization
   @test p1.cycle_length == 4
   @test p2.cycle_length == 2
   @test p3.cycle_length == 4
+
+  @test_throws ArgumentError Permutation([1,2,3,4]) * Permutation([1,2,3,4,5])
+  @test hash(Permutation(Int[1,2,3,4])) == hash(Int[1,2,3,4])
 end
 
 @testset "translation" begin
   @testset "constructor exceptions" begin
-    t1 = Permutation([2,3,4,1])
-    t2 = Permutation([3,4,1,2])
-    @test_throws ArgumentError TranslationGroup([t1, t2])
-
+    @test_throws ArgumentError TranslationGroup([Permutation([2,3,4,1]), Permutation([3,4,1,2])])
+    @test_throws ArgumentError TranslationGroup([Permutation([2,1,3,4]), Permutation([1,3,2,4])])
   end
+
+
   t1 = Permutation([2,3,1, 5,6,4])
   t2 = Permutation([4,5,6, 1,2,3])
   g = TranslationGroup([t1, t2])
@@ -39,5 +44,9 @@ end
   @test length(Set(g.elements)) == 2*3
   @test g.fractional_momenta == [[0//3, 0//2], [1//3, 0//2], [2//3, 0//2],
                                  [0//3, 1//2], [1//3, 1//2], [2//3, 1//2]]
-  #@show g.character_table 
+  χ = [cis(2π * (k ⋅ t)) for k in g.fractional_momenta, t in g.translations]
+  @test isapprox(g.character_table, χ; atol=sqrt(eps(Float64)))
+
+  @test is_compatible([0//1, 0//1], [0,0])
+  @test !is_compatible([0//1, 1//2], [0,1])
 end
