@@ -1,4 +1,3 @@
-export AbstractSymmetryOperation
 export Permutation
 
 struct Permutation <: AbstractSymmetryOperation
