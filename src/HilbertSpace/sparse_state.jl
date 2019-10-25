@@ -138,22 +138,22 @@ end
 
 function (*)(lhs ::SparseState{S1, BR}, rhs ::S2) where {S1, S2<:Number, BR}
   return SparseState(lhs.hilbert_space,
-                     Dict((k, v * rhs) for (k, v) in lhs.components))
+                     Dict(k => v * rhs for (k, v) in lhs.components))
 end
 
 function (*)(lhs ::S1, rhs ::SparseState{S2, BR}) where {S1<:Number, S2<:Number, BR}
   return SparseState(rhs.hilbert_space,
-                     Dict((k, lhs * v) for (k, v) in rhs.components))
+                     Dict(k => lhs * v for (k, v) in rhs.components))
 end
 
 function (/)(lhs ::SparseState{S1, BR}, rhs ::S2) where {S1, S2<:Number, BR}
   return SparseState(lhs.hilbert_space,
-                     Dict((k, v / rhs) for (k, v) in lhs.components))
+                     Dict(k => v / rhs for (k, v) in lhs.components))
 end
 
 function (\)(lhs ::S1, rhs ::SparseState{S2, BR}) where {S1<:Number, S2<:Number, BR}
   return SparseState(rhs.hilbert_space,
-                     Dict((k, lhs \ v) for (k, v) in rhs.components))
+                     Dict(k => lhs \ v for (k, v) in rhs.components))
 end
 
 import Base.convert
@@ -187,7 +187,7 @@ import LinearAlgebra.normalize
 function normalize(arg ::SparseState{S1, BR}) where {S1, BR}
   norm_val = norm(arg)
   S2 = promote_type(typeof(norm_val), S1)
-  components = DefaultDict{BR, S2, S2}(zero(S2), [(k, v/norm_val) for (k, v) in arg.components])
+  components = Dict{BR, S2}(k => v/norm_val for (k, v) in arg.components)
   return SparseState{S2, BR}(arg.hilbert_space, components)
 end
 

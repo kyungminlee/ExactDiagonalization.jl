@@ -154,6 +154,9 @@ using StaticArrays
       @test (ψ1 / 4).components == Dict(UInt(0x001) => 0.5)
       @test (ψ1 / 4.0).components == Dict(UInt(0x001) => 0.5)
       @test (ψ1 / (4.0+0.0im)).components == Dict(UInt(0x001) => 0.5 + 0.0im)
+      @test (4 \ ψ1).components == Dict(UInt(0x001) => 0.5)
+      @test (4.0 \ ψ1).components == Dict(UInt(0x001) => 0.5)
+      @test ((4.0+0.0im) \ ψ1 ).components == Dict(UInt(0x001) => 0.5 + 0.0im)
     end
     @testset "sum" begin
       ψ1 = SparseState{Float64, UInt}(hs, UInt(0b0000001) => 2.0)
