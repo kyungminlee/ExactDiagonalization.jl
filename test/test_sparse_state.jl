@@ -90,7 +90,7 @@ using StaticArrays
     ψ = SparseState{ComplexF64, UInt}(hs, Dict(UInt(0b0000001) => 2.0, UInt(0b0010001) => 3.0 ))
     @test Dict(collect(ψ)) == Dict(UInt(0b0000001) => 2.0+0.0im, UInt(0b0010001) => 3.0+0.0im)
     @test Set([k for (k, v) in ψ]) == Set(UInt[0b0000001, 0b0010001])
-    @test Set([v for (k, v) in ψ]) == Set(2.0+0.0im, 3.0+0.0im)
+    @test Set([v for (k, v) in ψ]) == Set([2.0+0.0im, 3.0+0.0im])
     @test length(ψ) == 2
   end
 
