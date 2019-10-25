@@ -4,15 +4,15 @@ using ExactDiagonalization
 using LinearAlgebra
 using StaticArrays
 
-if VERSION >= v"1.1" # local type definition
-  @testset "AbstractOperator" begin
-    struct Foo <:AbstractOperator
-    end
-    x = Foo()
-    @test_throws ErrorException get_row_iterator(x, 0x1)
-    @test_throws ErrorException get_column_iterator(x, 0x1)
-  end
-end
+# if VERSION >= v"1.1" # local type definition
+#   @testset "AbstractOperator" begin
+#     struct Foo <:AbstractOperator
+#     end
+#     x = Foo()
+#     @test_throws ErrorException get_row_iterator(x, 0x1)
+#     @test_throws ErrorException get_column_iterator(x, 0x1)
+#   end
+# end
 
 @testset "NullOperator" begin
   nop = NullOperator()

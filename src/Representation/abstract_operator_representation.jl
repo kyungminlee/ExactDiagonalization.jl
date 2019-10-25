@@ -20,7 +20,7 @@ abstract type AbstractOperatorRepresentation end
 #if not specialized
 # @inline spacetype(lhs::Type{AbstractOperatorRepresentation}) = error("spacetype not implemented")
 # @inline operatortype(lhs ::Type{AbstractOperatorRepresentation}) = error("operatortype not implemented")
-@inline get_space(lhs::AbstractOperatorRepresentation) = error("get_space not implemented")
+#@inline get_space(lhs::AbstractOperatorRepresentation) = error("get_space not implemented")
 
 @inline bintype(lhs ::AbstractOperatorRepresentation) = bintype(typeof(lhs))
 @inline bintype(lhs ::Type{<:AbstractOperatorRepresentation}) = bintype(spacetype(lhs))

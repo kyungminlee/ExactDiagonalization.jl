@@ -62,10 +62,6 @@ end;
       @test eltype(opr1) === Int
       @test eltype(opr2) === Complex{Int}
 
-      if VERSION >= v"1.1"
-        struct Foo <: AbstractOperatorRepresentation end
-        @test_throws ErrorException get_space(Foo())
-      end
     end
 
     @testset "size" begin
