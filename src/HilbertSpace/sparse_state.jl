@@ -51,6 +51,7 @@ function Base.setindex!(state ::SparseState{Scalar, BR}, value ::S, basis ::BR2)
 end
 
 
+scalartype(::SparseState{Scalar, BR}) where {Scalar, BR} = Scalar
 scalartype(::Type{SparseState{Scalar, BR}}) where {Scalar, BR} = Scalar
 bintype(::SparseState{Scalar, BR}) where {Scalar, BR} = BR
 bintype(::Type{SparseState{Scalar, BR}}) where {Scalar, BR} = BR
