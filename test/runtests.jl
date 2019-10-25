@@ -13,4 +13,6 @@ include("test_operator_application.jl")
 include("test_hilbert_space_representation.jl")
 include("test_operator_representation.jl")
 
+include("test_symmetry.jl")
+
 include("test_prettyprintln.jl")
