@@ -67,11 +67,10 @@ function apply_unsafe!(out ::Vector{S1},
   hsr = opr.hilbert_space_representation
   dim = length(hsr.basis_list)
   err = zero(Float64)
+
   for icol in range
-    bcol = hsr.basis_list[icol]
     v = state[icol]
-    for ((brow, _), amplitude) in get_column_iterator(opr.operator, bcol)
-      irow = get(hsr.basis_lookup, brow, -1)
+    for (irow, amplitude) in get_column_iterator(opr, icol; include_all=true)
       if 1 <= irow <= dim
         out[irow] += amplitude * v
       else
@@ -88,13 +87,11 @@ function apply_unsafe!(out ::Vector{S1},
                        range ::AbstractVector{<:Integer}=1:dimension(opr.hilbert_space_representation)
                        ) where {HSR, O, S1<:Number, S2<:Number}
   hsr = opr.hilbert_space_representation
-  dim = length(hsr.basis_list)
+  dim = dimension(hsr)
   err = zero(Float64)
   for irow in range
-    brow = hsr.basis_list[irow]
     v = state[irow]
-    for (bcol, amplitude) in get_row_iterator(brow, opr.operator)
-      icol = get(hsr.basis_lookup, bcol, -1)
+    for (icol, amplitude) in get_row_iterator(opr, irow; include_all=true)
       if 1 <= icol <= dim
         out[icol] += v * amplitude
       else
@@ -109,7 +106,7 @@ end
 import Base.*
 function (*)(opr ::OperatorRepresentation{HSR, O}, state ::AbstractVector{S}) where {HSR, O, S<:Number}
   hsr = opr.hilbert_space_representation
-  n = length(hsr.basis_list)
+  n = dimension(hsr)
   T = promote_type(S, eltype(O))
   out = zeros(T, n)
   err = apply_unsafe!(out, opr, state)
@@ -120,7 +117,7 @@ end
 import Base.*
 function (*)(state ::AbstractVector{S}, opr ::OperatorRepresentation{HSR, O}) where {HSR, O, S<:Number}
   hsr = opr.hilbert_space_representation
-  n = len(hsr.basis_list)
+  n = dimension(hsr)
   T = promote_type(S, eltype(O))
   out = zeros(T, n)
   err = apply_unsafe!(out, state, opr)
