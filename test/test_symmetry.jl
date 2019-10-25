@@ -27,17 +27,17 @@ end
     t1 = Permutation([2,3,4,1])
     t2 = Permutation([3,4,1,2])
     @test_throws ArgumentError TranslationGroup([t1, t2])
-    
+
   end
   t1 = Permutation([2,3,1, 5,6,4])
   t2 = Permutation([4,5,6, 1,2,3])
   g = TranslationGroup([t1, t2])
-  
+
   @test g.generators == [t1, t2]
   @test g.translations == [[0,0], [1,0], [2,0], [0,1], [1,1], [2,1]]
   @test Set(g.elements) == Set([t1^d1*t2^d2 for d1 in 0:2 for d2 in 0:1])
   @test length(Set(g.elements)) == 2*3
-  @test g.fractional_momenta == [[0//3, 0//2], [1//3, 0//2], [2//3, 0//2], 
+  @test g.fractional_momenta == [[0//3, 0//2], [1//3, 0//2], [2//3, 0//2],
                                  [0//3, 1//2], [1//3, 1//2], [2//3, 1//2]]
-  @show g.character_table 
+  #@show g.character_table 
 end
