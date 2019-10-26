@@ -14,9 +14,9 @@ struct TranslationGroup <: AbstractSymmetryGroup
   element_irreps ::Array{Array{ComplexF64, 2}, 2}
 
   function TranslationGroup(p::Permutation...; tol::Real=sqrt(eps(Float64)))
-    return TranslationGroup(p)
+    return TranslationGroup(Permutation[p...])
   end
-  
+
   function TranslationGroup(generators::AbstractArray{Permutation}; tol::Real=sqrt(eps(Float64)))
     if ! all(g1 * g2 == g2 * g1 for g1 in generators, g2 in generators)
       throw(ArgumentError("non-commuting set of generators"))
