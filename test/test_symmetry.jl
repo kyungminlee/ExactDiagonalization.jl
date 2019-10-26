@@ -3,6 +3,8 @@ using ExactDiagonalization
 
 using LinearAlgebra
 
+include("pauli_matrix.jl")
+
 @testset "Permutation" begin
   @test_throws ArgumentError Permutation([1,2,4])
   @test_throws OverflowError Permutation([mod(x, 4096)+1 for x in 1:4096])
@@ -75,5 +77,24 @@ end
   @test symmetry_apply(hs, p, sop) == SumOperator{Float64, UInt}([
       symmetry_apply(hs, p, pop1), symmetry_apply(hs, p, pop2)])
 
+  σ = Dict( (isite, j) => pauli_matrix(hs, isite, j) for isite in 1:4, j in [:x, :y, :z, :+, :-])
+  j1 = simplify(sum(σ[i, j] * σ[mod(i, 4) + 1 , j] for i in 1:4, j in [:x, :y, :z]))
+
+  @test is_invariant(hs, p, nop)
+  @test !is_invariant(hs, p, pop1)
+  @test !is_invariant(HilbertSpaceSector(hs, 0), p, pop1)
+  @test !is_invariant(hs, p, sop)
+  @test !is_invariant(HilbertSpaceSector(hs, 0), p, sop)
+  @test is_invariant(hs, p, j1)
+  @test is_invariant(HilbertSpaceSector(hs, 0), p, j1)
+
+  tg = TranslationGroup(p)
+  @test is_invariant(hs, tg, nop)
+  @test !is_invariant(hs, tg, pop1)
+  @test !is_invariant(HilbertSpaceSector(hs, 0), tg, pop1)
+  @test !is_invariant(hs, tg, sop)
+  @test !is_invariant(HilbertSpaceSector(hs, 0), tg, sop)
+  @test is_invariant(hs, tg, j1)
+  @test is_invariant(HilbertSpaceSector(hs, 0), tg, j1)
 
 end
