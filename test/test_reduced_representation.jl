@@ -21,6 +21,7 @@ function pauli_matrix(hs::HilbertSpace, isite ::Integer, j ::Symbol)
 end
 
 @testset "RedRep" begin
+  tol = sqrt(eps(Float64))
   QN = Int
 
   # Test State and Site
@@ -34,6 +35,8 @@ end
 
   hsr = represent(HilbertSpaceSector(hs, 0))
   translation_group = TranslationGroup([Permutation([2,3,4,1])])
+  @test is_invariant(hs, translation_group, j1)
+  @test is_invariant(HilbertSpaceSector(hs, 0), translation_group, j1)
 
   @testset "RHSR" begin
     rhsr = symmetry_reduce(hsr, translation_group, [0//1])
@@ -75,13 +78,58 @@ end
       for i in 1:2, j in 1:2
         H[i,j] = psis[i] ⋅ (j1_mat * psis[j])
       end
-      @test isapprox(Matrix(j1_redrep), H; atol=sqrt(eps(Float64)))
+      @test isapprox(Matrix(j1_redrep), H; atol=tol)
+
+      @testset "get_row_iterator" begin
+        rowvec = zeros(ComplexF64, dimension(rhsr))
+        for irow_r in 1:dimension(rhsr)
+          rowvec[:] .= zero(ComplexF64)
+          for (icol_r, ampl) in get_row_iterator(j1_redrep, irow_r; include_all=false)
+            rowvec[icol_r] += ampl
+          end
+          @test isapprox(rowvec, H[irow_r, :]; atol=tol)
+
+          rowvec[:] .= zero(ComplexF64)
+          err = zero(ComplexF64)
+          for (icol_r, ampl) in get_row_iterator(j1_redrep, irow_r; include_all=true)
+            if 1 <= icol_r <= dimension(rhsr)
+              rowvec[icol_r] += ampl
+            else
+              err += ampl
+            end
+          end
+          @test isapprox(err, 0; atol=tol) # is this necessarily true?
+          @test isapprox(rowvec, H[irow_r, :]; atol=tol)
+        end
+      end
+
+      @testset "get_column_iterator" begin
+        colvec = zeros(ComplexF64, dimension(rhsr))
+        for icol_r in 1:dimension(rhsr)
+          colvec[:] .= zero(ComplexF64)
+          for (irow_r, ampl) in get_column_iterator(j1_redrep, icol_r; include_all=false)
+            colvec[irow_r] += ampl
+          end
+          @test isapprox(colvec, H[:, icol_r]; atol=tol)
+
+          colvec[:] .= zero(ComplexF64)
+          err = zero(ComplexF64)
+          for (irow_r, ampl) in get_column_iterator(j1_redrep, icol_r; include_all=true)
+            if 1 <= irow_r <= dimension(rhsr)
+              colvec[irow_r] += ampl
+            else
+              err += ampl
+            end
+          end
+          @test isapprox(err, 0; atol=tol) # is this necessarily true?
+          @test isapprox(colvec, H[:, icol_r]; atol=tol)
+        end
+      end # testset get_column_iterator
     end
   end # testset ROR
 
 
   @testset "ROR-ALL" begin
-    tol = sqrt(eps(Float64))
     j1_mat = Matrix(represent(hsr, j1))
     @test isapprox(j1_mat, adjoint(j1_mat); atol=tol)
     eigenvalues1 = eigvals(Hermitian(j1_mat))

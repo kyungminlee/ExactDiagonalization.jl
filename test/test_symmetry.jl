@@ -50,3 +50,30 @@ end
   @test is_compatible([0//1, 0//1], [0,0])
   @test !is_compatible([0//1, 1//2], [0,1])
 end
+
+@testset "symmetry_apply" begin
+  QN = Int
+
+  # Test State and Site
+  up = State("Up", 1)
+  dn = State("Dn",-1)
+  spin_site = Site([up, dn])
+
+  hs = HilbertSpace(repeat([spin_site], 4))
+  hss = HilbertSpaceSector(hs, 0)
+  p = Permutation([2,3,4,1])
+  @test symmetry_apply(hs, p, 0b0001) == 0b0010
+  @test symmetry_apply(hss, p, 0b0101) == 0b1010
+
+  nop = NullOperator()
+  pop1 = PureOperator{Float64, UInt}(0b1101, 0b0101, 0b1100, 2.0)
+  pop2 = PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0010, 3.0)
+  sop = pop1 + pop2
+
+  @test symmetry_apply(hs, p, nop) == nop
+  @test symmetry_apply(hs, p, pop1) == PureOperator{Float64, UInt}(0b1011, 0b1010, 0b1001, 2.0)
+  @test symmetry_apply(hs, p, sop) == SumOperator{Float64, UInt}([
+      symmetry_apply(hs, p, pop1), symmetry_apply(hs, p, pop2)])
+
+
+end
