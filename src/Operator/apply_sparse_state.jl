@@ -1,5 +1,10 @@
 export apply, apply!, apply_unsafe!
 
+"""
+    apply!
+
+Apply operator to `psi` and add it to `out`.
+"""
 function apply!(out::SparseState{S1, BR},
                 nullop ::NullOperator,
                 psi::SparseState{S2, BR}) where {S1, S2, BR}
@@ -52,24 +57,6 @@ function apply!(out::SparseState{S1, BR},
     apply!(out, psi, t)
   end
   out
-end
-
-
-"""
-    apply!
-
-Apply operator to `psi` and add it to `out`.
-"""
-function apply!(out::SparseState{S1, BR},
-                nullop ::NullOperator,
-                psi::SparseState{S2, BR}) where {S1, S2, BR}
-  return out
-end
-
-function apply!(out::SparseState{S1, BR},
-                psi::SparseState{S2, BR},
-                nullop ::NullOperator) where {S1, S2, BR}
-  return out
 end
 
 
