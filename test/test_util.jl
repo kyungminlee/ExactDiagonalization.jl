@@ -103,6 +103,7 @@ end
   @test fsa[0x4] == 2
   @test fsa[0x6] == 3
   @test collect(fsa) == [0x2 =>1, 0x4=>2, 0x6=>3]
+  @test collect(k=>v for (k, v) in fsa) == [0x2 =>1, 0x4=>2, 0x6=>3]
   @test length(fsa) == 3
   @test_throws KeyError fsa[0x1]
   @test haskey(fsa, 0x2)
