@@ -1,6 +1,9 @@
 export HilbertSpace
 export quantum_number_sectors, get_quantum_number, extract, compress, update, get_state, get_state_index
 export get_bitmask
+export bitwidth
+export qntype
+export basespace
 
 """
     HilbertSpace{QN}
@@ -37,19 +40,37 @@ struct HilbertSpace{QN} <: AbstractHilbertSpace
   end
 end
 
-import Base.eltype
-@inline eltype(arg ::HilbertSpace{QN}) where QN = Bool
-@inline eltype(arg ::Type{HilbertSpace{QN}}) where QN = Bool
+@inline scalartype(arg ::HilbertSpace{QN}) where QN = Bool
+@inline scalartype(arg ::Type{HilbertSpace{QN}}) where QN = Bool
 
-export qntype
+"""
+    qntype
+
+
+"""
 @inline qntype(arg ::HilbertSpace{QN}) where QN = QN
 @inline qntype(arg ::Type{HilbertSpace{QN}}) where QN = QN
 
 
-export bitwidth
-@inline bitwidth(hs::HilbertSpace) = hs.bitwidths[end]
+"""
+Total number of bits
 
-export basespace
+```jldoctest
+julia> using ExactDiagonalization
+
+julia> spin_site = Site{Int64}([State{Int64}("Up", +1), State{Int64}("Dn", -1)])
+Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)])
+
+julia> hs = HilbertSpace{Int64}([spin_site, spin_site, spin_site,])
+HilbertSpace{Int64}(Site{Int64}[Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)]), Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)]), Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)])], [1, 1, 1], [0, 1, 2, 3])
+
+julia> bitwidth(hs)
+3
+```
+"""
+@inline bitwidth(hs::HilbertSpace) = hs.bitoffsets[end]
+
+
 @inline basespace(hs::HilbertSpace) = hs
 
 import Base.==
@@ -57,15 +78,13 @@ function (==)(lhs ::HilbertSpace{Q1}, rhs ::HilbertSpace{Q2}) where {Q1, Q2}
   return (Q1 == Q2) && (lhs.sites == rhs.sites) #&& (lhs.bitwidths == rhs.bitwidths) && (lhs.bitoffsets == rhs.bitoffsets)
 end
 
-function (==)(lhs ::AbstractHilbertSpace, rhs::AbstractHilbertSpace)
-  return basespace(lhs) == basespace(rhs)
-end
-
-function get_bitmask(hs ::HilbertSpace, isite ::Integer; dtype ::DataType=UInt)
+function get_bitmask(hs ::HilbertSpace, isite ::Integer; dtype ::Type{T}=UInt) ::T where {T<:Unsigned}
   return make_bitmask(hs.bitoffsets[isite+1], hs.bitoffsets[isite]; dtype=dtype)
 end
 
-
+"""
+    quantum_number_sectors
+"""
 function quantum_number_sectors(hs ::HilbertSpace{QN})::Vector{QN} where QN
   qns = Set{QN}([zero(QN)])
   for site in hs.sites
@@ -80,6 +99,9 @@ function quantum_number_sectors(hs ::HilbertSpace{QN})::Vector{QN} where QN
   return sort(collect(qns))
 end
 
+"""
+    get_quantum_number
+"""
 function get_quantum_number(hs ::HilbertSpace{QN}, binrep ::BR) where {QN, BR}
   sum(
     let
@@ -107,7 +129,7 @@ Examples
 ```
 ```
 """
-function extract(hs ::HilbertSpace{QN}, binrep ::U) where {QN, U <:Unsigned}
+function extract(hs ::HilbertSpace{QN}, binrep ::U) ::CartesianIndex where {QN, U <:Unsigned}
   out = Int[]
   for (isite, site) in enumerate(hs.sites)
     mask = make_bitmask(hs.bitwidths[isite]; dtype=U)
@@ -118,14 +140,15 @@ function extract(hs ::HilbertSpace{QN}, binrep ::U) where {QN, U <:Unsigned}
     push!(out, index)
     binrep = binrep >> hs.bitwidths[isite]
   end
-  return out
+  return CartesianIndex(out...)
 end
 
 
 """
 Convert an array of indices (of states) to binary representation
 """
-function compress(hs ::HilbertSpace{QN}, indexarray ::AbstractVector{I}; BR::DataType=UInt) where {QN, I<:Integer}
+#function compress(hs ::HilbertSpace{QN}, indexarray ::AbstractVector{I}; BR::DataType=UInt) where {QN, I<:Integer}
+function compress(hs ::HilbertSpace{QN}, indexarray ::CartesianIndex; BR::DataType=UInt) where QN
   if length(indexarray) != length(hs.sites)
     throw(ArgumentError("length of indexarray should be the number of sites"))
   end
@@ -157,20 +180,25 @@ function get_state(hs ::HilbertSpace, binrep ::U, isite ::Integer) where {U<:Uns
   return hs.sites[isite].states[get_state_index(hs, binrep, isite)]
 end
 
-import Base.iterate
-@inline function iterate(hs ::HilbertSpace{QN}) where {QN}
-  subiterator = Iterators.product((1:length(site.states) for site in hs.sites)...)
-  next = Base.iterate(subiterator)
-  next === nothing && return nothing
-  value, next_substate = next
-  return (Int[value...], (subiterator, next_substate))
-end
+# import Base.iterate
+# @inline function iterate(hs ::HilbertSpace{QN}) where {QN}
+#   subiterator = Iterators.product((1:length(site.states) for site in hs.sites)...)
+#   next = Base.iterate(subiterator)
+#   next === nothing && return nothing
+#   value, next_substate = next
+#   return (Int[value...], (subiterator, next_substate))
+# end
+#
+# import Base.iterate
+# @inline function iterate(hs ::HilbertSpace{QN}, state) where {QN}
+#   (subiterator, substate) = state
+#   next = Base.iterate(subiterator, substate)
+#   next === nothing && return nothing
+#   value, next_substate = next
+#   return (Int[value...], (subiterator, next_substate))
+# end
 
-import Base.iterate
-@inline function iterate(hs ::HilbertSpace{QN}, state) where {QN}
-  (subiterator, substate) = state
-  next = Base.iterate(subiterator, substate)
-  next === nothing && return nothing
-  value, next_substate = next
-  return (Int[value...], (subiterator, next_substate))
+import Base.keys
+@inline function keys(hs ::HilbertSpace{QN}) where QN
+  return CartesianIndices( ((1:length(site.states) for site in hs.sites)..., ) )
 end

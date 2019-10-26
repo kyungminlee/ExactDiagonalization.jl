@@ -1,9 +1,37 @@
 export symmetry_apply
 export is_invariant
 
-## Hilbert Space
+## AbstractSymmetryOperation
+@inline function symmetry_apply(hss::HilbertSpaceSector{QN},
+                                symop ::AbstractSymmetryOperation,
+                                args...; kwargs...) where {QN}
+  return symmetry_apply(hss.parent, symop, args...; kwargs...)
+end
 
-function symmetry_apply(hs::HilbertSpace, permutation ::Permutation, bitrep ::BR) where {BR}
+@inline function is_invariant(hss::HilbertSpaceSector{QN},
+                              symop ::AbstractSymmetryOperation,
+                              args...; kwargs...) where {QN}
+  return is_invariant(hss.parent, symop, args...; kwargs...)
+end
+
+@inline function is_invariant(hss::HilbertSpaceSector{QN},
+                              symgroup ::AbstractSymmetryGroup,
+                              args...; kwargs...) where {QN}
+  return is_invariant(hss.parent, symgroup, args...; kwargs...)
+end
+
+@inline function symmetry_apply(hs ::HilbertSpace{QN}, symop ::AbstractSymmetryOperation, op::NullOperator) where {QN}
+  return op
+end
+
+@inline function symmetry_apply(hs::HilbertSpace{QN}, symop ::AbstractSymmetryOperation, op::SumOperator{S, BR}) where {QN, S<:Number, BR<:Unsigned}
+  terms = collect(symmetry_apply(hs, symop, t) for t in op.terms)
+  return SumOperator{S, BR}(terms)
+end
+
+## Permutation
+### Binary Representation
+function symmetry_apply(hs::HilbertSpace{QN}, permutation ::Permutation, bitrep ::BR) ::BR where {QN, BR<:Unsigned}
   out = zero(BR)
   for (i, j) in enumerate(permutation.map)
     out |= ( ( (bitrep >> hs.bitoffsets[i]) & make_bitmask(hs.bitwidths[i]) ) << hs.bitoffsets[j] )
@@ -11,39 +39,25 @@ function symmetry_apply(hs::HilbertSpace, permutation ::Permutation, bitrep ::BR
   return out
 end
 
-@inline function symmetry_apply(hss::HilbertSpaceSector, permutation ::Permutation, bitrep ::BR) where {BR}
-  return symmetry_apply(hss.parent, permutation, bitrep)
-end
-
-## Operator
-
-function symmetry_apply(permutation ::Permutation, op::NullOperator)
-  return op
-end
-
-function symmetry_apply(permutation ::Permutation, op::PureOperator{S, BR}) where {S,BR}
-  hs = op.hilbert_space
-  bm = symmetry_apply(op.hilbert_space, permutation, op.bitmask)
-  br = symmetry_apply(op.hilbert_space, permutation, op.bitrow)
-  bc = symmetry_apply(op.hilbert_space, permutation, op.bitcol)
+### Operator
+function symmetry_apply(hs::HilbertSpace{QN}, permutation ::Permutation, op::PureOperator{S, BR}) where {QN, S<:Number, BR<:Unsigned}
+  bm = symmetry_apply(hs, permutation, op.bitmask)
+  br = symmetry_apply(hs, permutation, op.bitrow)
+  bc = symmetry_apply(hs, permutation, op.bitcol)
   am = op.amplitude
-  return PureOperator{S, BR}(hs, bm, br, bc, am)
-end
-
-function symmetry_apply(permutation ::Permutation, op::SumOperator{S, BR}) where {S, BR}
-  terms = collect(symmetry_apply(permutation, t) for t in op.terms)
-  return SumOperator{S, BR}(op.hilbert_space, terms)
+  return PureOperator{S, BR}(bm, br, bc, am)
 end
 
 
-### isinvariant
+## isinvariant
 
-function is_invariant(permutation ::Permutation, op::AbstractOperator)
-  return simplify(op - symmetry_apply(permutation, op)) == NullOperator()
+
+function is_invariant(hs::HilbertSpace{QN}, symop ::AbstractSymmetryOperation, op::AbstractOperator) where {QN}
+  return simplify(op - symmetry_apply(hs, symop, op)) == NullOperator()
 end
 
-function is_invariant(trans_group ::TranslationGroup, op::AbstractOperator)
+function is_invariant(hs::HilbertSpace{QN}, symgroup ::AbstractSymmetryGroup, op::AbstractOperator) where {QN}
   return all(
-    is_invariant(g, op) for g in trans_group.generators
+    is_invariant(hs, g, op) for g in symgroup.generators
   )
 end

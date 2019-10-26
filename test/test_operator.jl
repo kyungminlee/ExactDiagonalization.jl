@@ -1,15 +1,33 @@
 using Test
 using ExactDiagonalization
 
+using LinearAlgebra
 using StaticArrays
+
+# if VERSION >= v"1.1" # local type definition
+#   @testset "AbstractOperator" begin
+#     struct Foo <:AbstractOperator
+#     end
+#     x = Foo()
+#     @test_throws ErrorException get_row_iterator(x, 0x1)
+#     @test_throws ErrorException get_column_iterator(x, 0x1)
+#   end
+# end
 
 @testset "NullOperator" begin
   nop = NullOperator()
-  nop2 = NullOperator()
-
   @test isa(nop, NullOperator)
+
+  nop2 = NullOperator()
   @test nop == nop2
   @test (nop < nop) == false
+
+  @testset "typetraits" begin
+    @test scalartype(nop) === Bool
+    @test scalartype(typeof(nop)) === Bool
+    @test bintype(nop) <: Unsigned
+    @test bintype(typeof(nop)) <: Unsigned
+  end
 
   @testset "unary" begin
     @test -nop == nop
@@ -34,7 +52,13 @@ using StaticArrays
     @test 2.0 * nop == nop
     @test (2.0 + 1.0im) * nop == nop
   end
-end
+
+  @testset "iterator" begin
+    nop = NullOperator()
+    @test isempty(collect(get_row_iterator(nop, 0x0)))
+    @test isempty(collect(get_column_iterator(nop, 0x0)))
+  end
+end # testset NullOperator
 
 @testset "PureOperator" begin
   QN = Int
@@ -46,24 +70,40 @@ end
   hs2 = HilbertSpace{QN}([spin_site, spin_site])
   nop = NullOperator()
 
+  @testset "constructor" begin
+    PureOperator{Float64, UInt}(0b0010, 0b0010, 0b0010, 1.0)
+    @test_throws ArgumentError PureOperator{Float64, UInt}(0b0010, 0b0011, 0b0010, 1.0)
+    @test_throws ArgumentError PureOperator{Float64, UInt}(0b0010, 0b0010, 0b0011, 1.0)
+    pop = PureOperator{Float64, UInt}(LinearAlgebra.UniformScaling{Float64}(3.0))
+    @test pop.bitmask == 0x0
+    @test pop.bitrow == 0x0
+    @test pop.bitcol == 0x0
+    @test pop.amplitude == 3.0
+  end
+
   @testset "type" begin
+    bintypes = [UInt8, UInt16, UInt32, UInt64, UInt128]
     types = [Int32, Int64, Float32, Float64, ComplexF32, ComplexF64]
-    for t1 in types
-      pop = PureOperator{t1, UInt}(hs, 0b0010, 0b0000, 0b0000, t1(2))
-      pop.amplitude == t1(2)
+    for t1 in types, bt in bintypes
+      pop = PureOperator{t1, bt}(0b0010, 0b0000, 0b0000, t1(2))
+      @test pop.amplitude == t1(2)
+      @test scalartype(pop) === t1
+      @test scalartype(typeof(pop)) === t1
+      @test bintype(pop) === bt
+      @test bintype(typeof(pop)) === bt
       for t2 in types
         t3 = promote_type(t1, t2)
-        @test promote_type(PureOperator{t1, UInt}, PureOperator{t2, UInt}) == PureOperator{t3, UInt}
-        @test promote_rule(PureOperator{t1, UInt}, PureOperator{t2, UInt}) == PureOperator{t3, UInt}
+        @test promote_type(PureOperator{t1, bt}, PureOperator{t2, bt}) === PureOperator{t3, bt}
+        @test promote_rule(PureOperator{t1, bt}, PureOperator{t2, bt}) === PureOperator{t3, bt}
       end
     end
   end
 
   @testset "convert" begin
-    @test_throws InexactError convert(PureOperator{Float64, UInt}, PureOperator{ComplexF64, UInt}(hs, 0b0010, 0b0000, 0b0000, 2.0 + 1.0im))
+    @test_throws InexactError convert(PureOperator{Float64, UInt}, PureOperator{ComplexF64, UInt}(0b0010, 0b0000, 0b0000, 2.0 + 1.0im))
 
-    t1 = PureOperator{Float64, UInt}(hs,  0b0010, 0b0000, 0b0000, 2.0)
-    t2 = PureOperator{ComplexF64, UInt}(hs,  0b0010, 0b0000, 0b0000, 2.0 + 0.0im)
+    t1 = PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0000, 2.0)
+    t2 = PureOperator{ComplexF64, UInt}(0b0010, 0b0000, 0b0000, 2.0 + 0.0im)
     t3 = convert(PureOperator{ComplexF64, UInt}, t1)
     t4 = convert(PureOperator{Float64, UInt}, t2)
 
@@ -77,46 +117,38 @@ end
     push!(arr2, t2)
   end
 
-  @testset "constructor" begin
-    PureOperator{Float64, UInt}(hs, 0b0010, 0b0010, 0b0010, 1.0)
-    @test_throws ArgumentError PureOperator{Float64, UInt}(hs, 0b0010, 0b0011, 0b0010, 1.0)
-    @test_throws ArgumentError PureOperator{Float64, UInt}(hs, 0b0010, 0b0010, 0b0011, 1.0)
-  end
-
   @testset "equality" begin
-    pop1 = PureOperator{ComplexF64, UInt}(hs, 0b0010, 0b0000, 0b0000, 2.0 + 3.0im)
-    pop2 = PureOperator{ComplexF64, UInt}(hs, 0b0010, 0b0000, 0b0000, 2.0 + 3.0im)
-    pop3 = PureOperator{ComplexF64, UInt}(hs, 0b0010, 0b0000, 0b0000, 2.0 + 1.0im)
+    pop1 = PureOperator{ComplexF64, UInt}(0b0010, 0b0000, 0b0000, 2.0 + 3.0im)
+    pop2 = PureOperator{ComplexF64, UInt}(0b0010, 0b0000, 0b0000, 2.0 + 3.0im)
+    pop3 = PureOperator{ComplexF64, UInt}(0b0010, 0b0000, 0b0000, 2.0 + 1.0im)
     @test pop1 == pop2
     @test pop1 != pop3
   end
 
   @testset "equality-intertype" begin
-    pop1 = PureOperator{Int, UInt}(hs, 0b0010, 0b0000, 0b0000, 2)
-    pop2 = PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0000, 2.0)
-    pop3 = PureOperator{ComplexF64, UInt}(hs, 0b0010, 0b0000, 0b0000, 2.0 + 0.0im)
+    pop1 = PureOperator{Int, UInt}(0b0010, 0b0000, 0b0000, 2)
+    pop2 = PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0000, 2.0)
+    pop3 = PureOperator{ComplexF64, UInt}(0b0010, 0b0000, 0b0000, 2.0 + 0.0im)
 
     # same amplitude in different types
     @test pop1 == pop2
     @test pop1 == pop3
     @test pop2 == pop3
-    
-    # different bitfields
-    @test pop2 != PureOperator{Float64, UInt}(hs, 0b0001, 0b0000, 0b0000, 2.0)
-    @test pop2 != PureOperator{Float64, UInt}(hs, 0b0010, 0b0010, 0b0000, 2.0)
-    @test pop2 != PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0010, 2.0)
 
-    # different hilbert space
-    @test pop2 != PureOperator{Float64, UInt}(hs2, 0b0010, 0b0000, 0b0000, 2.0)
+    # different bitfields
+    @test pop2 != PureOperator{Float64, UInt}(0b0001, 0b0000, 0b0000, 2.0)
+    @test pop2 != PureOperator{Float64, UInt}(0b0010, 0b0010, 0b0000, 2.0)
+    @test pop2 != PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0010, 2.0)
+
   end
 
   @testset "inequality" begin
     nop = NullOperator()
-    pop1 = PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0000, 2.0)
-    pop2 = PureOperator{Float64, UInt}(hs, 0b0100, 0b0000, 0b0000, 1.0)
-    pop3 = PureOperator{Float64, UInt}(hs, 0b0010, 0b0010, 0b0000, 1.0)
-    pop4 = PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0010, 1.0)
-    pop5 = PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0000, 10.0)
+    pop1 = PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0000, 2.0)
+    pop2 = PureOperator{Float64, UInt}(0b0100, 0b0000, 0b0000, 1.0)
+    pop3 = PureOperator{Float64, UInt}(0b0010, 0b0010, 0b0000, 1.0)
+    pop4 = PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0010, 1.0)
+    pop5 = PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0000, 10.0)
     @test nop < pop1
     @test !(pop1 < nop)
     @test pop1 < pop2
@@ -131,33 +163,33 @@ end
 
   @testset "unary" begin
     @testset "real" begin
-      pop1 = PureOperator{Float64, UInt}(hs, 0b0010, 0b0010, 0b0000, 2.0)
-      pop2 = PureOperator{Float64, UInt}(hs, 0b0010, 0b0010, 0b0000, 2.0)
+      pop1 = PureOperator{Float64, UInt}(0b0010, 0b0010, 0b0000, 2.0)
+      pop2 = PureOperator{Float64, UInt}(0b0010, 0b0010, 0b0000, 2.0)
       @test pop1 == pop2
       @test (+pop1).amplitude == 2.0
       @test (-pop1).amplitude == -2.0
       @test (real(pop1)) == pop1
       @test (imag(pop1)) != NullOperator()
-      @test (imag(pop1)) == PureOperator{Float64, UInt}(hs, 0b0010, 0b0010, 0b0000, 0.0)
+      @test (imag(pop1)) == PureOperator{Float64, UInt}(0b0010, 0b0010, 0b0000, 0.0)
       @test conj(pop1) == pop1
-      @test transpose(pop1) == PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0010, 2.0)
-      @test adjoint(pop1) == PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0010, 2.0)
+      @test transpose(pop1) == PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0010, 2.0)
+      @test adjoint(pop1) == PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0010, 2.0)
     end
 
     @testset "complex" begin
-      pop1 = PureOperator{ComplexF64, UInt}(hs, 0b0010, 0b0010, 0b0000, 2.0 + 3.0im)
-      pop2 = PureOperator{ComplexF64, UInt}(hs, 0b0010, 0b0010, 0b0000, 2.0 + 3.0im)
+      pop1 = PureOperator{ComplexF64, UInt}(0b0010, 0b0010, 0b0000, 2.0 + 3.0im)
+      pop2 = PureOperator{ComplexF64, UInt}(0b0010, 0b0010, 0b0000, 2.0 + 3.0im)
       @test pop1 == pop2
       @test (+pop1).amplitude == 2.0 + 3.0im
       @test (-pop1).amplitude == -2.0 - 3.0im
       @test (real(pop1)).amplitude == 2.0
       @test (imag(pop1)).amplitude == 3.0
 
-      @test real(pop1)      == PureOperator{Float64, UInt}(hs, 0b0010, 0b0010, 0b0000, 2.0)
-      @test imag(pop1)      == PureOperator{Float64, UInt}(hs, 0b0010, 0b0010, 0b0000, 3.0)
-      @test conj(pop1)      == PureOperator{ComplexF64, UInt}(hs, 0b0010, 0b0010, 0b0000, 2.0 - 3.0im)
-      @test transpose(pop1) == PureOperator{ComplexF64, UInt}(hs, 0b0010, 0b0000, 0b0010, 2.0 + 3.0im)
-      @test adjoint(pop1)   == PureOperator{ComplexF64, UInt}(hs, 0b0010, 0b0000, 0b0010, 2.0 - 3.0im)
+      @test real(pop1)      == PureOperator{Float64, UInt}(0b0010, 0b0010, 0b0000, 2.0)
+      @test imag(pop1)      == PureOperator{Float64, UInt}(0b0010, 0b0010, 0b0000, 3.0)
+      @test conj(pop1)      == PureOperator{ComplexF64, UInt}(0b0010, 0b0010, 0b0000, 2.0 - 3.0im)
+      @test transpose(pop1) == PureOperator{ComplexF64, UInt}(0b0010, 0b0000, 0b0010, 2.0 + 3.0im)
+      @test adjoint(pop1)   == PureOperator{ComplexF64, UInt}(0b0010, 0b0000, 0b0010, 2.0 - 3.0im)
     end
   end
 
@@ -166,8 +198,8 @@ end
       @testset "types" begin
         types = [Int, Float64, ComplexF64]
         for t1 in types, t2 in types
-          pop1 = PureOperator{t1, UInt}(hs, 0b0010, 0b0000, 0b0000, t1(2))
-          pop2 = PureOperator{t2, UInt}(hs, 0b0010, 0b0000, 0b0000, t2(2))
+          pop1 = PureOperator{t1, UInt}(0b0010, 0b0000, 0b0000, t1(2))
+          pop2 = PureOperator{t2, UInt}(0b0010, 0b0000, 0b0000, t2(2))
           t3 = promote_type(t1, t2)
           pop3 = pop1 * pop2
           pop4 = pop2 * pop1
@@ -181,15 +213,20 @@ end
       end
 
       @testset "scalar" begin
-        pop = PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0010, 2.0)
-        @test pop * 3.0 == PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0010, 6.0)
-        @test pop * (3.0 + 1.0im) == PureOperator{ComplexF64, UInt}(hs, 0b0010, 0b0000, 0b0010, 6.0 + 2.0im)        
-        @test 3.0 * pop == PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0010, 6.0)
-        @test (3.0 + 1.0im) * pop == PureOperator{ComplexF64, UInt}(hs, 0b0010, 0b0000, 0b0010, 6.0 + 2.0im)        
+        pop = PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0010, 2.0)
+        @test pop * 3.0 == PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0010, 2.0 * 3.0)
+        @test pop * (3.0 + 1.0im) == PureOperator{ComplexF64, UInt}(0b0010, 0b0000, 0b0010, 2.0 * (3.0 + 1.0im))
+        @test 3.0 * pop == PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0010, 3.0 * 2.0)
+        @test (3.0 + 1.0im) * pop == PureOperator{ComplexF64, UInt}(0b0010, 0b0000, 0b0010, (3.0 + 1.0im) * 2.0)
+
+        @test pop / 3.0 == PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0010, 2.0 / 3.0)
+        @test pop / (3.0 + 1.0im) == PureOperator{ComplexF64, UInt}(0b0010, 0b0000, 0b0010, 2.0 / (3.0 + 1.0im) )
+        @test 3.0 \ pop == PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0010, 3.0 \ 2.0)
+        @test (3.0 + 1.0im) \ pop == PureOperator{ComplexF64, UInt}(0b0010, 0b0000, 0b0010, (3.0 + 1.0im) \ 2.0)
       end
-    
+
       @testset "nullop" begin
-        pop = PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0010, 2.0)
+        pop = PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0010, 2.0)
         nop = NullOperator()
 
         @test pop + nop == pop
@@ -199,33 +236,33 @@ end
         @test pop * nop == nop
         @test nop * pop == nop
       end
-      
-      @testset "hilbert" begin
-        pop1 = PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0010, 2.0)
-        pop2 = PureOperator{Float64, UInt}(hs, 0b1000, 0b1000, 0b0000, 3.0)        
-        pop3 = PureOperator{Float64, UInt}(hs2, 0b1000, 0b1000, 0b0000, 3.0)        
-        pop1 * pop2
-        @test_throws ArgumentError pop1 * pop3
-      end
 
       @testset "disjoint" begin
-        pop1 = PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0010, 2.0)
-        pop2 = PureOperator{Float64, UInt}(hs, 0b1000, 0b1000, 0b0000, 3.0)        
-        @test pop1 * pop2 == PureOperator{Float64, UInt}(hs, 0b1010, 0b1000, 0b0010, 6.0)
+        pop1 = PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0010, 2.0)
+        pop2 = PureOperator{Float64, UInt}(0b1000, 0b1000, 0b0000, 3.0)
+        @test pop1 * pop2 == PureOperator{Float64, UInt}(0b1010, 0b1000, 0b0010, 6.0)
       end
 
       @testset "compatible" begin
-        pop1 = PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0010, 2.0)
-        pop2 = PureOperator{Float64, UInt}(hs, 0b1010, 0b1010, 0b1000, 3.0)
-        @test pop1 * pop2 == PureOperator{Float64, UInt}(hs, 0b1010, 0b1000, 0b1000, 6.0)
+        pop1 = PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0010, 2.0)
+        pop2 = PureOperator{Float64, UInt}(0b1010, 0b1010, 0b1000, 3.0)
+        @test pop1 * pop2 == PureOperator{Float64, UInt}(0b1010, 0b1000, 0b1000, 6.0)
       end
 
       @testset "conflict" begin
-        pop1 = PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0010, 2.0)
-        pop2 = PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0000, 3.0)
+        pop1 = PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0010, 2.0)
+        pop2 = PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0000, 3.0)
         @test pop1 * pop2 == NullOperator()
       end
     end
+  end
+
+  @testset "iterator" begin
+    pop = PureOperator{Float64, UInt}(0b1010, 0b0010, 0b0000, 2.0)
+    @test collect(get_row_iterator(pop, 0b0000)) == []
+    @test collect(get_row_iterator(pop, 0b0010)) == [0b0000 => 2.0]
+    @test collect(get_column_iterator(pop, 0b0000)) == [0b0010 => 2.0]
+    @test collect(get_column_iterator(pop, 0b1111)) == []
   end
 end
 
@@ -240,47 +277,58 @@ end
   nop = NullOperator()
 
   @testset "constructor" begin
-    pop1 = PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0000, 2.0)
-    pop2 = PureOperator{Int, UInt}(hs, 0b0001, 0b0001, 0b0001, 3)
-    sop = SumOperator{Float64, UInt}(hs, [pop1, pop2])
-    @test sop.hilbert_space == pop1.hilbert_space
+    pop1 = PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0000, 2.0)
+    pop2 = PureOperator{Int, UInt}(0b0001, 0b0001, 0b0001, 3)
+    sop = SumOperator{Float64, UInt}([pop1, pop2])
     @test sop.terms[1] == pop1
     @test sop.terms[2] == pop2
 
     # empty
-    SumOperator{ComplexF64, UInt}(hs, [])
-    
-    pop3 = PureOperator{ComplexF64, UInt}(hs, 0b0010, 0b0000, 0b0010, 3.0 + 4.0im)
-    @test_throws InexactError SumOperator{Float64, UInt}(hs, [pop1, pop3])
-    
-    # hilbert space mismatch
-    pop4 = PureOperator{Float64, UInt}(hs2, 0b0001, 0b0001, 0b0001, 3.0)
-    @test_throws ArgumentError SumOperator{Float64, UInt}(hs, [pop1, pop4])
+    SumOperator{ComplexF64, UInt}([])
+
+    pop3 = PureOperator{ComplexF64, UInt}(0b0010, 0b0000, 0b0010, 3.0 + 4.0im)
+    @test_throws InexactError SumOperator{Float64, UInt}([pop1, pop3])
+
+    @test scalartype(sop) === Float64
+    @test scalartype(typeof(sop)) === Float64
+    @test bintype(sop) === UInt
+    @test bintype(typeof(sop)) === UInt
   end
-  
+
   @testset "equality" begin
-    pop1 = PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0000, 2.0)
-    pop2 = PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0010, 3.0)
-    pop3 = PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0000, 4.0)
-    sop1 = SumOperator{Float64, UInt}(hs, [pop1, pop2])
-    sop2 = SumOperator{Float64, UInt}(hs, [pop1, pop3])
+    pop1 = PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0000, 2.0)
+    pop2 = PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0010, 3.0)
+    pop3 = PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0000, 4.0)
+    sop1 = SumOperator{Float64, UInt}([pop1, pop2])
+    sop2 = SumOperator{Float64, UInt}([pop1, pop3])
     @test sop1 == sop1
     @test sop1 != sop2
 
     # compare across types
-    pop4 = PureOperator{ComplexF64, UInt}(hs, 0b0010, 0b0000, 0b0010, 3.0+0.0im)
-    sop3 = SumOperator{ComplexF64, UInt}(hs, [pop1, pop4])
+    pop4 = PureOperator{ComplexF64, UInt}(0b0010, 0b0000, 0b0010, 3.0+0.0im)
+    sop3 = SumOperator{ComplexF64, UInt}([pop1, pop4])
     @test sop1 == sop3
   end
 
+    @testset "type" begin
+      bintypes = [UInt8, UInt16, UInt32, UInt64, UInt128]
+      types = [Int32, Int64, Float32, Float64, ComplexF32, ComplexF64]
+      for t1 in types, bt in bintypes
+        for t2 in types
+          t3 = promote_type(t1, t2)
+          @test promote_type(SumOperator{t1, bt}, SumOperator{t2, bt}) === SumOperator{t3, bt}
+          @test promote_rule(SumOperator{t1, bt}, SumOperator{t2, bt}) === SumOperator{t3, bt}
+        end
+      end
+    end
 
   @testset "convert" begin
-    @test_throws InexactError convert(PureOperator{Float64, UInt}, PureOperator{ComplexF64, UInt}(hs, 0b0010, 0b0000, 0b0000, 2.0 + 1.0im))
+    @test_throws InexactError convert(PureOperator{Float64, UInt}, PureOperator{ComplexF64, UInt}(0b0010, 0b0000, 0b0000, 2.0 + 1.0im))
 
-    pop1 = PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0000, 2.0)
-    pop2 = PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0010, 3.0)
-    sop1 = SumOperator{Float64, UInt}(hs, [pop1, pop2])
-    sop2 = SumOperator{ComplexF64, UInt}(hs, [pop1, pop2])
+    pop1 = PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0000, 2.0)
+    pop2 = PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0010, 3.0)
+    sop1 = SumOperator{Float64, UInt}([pop1, pop2])
+    sop2 = SumOperator{ComplexF64, UInt}([pop1, pop2])
     sop3 = convert(SumOperator{ComplexF64, UInt}, sop1)
     sop4 = convert(SumOperator{Float64, UInt}, sop2)
 
@@ -294,17 +342,12 @@ end
     push!(arr2, sop2)
   end
 
-  
+
   @testset "unary" begin
     @testset "real" begin
-      pop1 = PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0000, 2.0)
-      pop2 = PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0010, 3.0)
-      sop = SumOperator{Float64, UInt}(hs, [pop1, pop2])
-      
-      @test (+sop).hilbert_space == sop.hilbert_space
-      @test (-sop).hilbert_space == sop.hilbert_space
-      @test real(sop).hilbert_space == sop.hilbert_space
-      @test imag(sop).hilbert_space == sop.hilbert_space
+      pop1 = PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0000, 2.0)
+      pop2 = PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0010, 3.0)
+      sop = SumOperator{Float64, UInt}([pop1, pop2])
 
       @test (+sop).terms == [pop1, pop2]
       @test (-sop).terms == [-pop1, -pop2]
@@ -318,15 +361,10 @@ end
     end
 
     @testset "complex" begin
-      pop1 = PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0000, 2.0)
-      pop2 = PureOperator{ComplexF64, UInt}(hs, 0b0010, 0b0000, 0b0010, 3.0 + 4.0im)
-      @test_throws InexactError SumOperator{Float64, UInt}(hs, [pop1, pop2])
-      sop = SumOperator{ComplexF64, UInt}(hs, [pop1, pop2])
-      
-      @test (+sop).hilbert_space == sop.hilbert_space
-      @test (-sop).hilbert_space == sop.hilbert_space
-      @test real(sop).hilbert_space == sop.hilbert_space
-      @test imag(sop).hilbert_space == sop.hilbert_space
+      pop1 = PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0000, 2.0)
+      pop2 = PureOperator{ComplexF64, UInt}(0b0010, 0b0000, 0b0010, 3.0 + 4.0im)
+      @test_throws InexactError SumOperator{Float64, UInt}([pop1, pop2])
+      sop = SumOperator{ComplexF64, UInt}([pop1, pop2])
 
       @test (+sop).terms == [pop1, pop2]
       @test (-sop).terms == [-pop1, -pop2]
@@ -341,75 +379,62 @@ end
   end
 
   @testset "binary" begin
-    @testset "hilbert" begin
-      pop1 = PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0000, 2.0)
-      pop2 = PureOperator{ComplexF64, UInt}(hs, 0b0010, 0b0000, 0b0010, 3.0 + 4.0im)
-      pop3 = PureOperator{ComplexF64, UInt}(hs2, 0b0010, 0b0000, 0b0010, 3.0 + 4.0im)
-      sop = SumOperator{ComplexF64, UInt}(hs, [pop1, pop2])
-      @test_throws ArgumentError sop + pop3
-      @test_throws ArgumentError sop - pop3
-      @test_throws ArgumentError sop * pop3
-
-      @test_throws ArgumentError pop3 + sop
-      @test_throws ArgumentError pop3 - sop
-      @test_throws ArgumentError pop3 * sop
-
-      @test_throws ArgumentError sop + SumOperator{ComplexF64, UInt}(hs2, [])
-      @test_throws ArgumentError sop - SumOperator{ComplexF64, UInt}(hs2, [])
-      @test_throws ArgumentError sop * SumOperator{ComplexF64, UInt}(hs2, [])
-    end
-
     @testset "sum" begin
-      pop1 = PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0000, 2.0)
-      pop2 = PureOperator{ComplexF64, UInt}(hs, 0b0010, 0b0000, 0b0010, 3.0 + 4.0im)
-      @test pop1 + pop2 == SumOperator{ComplexF64, UInt}(hs, [pop1, pop2])
-      @test pop1 - pop2 == SumOperator{ComplexF64, UInt}(hs, [pop1,-pop2])
+      pop1 = PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0000, 2.0)
+      pop2 = PureOperator{ComplexF64, UInt}(0b0010, 0b0000, 0b0010, 3.0 + 4.0im)
+      @test pop1 + pop2 == SumOperator{ComplexF64, UInt}([pop1, pop2])
+      @test pop1 - pop2 == SumOperator{ComplexF64, UInt}([pop1,-pop2])
 
-      sop = SumOperator{ComplexF64, UInt}(hs, [pop1, pop2])
-      pop3 = PureOperator{Float64, UInt}(hs, 0b0010, 0b0010, 0b0010, 5.0)
-      @test sop + pop3 == SumOperator{ComplexF64, UInt}(hs, [pop1, pop2, pop3])
-      @test sop - pop3 == SumOperator{ComplexF64, UInt}(hs, [pop1, pop2,-pop3])
-      @test pop3 + sop == SumOperator{ComplexF64, UInt}(hs, [pop3, pop1, pop2])
-      @test pop3 - sop == SumOperator{ComplexF64, UInt}(hs, [pop3,-pop1,-pop2])
+      sop = SumOperator{ComplexF64, UInt}([pop1, pop2])
+      pop3 = PureOperator{Float64, UInt}(0b0010, 0b0010, 0b0010, 5.0)
+      @test sop + pop3 == SumOperator{ComplexF64, UInt}([pop1, pop2, pop3])
+      @test sop - pop3 == SumOperator{ComplexF64, UInt}([pop1, pop2,-pop3])
+      @test pop3 + sop == SumOperator{ComplexF64, UInt}([pop3, pop1, pop2])
+      @test pop3 - sop == SumOperator{ComplexF64, UInt}([pop3,-pop1,-pop2])
 
-      @test_throws ArgumentError sop + SumOperator{ComplexF64, UInt}(hs2, [])
-      @test_throws ArgumentError sop - SumOperator{ComplexF64, UInt}(hs2, [])
-
-      pop4 = PureOperator{ComplexF64, UInt}(hs, 0b0100, 0b0100, 0b0000, 6.0+1.0im)
-      sop2 = SumOperator{ComplexF64, UInt}(hs, [pop3, pop4])
-      @test sop + sop2 == SumOperator{ComplexF64, UInt}(hs, [pop1, pop2, pop3, pop4])
-      @test sop - sop2 == SumOperator{ComplexF64, UInt}(hs, [pop1, pop2,-pop3,-pop4])
+      pop4 = PureOperator{ComplexF64, UInt}(0b0100, 0b0100, 0b0000, 6.0+1.0im)
+      sop2 = SumOperator{ComplexF64, UInt}([pop3, pop4])
+      @test sop + sop2 == SumOperator{ComplexF64, UInt}([pop1, pop2, pop3, pop4])
+      @test sop - sop2 == SumOperator{ComplexF64, UInt}([pop1, pop2,-pop3,-pop4])
     end
 
     @testset "product" begin
-      pop1 = PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0000, 2.0)
-      pop2 = PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0010, 3.0)
-      pop3 = PureOperator{ComplexF64, UInt}(hs, 0b0010, 0b0000, 0b0010, 3.0 + 4.0im)
-      pop4 = PureOperator{ComplexF64, UInt}(hs, 0b0010, 0b0010, 0b0000, 5.0 + 6.0im)
+      pop1 = PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0000, 2.0)
+      pop2 = PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0010, 3.0)
+      pop3 = PureOperator{ComplexF64, UInt}(0b0010, 0b0000, 0b0010, 3.0 + 4.0im)
+      pop4 = PureOperator{ComplexF64, UInt}(0b0010, 0b0010, 0b0000, 5.0 + 6.0im)
       sop = pop1 + pop2
 
       # scalar
-      @test sop * 2 == SumOperator{Float64, UInt}(hs, [pop1*2, pop2*2])
-      @test sop * 2.0 == SumOperator{Float64, UInt}(hs, [pop1*2.0, pop2*2.0])
-      @test sop * (2.0+1.0im) == SumOperator{ComplexF64, UInt}(hs, [pop1*(2.0+1.0im), pop2*(2.0+1.0im)])
+      @test sop * 2 == SumOperator{Float64, UInt}([pop1*2, pop2*2])
+      @test sop * 2.0 == SumOperator{Float64, UInt}([pop1*2.0, pop2*2.0])
+      @test sop * (2.0+1.0im) == SumOperator{ComplexF64, UInt}([pop1*(2.0+1.0im), pop2*(2.0+1.0im)])
 
-      @test 2 * sop == SumOperator{Float64, UInt}(hs, [pop1*2, pop2*2])
-      @test 2.0 * sop == SumOperator{Float64, UInt}(hs, [pop1*2.0, pop2*2.0])
-      @test (2.0+1.0im) * sop == SumOperator{ComplexF64, UInt}(hs, [pop1*(2.0+1.0im), pop2*(2.0+1.0im)])
+      @test 2 * sop == SumOperator{Float64, UInt}([pop1*2, pop2*2])
+      @test 2.0 * sop == SumOperator{Float64, UInt}([pop1*2.0, pop2*2.0])
+      @test (2.0+1.0im) * sop == SumOperator{ComplexF64, UInt}([pop1*(2.0+1.0im), pop2*(2.0+1.0im)])
+
+      @test sop / 2 == SumOperator{Float64, UInt}([pop1/2, pop2/2])
+      @test sop / 2.0 == SumOperator{Float64, UInt}([pop1/2.0, pop2/2.0])
+      @test sop / (2.0+1.0im) == SumOperator{ComplexF64, UInt}([pop1/(2.0+1.0im), pop2/(2.0+1.0im)])
+
+      @test 2 \ sop == SumOperator{Float64, UInt}([2\pop1, 2\pop2])
+      @test 2.0 \ sop == SumOperator{Float64, UInt}([2.0\pop1, 2.0\pop2])
+      @test (2.0+1.0im) \ sop == SumOperator{ComplexF64, UInt}([(2.0+1.0im) \ pop1, (2.0+1.0im) \ pop2])
 
       pop5 = pop1 * pop3
       pop6 = pop2 * pop3
       @test pop6 == NullOperator()
-      @test sop * pop3 == SumOperator{ComplexF64, UInt}(hs, [pop5])
+      @test sop * pop3 == SumOperator{ComplexF64, UInt}([pop5])
 
       pop7 = pop4 * pop1
       pop8 = pop4 * pop2
       @test pop7 != NullOperator()
       @test pop8 != NullOperator()
-      @test pop4 * sop == SumOperator{ComplexF64, UInt}(hs, [pop7, pop8])
+      @test pop4 * sop == SumOperator{ComplexF64, UInt}([pop7, pop8])
 
       sop2 = pop1 + pop2 + pop4
-      nonzeroterms = filter((x) -> !isa(x, NullOperator), 
+      nonzeroterms = filter((x) -> !isa(x, NullOperator),
                             [pop1*pop1,
                              pop2*pop1,
                              pop4*pop1,
@@ -421,20 +446,40 @@ end
                              pop4*pop4,
                             ])
       @test length(nonzeroterms) == 5
-      @test sop2 * sop2 == SumOperator{ComplexF64, UInt}(hs, nonzeroterms)
+      @test sop2 * sop2 == SumOperator{ComplexF64, UInt}(nonzeroterms)
     end
   end
+
+  @testset "iterator" begin
+    pop1 = PureOperator{Float64, UInt}(0b1010, 0b0010, 0b0000, 2.0)
+    pop2 = PureOperator{Float64, UInt}(0b0001, 0b0000, 0b0001, 3.0)
+    sop = pop1 + pop2
+
+    # 0_1_ , 0_0_ , 2.0
+    # ___0 , ___1 , 3.0
+
+    @test collect(get_row_iterator(sop, 0b1000)) == [0b1001 => 3.0]
+    @test collect(get_row_iterator(sop, 0b0010)) == [0b0000 => 2.0, 0b0011 => 3.0]
+
+    @test collect(get_column_iterator(sop, 0b1000)) == []
+    @test collect(get_column_iterator(sop, 0b0101)) == [0b0111 => 2.0, 0b0100 => 3.0]
+
+
+    # @test collect(get_column_iterator(pop, 0b0000)) == [0b0010 => 2.0]
+    # @test collect(get_column_iterator(pop, 0b1111)) == []
+  end
+
 end
 
-  # popA00 = PureOperator{Float64, UInt}(hs, 0b0010, 0b0000, 0b0000, 2.0)
-  # popA01 = PureOperator{ComplexF64, UInt}(hs, 0b0010, 0b0000, 0b0010, 3.0+im)
-  # popA10 = PureOperator{ComplexF64, UInt}(hs, 0b0010, 0b0010, 0b0000, 4.0+2im)
-  # popA11 = PureOperator{ComplexF64, UInt}(hs, 0b0010, 0b0010, 0b0010, 5.0+0im)
+  # popA00 = PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0000, 2.0)
+  # popA01 = PureOperator{ComplexF64, UInt}(0b0010, 0b0000, 0b0010, 3.0+im)
+  # popA10 = PureOperator{ComplexF64, UInt}(0b0010, 0b0010, 0b0000, 4.0+2im)
+  # popA11 = PureOperator{ComplexF64, UInt}(0b0010, 0b0010, 0b0010, 5.0+0im)
 
-  # popB00 = PureOperator{ComplexF64, UInt}(hs, 0b1000, 0b0000, 0b0000, 2.0+im)
-  # popB01 = PureOperator{ComplexF64, UInt}(hs, 0b1000, 0b0000, 0b1000, 3.0+im)
-  # popB10 = PureOperator{ComplexF64, UInt}(hs, 0b1000, 0b1000, 0b0000, 4.0+2im)
-  # popB11 = PureOperator{ComplexF64, UInt}(hs, 0b1000, 0b1000, 0b1000, 5.0+0im)
+  # popB00 = PureOperator{ComplexF64, UInt}(0b1000, 0b0000, 0b0000, 2.0+im)
+  # popB01 = PureOperator{ComplexF64, UInt}(0b1000, 0b0000, 0b1000, 3.0+im)
+  # popB10 = PureOperator{ComplexF64, UInt}(0b1000, 0b1000, 0b0000, 4.0+2im)
+  # popB11 = PureOperator{ComplexF64, UInt}(0b1000, 0b1000, 0b1000, 5.0+0im)
 
   # -popA00
   # +popA00
@@ -460,4 +505,3 @@ end
   # sop + nop
   # sop + pop
   # sop + sop
-

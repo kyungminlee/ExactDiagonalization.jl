@@ -11,41 +11,44 @@ using StaticArrays
   spin_site = Site([up, dn])
   site = Site([em, up, dn])
   hs = HilbertSpace([site, site, spin_site, site])
-  hs2 = HilbertSpace([site, spin_site, site, site])
 
   @testset "constructor" begin
-    ψ1 = SparseState{ComplexF64, UInt}(hs, UInt(0b0010001))
-    @test ψ1.hilbert_space == hs
+    ψ1 = SparseState{ComplexF64, UInt}(UInt(0b0010001))
 
     @test ψ1.components == Dict(UInt(0x11) => 1.0 + 0.0im)
     @test ψ1[UInt(0x11)] == 1.0 + 0.0im
     @test ψ1.components == Dict(UInt(0x11) => 1.0 + 0.0im)
 
-    ψ2 = SparseState{ComplexF64, UInt}(hs)
+    ψ2 = SparseState{ComplexF64, UInt}()
     ψ2[UInt(0b0010001)] = 1.0
     @test ψ2.components == Dict(UInt(0x11) => 1.0 + 0.0im)
 
-    ψ3 = SparseState{ComplexF64, UInt}(hs, UInt(0b0010001) => 2.0)
+    ψ3 = SparseState{ComplexF64, UInt}(UInt(0b0010001) => 2.0)
     @test ψ3.components == Dict(UInt(0x11) => 2.0 + 0.0im)
 
-    ψ4 = SparseState{ComplexF64, UInt}(hs, UInt(0b0000001) => 2.0, UInt(0b0010001) => 3.0 )
+    ψ4 = SparseState{ComplexF64, UInt}(UInt(0b0000001) => 2.0, UInt(0b0010001) => 3.0 )
     @test ψ4.components == Dict(UInt(0x11) => 3.0 + 0.0im, UInt(0x1) => 2.0 + 0.0im)
+
+    ψ5 = SparseState{ComplexF64, UInt}(Dict(UInt(0b0000001) => 2.0, UInt(0b0010001) => 3.0 ))
+    @test ψ5.components == Dict(UInt(0x11) => 3.0 + 0.0im, UInt(0x1) => 2.0 + 0.0im)
   end
 
-  @testset "hilbert" begin
-    ψ1 = SparseState{ComplexF64, UInt}(hs, UInt(0b0010001))
-    ψ2 = SparseState{ComplexF64, UInt}(hs2, UInt(0b0010001))
-    @test ψ1 != ψ2
-    @test_throws ArgumentError ψ1 + ψ2
-    @test_throws ArgumentError ψ1 - ψ2
+  @testset "type" begin
+    ψ1 = SparseState{ComplexF64, UInt32}(UInt32(0b0010001))
+    @test scalartype(ψ1) === ComplexF64
+    @test scalartype(typeof(ψ1)) === ComplexF64
+    @test bintype(ψ1) === UInt32
+    @test bintype(typeof(ψ1)) === UInt32
+    @test eltype(ψ1) === Pair{UInt32, ComplexF64}
+    @test eltype(typeof(ψ1)) === Pair{UInt32, ComplexF64}
   end
 
   @testset "equality" begin
-    ψ1 = SparseState{ComplexF64, UInt}(hs, UInt(0b0010001))
-    ψ2 = SparseState{ComplexF64, UInt}(hs)
+    ψ1 = SparseState{ComplexF64, UInt}(UInt(0b0010001))
+    ψ2 = SparseState{ComplexF64, UInt}()
     ψ2[UInt(0b0010001)] = 1.0
-    ψ3 = SparseState{ComplexF64, UInt}(hs, UInt(0b0010000))
-    ψ4 = SparseState{ComplexF64, UInt}(hs)
+    ψ3 = SparseState{ComplexF64, UInt}(UInt(0b0010000))
+    ψ4 = SparseState{ComplexF64, UInt}()
     ψ4[UInt(0b0010001)] = 2.0
 
     @test ψ1 == ψ2
@@ -54,12 +57,8 @@ using StaticArrays
   end
 
   @testset "isapprox" begin
-    ψ1 = SparseState{ComplexF64, UInt}(hs, UInt(0b0010001) => 1.0 + 0.0im)
+    ψ1 = SparseState{ComplexF64, UInt}(UInt(0b0010001) => 1.0 + 0.0im)
     @test isapprox(ψ1, ψ1)
-    let
-      ψ2 = SparseState{ComplexF64, UInt}(hs2, UInt(0b0010001) => 1.0 + 0.0im)
-      @test !isapprox(ψ1, ψ2)
-    end
     let
       ψ2 = copy(ψ1)
       ψ2[UInt(0b0010001)] += 1E-13
@@ -74,9 +73,30 @@ using StaticArrays
     end
   end
 
+  @testset "iterate" begin
+    ψ = SparseState{ComplexF64, UInt}(Dict(UInt(0b0000001) => 2.0, UInt(0b0010001) => 3.0 ))
+    @test Dict(collect(ψ)) == Dict(UInt(0b0000001) => 2.0+0.0im, UInt(0b0010001) => 3.0+0.0im)
+    @test Set([k for (k, v) in ψ]) == Set(UInt[0b0000001, 0b0010001])
+    @test Set([v for (k, v) in ψ]) == Set([2.0+0.0im, 3.0+0.0im])
+    @test length(ψ) == 2
+  end
+
+  @testset "choptol!" begin
+    let
+      d = SparseState{ComplexF64, UInt}(UInt(0b0000001) => 0.0, UInt(0b0010001) => 1E-9)
+      choptol!(d, 1E-12)
+      @test d.components == Dict(UInt(0b0010001)=>1E-9 + 0.0im)
+    end
+    let
+      d = SparseState{ComplexF64, UInt}(UInt(0b0000001) => 0.0, UInt(0b0010001) => 1E-9)
+      choptol!(d, 1E-6)
+      @test d.components == Dict()
+    end
+  end
+
   @testset "convert" begin
-    ψr = SparseState{Float64, UInt}(hs, UInt(0b00100001) => 2.0)
-    ψc = SparseState{ComplexF64, UInt}(hs, UInt(0b00100001) => 2.0 + 0.0im)
+    ψr = SparseState{Float64, UInt}(UInt(0b00100001) => 2.0)
+    ψc = SparseState{ComplexF64, UInt}(UInt(0b00100001) => 2.0 + 0.0im)
     ψc_r = convert(SparseState{Float64, UInt}, ψc)
     ψr_c = convert(SparseState{ComplexF64, UInt}, ψr)
     @test typeof(ψr) == typeof(ψc_r)
@@ -84,13 +104,13 @@ using StaticArrays
     @test typeof(ψc) == typeof(ψr_c)
     @test ψc == ψr_c
 
-    ψc2 = SparseState{ComplexF64, UInt}(hs, UInt(0b00100001) => 1.0 + 2.0im)
+    ψc2 = SparseState{ComplexF64, UInt}(UInt(0b00100001) => 1.0 + 2.0im)
     @test_throws InexactError convert(SparseState{Float64, UInt}, ψc2)
   end
 
   @testset "unary" begin
     @testset "real" begin
-      ψ1 = SparseState{Float64, UInt}(hs)
+      ψ1 = SparseState{Float64, UInt}()
       @test isempty(ψ1)
       ψ1[UInt(0b0000001)] = 3.0
       @test !isempty(ψ1)
@@ -107,7 +127,7 @@ using StaticArrays
     end
 
     @testset "complex" begin
-      ψ1 = SparseState{ComplexF64, UInt}(hs)
+      ψ1 = SparseState{ComplexF64, UInt}()
       @test isempty(ψ1)
       ψ1[UInt(0b0000001)] = 3.0 + im
       @test !isempty(ψ1)
@@ -124,13 +144,13 @@ using StaticArrays
     end
 
     @testset "normalize" begin
-      ψ0 = SparseState{ComplexF64, UInt}(hs)
+      ψ0 = SparseState{ComplexF64, UInt}()
       @test norm(ψ0) == 0.0
 
-      ψ = SparseState{ComplexF64, UInt}(hs, UInt(0b0000) => 3.0 + 4.0im)
+      ψ = SparseState{ComplexF64, UInt}(UInt(0b0000) => 3.0 + 4.0im)
       @test isapprox(norm(ψ), 5.0)
       ψ2 = normalize(ψ)
-      @test isapprox(ψ2, SparseState{ComplexF64, UInt}(hs, UInt(0b0000) => 0.6 + 0.8im))
+      @test isapprox(ψ2, SparseState{ComplexF64, UInt}(UInt(0b0000) => 0.6 + 0.8im))
 
       @test isapprox(normalize!(ψ), ψ2)
       @test isapprox(ψ, ψ2)
@@ -139,10 +159,7 @@ using StaticArrays
 
   @testset "binary" begin
     @testset "scalar" begin
-      ψ1 = SparseState{Float64, UInt}(hs, UInt(0b0000001) => 2.0)
-      @test (ψ1 * 2).hilbert_space == ψ1.hilbert_space
-      @test (2 * ψ1).hilbert_space == ψ1.hilbert_space
-      @test (ψ1 / 2).hilbert_space == ψ1.hilbert_space
+      ψ1 = SparseState{Float64, UInt}(UInt(0b0000001) => 2.0)
 
       @test (ψ1 * 3).components == Dict(UInt(0x001) => 6.0)
       @test (3 * ψ1).components == Dict(UInt(0x001) => 6.0)
@@ -154,10 +171,13 @@ using StaticArrays
       @test (ψ1 / 4).components == Dict(UInt(0x001) => 0.5)
       @test (ψ1 / 4.0).components == Dict(UInt(0x001) => 0.5)
       @test (ψ1 / (4.0+0.0im)).components == Dict(UInt(0x001) => 0.5 + 0.0im)
+      @test (4 \ ψ1).components == Dict(UInt(0x001) => 0.5)
+      @test (4.0 \ ψ1).components == Dict(UInt(0x001) => 0.5)
+      @test ((4.0+0.0im) \ ψ1 ).components == Dict(UInt(0x001) => 0.5 + 0.0im)
     end
     @testset "sum" begin
-      ψ1 = SparseState{Float64, UInt}(hs, UInt(0b0000001) => 2.0)
-      ψ2 = SparseState{Float64, UInt}(hs, UInt(0b0000001) => 0.25, UInt(0b0001001) => 4.0)
+      ψ1 = SparseState{Float64, UInt}(UInt(0b0000001) => 2.0)
+      ψ2 = SparseState{Float64, UInt}(UInt(0b0000001) => 0.25, UInt(0b0001001) => 4.0)
       ψ3 = ψ1 + ψ2
       ψ4 = ψ2 + ψ1
       @test typeof(ψ3) == SparseState{Float64, UInt}
@@ -177,8 +197,8 @@ using StaticArrays
     end # sametype
 
     @testset "intertype" begin
-      ψ1 = SparseState{Float64, UInt}(hs, UInt(0b0000001) => 2.0)
-      ψ2 = SparseState{ComplexF64, UInt}(hs, UInt(0b0000001) => 4.0 + 0.25im, UInt(0b1001) => 3.0)
+      ψ1 = SparseState{Float64, UInt}(UInt(0b0000001) => 2.0)
+      ψ2 = SparseState{ComplexF64, UInt}(UInt(0b0000001) => 4.0 + 0.25im, UInt(0b1001) => 3.0)
       ψ3 = ψ1 + ψ2
       ψ4 = ψ2 + ψ1
       @test ψ3 == ψ4

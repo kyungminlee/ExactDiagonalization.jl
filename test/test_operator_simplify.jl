@@ -41,7 +41,7 @@ using ExactDiagonalization
     end
 
     @testset "pureop" begin
-      @test simplify(PureOperator{Float64, UInt}(hs, UInt(0x0), UInt(0x0), UInt(0x0), 0.0)) == NullOperator()
+      @test simplify(PureOperator{Float64, UInt}(UInt(0x0), UInt(0x0), UInt(0x0), 0.0)) == NullOperator()
       @testset "zero" begin
         s1 = σ(1, :+) * (0.0 + 0.0im)
         @test isa(s1, PureOperator{ComplexF64, UInt})
@@ -62,7 +62,7 @@ using ExactDiagonalization
     end
 
     @testset "sumop" begin
-      @test simplify(SumOperator{Float64, UInt}(hs, [])) == NullOperator()
+      @test simplify(SumOperator{Float64, UInt}([])) == NullOperator()
       @test simplify(0 * σ(1, :+) + 0 * σ(1, :+)) == NullOperator()
       @testset "complex_nonvanish" begin
         s = σ(1, :+) + σ(1, :+) * (1.0 + 1.0im)

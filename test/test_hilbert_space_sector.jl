@@ -2,107 +2,36 @@ using Test
 using ExactDiagonalization
 using StaticArrays
 
-@testset "State" begin
-  @test isimmutable(State)
-  let
-    s = State("MyState")
-    @test typeof(s) == State{Int}
-    @test s.name == "MyState"
-    @test s.quantum_number == 0
-    @test qntype(s) === Int
-    @test qntype(typeof(s)) === Int
-  end
-
-  let
-    s = State("Up", 1)
-    @test typeof(s) == State{Int}
-    @test s.name == "Up"
-    @test s.quantum_number == 1
-    @test qntype(s) === Int
-    @test qntype(typeof(s)) === Int
-  end
-
-  let
-    s = State{SVector{2, Int}}("Up", SVector{2, Int}([1, 1]))
-    @test s.name == "Up"
-    @test s.quantum_number == [1, 1]
-    @test qntype(s) === SVector{2, Int}
-    @test qntype(typeof(s)) === SVector{2, Int}
-  end
-end
-
-@testset "Site" begin
-  @test isimmutable(Site)
-  @testset "spin-half" begin
-    up = State("Up", 1)
-    dn = State("Dn",-1)
-    site1 = Site([up, dn])
-    site2 = Site{Int}([up, dn])
-    @test qntype(site1) === Int
-    @test qntype(site2) === Int
-    @test qntype(typeof(site1)) === Int
-    @test qntype(typeof(site2)) === Int
-
-    @test site1 == site2
-    @test dimension(site1) == 2
-    @test get_state(site1, 0x0000000) == up
-    @test get_state(site1, 0x0000001) == dn
-    @test quantum_number_sectors(site1) == Int[-1, 1]
-    @test get_quantum_number(site1, 1) == 1
-    @test get_quantum_number(site1, 2) == -1
-    @test compress(site1, 1) == 0x0000000
-    @test compress(site1, 2) == 0x0000001
-    @test get_state_index(site1, 0x0000000) == 1
-    @test get_state_index(site1, 0x0000001) == 2
-
-    @test [i for i in eachindex(site1)] == [1,2]
-    @test collect(keys(site1)) == [1,2]
-  end
-
-  @testset "spin-charge" begin
-    QN = SVector{2, Int}
-    em = State("Em", QN( 0, 0))
-    up = State("Up", QN( 1, 1))
-    dn = State("Dn", QN(-1, 1))
-    ud = State("UpDn", QN( 0, 2))
-    @test qntype(em) === QN
-    @test qntype(up) === QN
-    @test qntype(dn) === QN
-    @test qntype(ud) === QN
-    @test_throws MethodError State{QN}("X", 1)
-
-    site = Site([em, up, dn])
-    @test qntype(site) === QN
-    @test qntype(typeof(site)) === QN
-    @test_throws MethodError Site([em, up, dn, State("X", 1)])
-    @test bitwidth(site) == 2
-    @test dimension(site) == 3
-    @test get_state(site, 0b0000000) == em
-    @test get_state(site, 0b0000001) == up
-    @test get_state(site, 0b0000010) == dn
-    @test_throws BoundsError get_state(site, 0b0000011) #TODO best exception type?
-  end
-end
-
-@testset "HilbertSpace" begin
-  @test isimmutable(HilbertSpace)
+@testset "HilbertSpaceSector" begin
+  @test isimmutable(HilbertSpaceSector)
   @testset "spinhalf" begin
     QN = Int
     up = State("Up", 1)
     dn = State{QN}("Dn",-1)
     spin_site = Site([up, dn])
-    @test HilbertSpace{QN}().sites == []
-    @test HilbertSpace{QN}().bitwidths == []
-    @test HilbertSpace{QN}().bitoffsets == [0]
-    hs = HilbertSpace([spin_site, spin_site, spin_site, spin_site])
-    hs2 = HilbertSpace{QN}([spin_site, spin_site, spin_site, spin_site])
-    @test hs == hs2
+    hs = let
+      hs = HilbertSpace([spin_site, spin_site, spin_site, spin_site])
+      @test HilbertSpaceSector(hs).allowed_quantum_numbers == Set([-4,-2,0,2,4])
+      @test HilbertSpaceSector(hs, 0).allowed_quantum_numbers == Set(Int[0])
+      @test HilbertSpaceSector(hs, [2,4]).allowed_quantum_numbers == Set(Int[2,4])
+      @test HilbertSpaceSector(hs, [1]).allowed_quantum_numbers == Set(Int[])
 
+      @test HilbertSpaceSector(hs) == HilbertSpaceSector(hs, [-4,-2,0,2,4])
+      @test HilbertSpaceSector(hs) != HilbertSpaceSector(hs, 0)
+
+      hss = HilbertSpaceSector(hs, 0)
+      @test scalartype(hss) === Bool
+      @test scalartype(typeof(hss)) === Bool
+      @test qntype(typeof(hss)) === Int
+
+      @test basespace(hss) != hss
+      @test basespace(hss) == hs
+      hss
+    end
     @test qntype(hs) === Int
     @test scalartype(hs) === Bool
     @test qntype(typeof(hs)) === Int
     @test scalartype(typeof(hs)) === Bool
-    @test basespace(hs) === hs
 
     @test get_bitmask(hs, 1) == 0b0001
     @test get_bitmask(hs, 2) == 0b0010

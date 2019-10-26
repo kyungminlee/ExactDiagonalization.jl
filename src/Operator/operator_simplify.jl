@@ -30,7 +30,6 @@ function simplify(so ::SumOperator{S, BR}; tol::AbstractFloat=sqrt(eps(Float64))
   sort!(terms; lt=(<))
   new_terms = PureOperator{S, BR}[]
 
-  hs ::HilbertSpace = terms[1].hilbert_space
   bm ::BR = terms[1].bitmask
   bs ::BR = terms[1].bitrow
   bt ::BR = terms[1].bitcol
@@ -41,7 +40,7 @@ function simplify(so ::SumOperator{S, BR}; tol::AbstractFloat=sqrt(eps(Float64))
       am += term.amplitude
     else
       if ! isapprox(am, 0; rtol=tol, atol=tol)
-        push!(new_terms, PureOperator{S, BR}(hs, bm, bs, bt, am))
+        push!(new_terms, PureOperator{S, BR}(bm, bs, bt, am))
       end
       bm = term.bitmask
       bs = term.bitrow
@@ -51,7 +50,7 @@ function simplify(so ::SumOperator{S, BR}; tol::AbstractFloat=sqrt(eps(Float64))
   end
 
   if ! isapprox(am, 0; rtol=tol, atol=tol)
-    push!(new_terms, PureOperator{S, BR}(hs, bm, bs, bt, am))
+    push!(new_terms, PureOperator{S, BR}(bm, bs, bt, am))
   end
 
   if isempty(new_terms)
@@ -63,13 +62,13 @@ function simplify(so ::SumOperator{S, BR}; tol::AbstractFloat=sqrt(eps(Float64))
     if length(new_terms) == 1
       return real(new_terms[1])
     else
-      return SumOperator{R, BR}(so.hilbert_space, real.(new_terms))
+      return SumOperator{R, BR}(real.(new_terms))
     end
   else
     if length(new_terms) == 1
       return new_terms[1]
     else
-      return SumOperator{S, BR}(so.hilbert_space, new_terms)
+      return SumOperator{S, BR}(new_terms)
     end
   end
 

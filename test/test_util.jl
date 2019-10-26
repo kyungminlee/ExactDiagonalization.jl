@@ -25,7 +25,7 @@ using ExactDiagonalization
     end
   end
   =#
-  
+
   @testset "merge_vec" begin
     let
       a = Int[1,5,7,8]
@@ -78,4 +78,41 @@ using ExactDiagonalization
 
   end
 
+  @testset "choptol!" begin
+    let
+      d = Dict("A" => 0.0, "B" => 1E-9)
+      choptol!(d, 1E-12)
+      @test d == Dict("B"=>1E-9)
+    end
+    let
+      d = Dict("A" => 0.0, "B" => 1E-9)
+      choptol!(d, 1E-6)
+      @test d == Dict()
+    end
+  end
+
+end
+
+
+
+@testset "FrozenSortedArray" begin
+  @test_throws ArgumentError FrozenSortedArrayIndex{UInt}(UInt[0x2, 0x1, 0x3])
+  @test_throws ArgumentError FrozenSortedArrayIndex{UInt}(UInt[0x1, 0x1, 0x3])
+  fsa = FrozenSortedArrayIndex{UInt}(UInt[0x2, 0x4, 0x6])
+  @test fsa[0x2] == 1
+  @test fsa[0x4] == 2
+  @test fsa[0x6] == 3
+  @test collect(fsa) == [0x2 =>1, 0x4=>2, 0x6=>3]
+  @test collect(k=>v for (k, v) in fsa) == [0x2 =>1, 0x4=>2, 0x6=>3]
+  @test length(fsa) == 3
+  @test_throws KeyError fsa[0x1]
+  @test haskey(fsa, 0x2)
+  @test !haskey(fsa, 0x3)
+  @test get(fsa, 0x1, -1) == -1
+  @test keys(fsa) == UInt[0x2, 0x4, 0x6]
+
+  @test eltype(fsa) === Pair{UInt, Int}
+  @test eltype(typeof(fsa)) === Pair{UInt, Int}
+  @test [k for (k, v) in fsa] == UInt[0x2, 0x4, 0x6]
+  @test [v for (k, v) in fsa] == UInt[0x1, 0x2, 0x3]
 end

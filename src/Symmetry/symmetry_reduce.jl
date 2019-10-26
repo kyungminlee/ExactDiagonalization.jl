@@ -4,7 +4,7 @@ export materialize, materialize_parallel
 function symmetry_reduce(
     hsr ::HilbertSpaceRepresentation{QN, BR},
     trans_group ::TranslationGroup,
-    fractional_momentum ::AbstractVector{Rational};
+    fractional_momentum ::AbstractVector{<:Rational};
     ComplexType::DataType=ComplexF64,
     tol::Real=sqrt(eps(Float64))) where {QN, BR}
 
@@ -12,7 +12,7 @@ function symmetry_reduce(
     trans_group.fractional_momenta[ik] == fractional_momentum
     for ik in 1:length(trans_group.fractional_momenta) ))
   HSR = HilbertSpaceRepresentation{QN, BR}
-  ik === nothing & throw(ArgumentError("fractional momentum $(fractional_momentum) not an irrep of the translation group"))
+  ik === nothing && throw(ArgumentError("fractional momentum $(fractional_momentum) not an irrep of the translation group"))
 
   phases = trans_group.character_table[ik, :]
   n_basis = length(hsr.basis_list)
@@ -98,7 +98,7 @@ end
 function symmetry_reduce_parallel(
     hsr ::HilbertSpaceRepresentation{QN, BR},
     trans_group ::TranslationGroup,
-    fractional_momentum ::AbstractVector{Rational};
+    fractional_momentum ::AbstractVector{<:Rational};
     ComplexType::DataType=ComplexF64,
     tol::Real=sqrt(eps(Float64))) where {QN, BR}
 
@@ -108,7 +108,7 @@ function symmetry_reduce_parallel(
     trans_group.fractional_momenta[ik] == fractional_momentum
     for ik in 1:length(trans_group.fractional_momenta) ))
 
-  if isnothing(ik)
+  if ik === nothing
     throw(ArgumentError("fractional momentum $(fractional_momentum)" *
                         " not an irrep of the translation group"))
   end

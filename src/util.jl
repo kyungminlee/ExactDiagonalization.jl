@@ -1,4 +1,6 @@
 export make_bitmask
+export choptol!
+export merge_vec
 
 function make_bitmask(msb ::Integer,
                       lsb ::Integer=0;

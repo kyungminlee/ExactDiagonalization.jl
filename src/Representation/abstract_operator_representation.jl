@@ -14,35 +14,79 @@ abstract type AbstractOperatorRepresentation end
 # a subclass of AbstractOperatorRepresentation should implement
 # spacetype, operatortype, and get_space.
 
-@inline spacetype(lhs::AbstractOperatorRepresentation) = spacetype(typeof(lhs))
-@inline operatortype(lhs ::AbstractOperatorRepresentation) = operatortype(typeof(lhs))
+@inline spacetype(lhs::AbstractOperatorRepresentation) = spacetype(typeof(lhs)) ::Type{<:AbstractHilbertSpaceRepresentation}
+@inline operatortype(lhs ::AbstractOperatorRepresentation) = operatortype(typeof(lhs)) ::Type{<:AbstractOperator}
 
 #if not specialized
 # @inline spacetype(lhs::Type{AbstractOperatorRepresentation}) = error("spacetype not implemented")
 # @inline operatortype(lhs ::Type{AbstractOperatorRepresentation}) = error("operatortype not implemented")
-@inline get_space(lhs::AbstractOperatorRepresentation) = error("get_space not implemented")
+#@inline get_space(lhs::AbstractOperatorRepresentation) = error("get_space not implemented")
 
-@inline bintype(lhs ::AbstractOperatorRepresentation) = bintype(spacetype(lhs))
-@inline bintype(lhs ::Type{AbstractOperatorRepresentation}) = bintype(spacetype(lhs))
+@inline bintype(lhs ::AbstractOperatorRepresentation) = bintype(typeof(lhs)) ::DataType
+@inline bintype(lhs ::Type{<:AbstractOperatorRepresentation}) = bintype(spacetype(lhs)) ::DataType
 
-import Base.eltype
-@inline eltype(lhs::AbstractOperatorRepresentation) = promote_type(eltype(spacetype(lhs)), eltype(operatortype(lhs)))
-@inline eltype(lhs::Type{AbstractOperatorRepresentation}) = promote_type(eltype(spacetype(lhs)), eltype(operatortype(lhs)))
+@inline scalartype(lhs::AbstractOperatorRepresentation) ::DataType = scalartype(typeof(lhs)) ::DataType
+@inline scalartype(lhs::Type{<:AbstractOperatorRepresentation}) ::DataType = promote_type(scalartype(spacetype(lhs)), scalartype(operatortype(lhs))) ::DataType
 
 import Base.size
-function size(arg::AbstractOperatorRepresentation) ::Tuple{Int, Int}
+@inline function size(arg::AbstractOperatorRepresentation) ::Tuple{Int, Int}
   dim = dimension(get_space(arg))
   return (dim, dim)
 end
 
-function size(arg::AbstractOperatorRepresentation, i::Integer) ::Int
+@inline function size(arg::AbstractOperatorRepresentation, i::Integer) ::Int
   return size(arg)[i]
 end
 
 
+import Base.==
+function (==)(lhs ::AbstractOperatorRepresentation,
+              rhs ::AbstractOperatorRepresentation)
+  return ((get_space(lhs) == get_space(rhs)) && (lhs.operator == rhs.operator))
+end
+
+import Base.+, Base.-, Base.*
+
+for uniop in [:+, :-]
+  expr = :(
+  @inline function ($uniop)(lhs ::AbstractOperatorRepresentation)
+    return represent(lhs.hilbert_space_representation, ($uniop)(lhs.operator))
+  end
+  )
+  eval(expr)
+end
+
+for binop in [:+, :-, :*]
+  expr = :(
+  @inline function ($binop)(lhs ::AbstractOperatorRepresentation,
+                            rhs ::AbstractOperatorRepresentation)
+    @boundscheck if (get_space(lhs) != get_space(rhs))
+      throw(ArgumentError("The two OperatorRepresentation s do not have the same HilbertSpaceRepresentation"))
+    end
+    return represent(lhs.hilbert_space_representation, ($binop)(lhs.operator, rhs.operator))
+  end
+  )
+  eval(expr)
+end
+
+
+
+import Base.Matrix
+function Matrix(opr::AbstractOperatorRepresentation)
+  S = scalartype(opr)
+  m, n = size(opr)
+  out = zeros(S, (m, n))
+  for icol in 1:n
+    for (irow, ampl) in get_column_iterator(opr, icol; include_all=false)
+      out[irow, icol] += ampl
+    end
+  end
+  return out
+end
+
 import SparseArrays.sparse
 function sparse(opr::AbstractOperatorRepresentation; tol ::Real=sqrt(eps(Float64)))
-  S = eltype(opr)
+  S = scalartype(opr)
   m, n = size(opr)
   colptr = zeros(Int, n+1)
   rowval = Int[]
@@ -65,7 +109,7 @@ function sparse(opr::AbstractOperatorRepresentation; tol ::Real=sqrt(eps(Float64
 end
 
 function get_row(opr ::AbstractOperatorRepresentation, irow::Integer)
-  S = eltype(opr)
+  S = scalartype(opr)
   Z = zero(S)
   dim = size(opr, 2)
   items = Dict{Int, S}()
@@ -77,7 +121,7 @@ function get_row(opr ::AbstractOperatorRepresentation, irow::Integer)
 end
 
 function get_column(opr ::AbstractOperatorRepresentation, icol::Integer)
-  S = eltype(O)
+  S = scalartype(opr)
   Z = zero(S)
   dim = size(opr, 1)
   items = Dict{Int, S}()
