@@ -108,7 +108,7 @@ function symmetry_reduce_parallel(
     trans_group.fractional_momenta[ik] == fractional_momentum
     for ik in 1:length(trans_group.fractional_momenta) ))
 
-  if isnothing(ik)
+  if ik === nothing
     throw(ArgumentError("fractional momentum $(fractional_momentum)" *
                         " not an irrep of the translation group"))
   end
