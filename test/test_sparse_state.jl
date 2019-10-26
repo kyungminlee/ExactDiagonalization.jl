@@ -40,6 +40,7 @@ using StaticArrays
     @test bintype(ψ1) === UInt32
     @test bintype(typeof(ψ1)) === UInt32
     @test eltype(ψ1) === Pair{UInt32, ComplexF64}
+    @test eltype(typeof(ψ1)) === Pair{UInt32, ComplexF64}
   end
 
   @testset "equality" begin
