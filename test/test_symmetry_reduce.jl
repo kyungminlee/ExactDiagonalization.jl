@@ -50,6 +50,8 @@ end;
     @test rhsr.basis_list == UInt[0b0011]
     @test rhsr.parent === hsr
 
+    @test_throws ArgumentError symred(hsr, translation_group, [1//5])
+
     for k in translation_group.fractional_momenta
       rhsr = symred(hsr, translation_group, k)
       for (i_p, b) in enumerate(hsr.basis_list)
