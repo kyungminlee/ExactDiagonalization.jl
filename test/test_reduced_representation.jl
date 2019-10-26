@@ -34,7 +34,7 @@ end
 
   hsr = represent(HilbertSpaceSector(hs, 0))
   translation_group = TranslationGroup([Permutation([2,3,4,1])])
-  
+
   @testset "RHSR" begin
     rhsr = symmetry_reduce(hsr, translation_group, [0//1])
     @test scalartype(rhsr) === ComplexF64
@@ -49,12 +49,11 @@ end
     @testset "typetraits" begin
       @test scalartype(j1) === Complex{Int}
       @test scalartype(j1_r) === ComplexF64
-      @test scalartype(typeof(j1)) === Complex{Int}
       @test scalartype(typeof(j1_r)) === ComplexF64
 
       @test bintype(j1_r) === UInt
       @test bintype(typeof(j1_r)) === UInt
-      
+
       @test spacetype(j1_r) === typeof(rhsr)
       @test operatortype(j1_r) === typeof(j1)
       @test spacetype(typeof(j1_r)) === typeof(rhsr)
@@ -87,4 +86,3 @@ end # testset RedOp
 @testset "RedOp-nontriv" begin
 # TODO: at an angle
 end
-
