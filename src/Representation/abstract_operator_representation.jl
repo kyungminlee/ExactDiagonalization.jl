@@ -71,8 +71,18 @@ end
 
 
 
-
-
+import Base.Matrix
+function Matrix(opr::AbstractOperatorRepresentation)
+  S = scalartype(opr)
+  m, n = size(opr)
+  out = zeros(S, (m, n))
+  for icol in 1:n
+    for (irow, ampl) in get_column_iterator(opr, icol; include_all=false)
+      out[irow, icol] += ampl
+    end
+  end
+  return out
+end
 
 import SparseArrays.sparse
 function sparse(opr::AbstractOperatorRepresentation; tol ::Real=sqrt(eps(Float64)))
