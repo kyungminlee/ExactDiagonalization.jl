@@ -43,36 +43,53 @@ end
     @test bintype(typeof(rhsr)) === UInt
   end
 
+  j1_rep = represent(hsr, j1)
+  j1_mat = Matrix(j1_rep)
+  @test hsr.basis_list == [0b0011, 0b0101, 0b0110, 0b1001, 0b1010, 0b1100]
+
   @testset "ROR" begin
     rhsr = symmetry_reduce(hsr, translation_group, [0//1])
-    j1_r = represent(rhsr, j1)
+    @test dimension(rhsr) == 2
+    @test rhsr.basis_list == UInt[0b0011, 0b0101]
+
+    j1_redrep = represent(rhsr, j1)
     @testset "typetraits" begin
       @test scalartype(j1) === Complex{Int}
-      @test scalartype(j1_r) === ComplexF64
-      @test scalartype(typeof(j1_r)) === ComplexF64
 
-      @test bintype(j1_r) === UInt
-      @test bintype(typeof(j1_r)) === UInt
+      @test scalartype(j1_redrep) === ComplexF64
+      @test scalartype(typeof(j1_redrep)) === ComplexF64
 
-      @test spacetype(j1_r) === typeof(rhsr)
-      @test operatortype(j1_r) === typeof(j1)
-      @test spacetype(typeof(j1_r)) === typeof(rhsr)
-      @test operatortype(typeof(j1_r)) === typeof(j1)
-      @test get_space(j1_r) === rhsr
+      @test bintype(j1_redrep) === UInt
+      @test bintype(typeof(j1_redrep)) === UInt
+
+      @test spacetype(j1_redrep) === typeof(rhsr)
+      @test operatortype(j1_redrep) === typeof(j1)
+      @test spacetype(typeof(j1_redrep)) === typeof(rhsr)
+      @test operatortype(typeof(j1_redrep)) === typeof(j1)
+      @test get_space(j1_redrep) === rhsr
+    end
+
+    let
+      psis = [normalize([1.0, 0.0, 1.0, 1.0, 0.0, 1.0]), normalize([0.0, 1.0, 0.0, 0.0, 1.0, 0.0])]
+      H = zeros(ComplexF64, (2,2))
+      for i in 1:2, j in 1:2
+        H[i,j] = psis[i] ⋅ (j1_mat * psis[j])
+      end
+      @test isapprox(Matrix(j1_redrep), H; atol=sqrt(eps(Float64)))
     end
   end # testset ROR
 
 
   @testset "ROR-ALL" begin
     tol = sqrt(eps(Float64))
-    j1_mat = Matrix(sparse(represent(hsr, j1)))
+    j1_mat = Matrix(represent(hsr, j1))
     @test isapprox(j1_mat, adjoint(j1_mat); atol=tol)
     eigenvalues1 = eigvals(Hermitian(j1_mat))
     eigenvalues2 = Float64[]
     for k in translation_group.fractional_momenta
       rhsr = symmetry_reduce(hsr, translation_group, k)
       j1_redrep = represent(rhsr, j1)
-      j1_redmat = Matrix(sparse(j1_redrep))
+      j1_redmat = Matrix(j1_redrep)
       @test isapprox(j1_redmat, adjoint(j1_redmat); atol=tol)
       append!(eigenvalues2, eigvals(Hermitian(j1_redmat)))
     end

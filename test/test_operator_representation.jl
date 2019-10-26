@@ -123,9 +123,12 @@ end;
       σ₀ = [1 0; 0 1]
       H0 = kron(σ₀, σ₀, σ₊, σ₀)
       opr_s = sparse(opr)
+      opr_d = Matrix(opr)
       @test opr_s == H0
+      @test opr_d == H0
       @test opr[:,:] == opr_s
       @test isa(opr_s, SparseMatrixCSC)
+      @test isa(opr_d, Matrix)
       for i in 1:dim
         @test get_row(opr, i) == H0[i, :]
         @test get_column(opr, i) == H0[:, i]
