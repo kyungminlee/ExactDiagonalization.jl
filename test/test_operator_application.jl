@@ -27,35 +27,26 @@ using ExactDiagonalization
     σ(i::Integer, j::Symbol) = pauli_matrix(hs, i, j)
 
     hsr = represent(HilbertSpaceSector(hs, 0))
-    psi = SparseState{Float64, UInt}(hs, UInt(0b0011) => 2.0, UInt(0b0101) => 10.0)
-
-    @testset "hilbert" begin
-      hs2 = HilbertSpace([spin_site, spin_site, spin_site,])
-      psi2 = SparseState{Float64, UInt}(hs2, UInt(0b0011) => 2.0, UInt(0b0101) => 10.0)
-      @test_throws ArgumentError apply(psi2, σ(1, :+))
-      @test_throws ArgumentError apply(psi2, σ(1, :x))
-      @test_throws ArgumentError apply(σ(1, :+), psi2)
-      @test_throws ArgumentError apply(σ(1, :x), psi2)
-    end
+    psi = SparseState{Float64, UInt}(UInt(0b0011) => 2.0, UInt(0b0101) => 10.0)
 
     @testset "apply" begin
-      #psi = SparseState{Float64, UInt}(hs, UInt(0b0011) => 2.0, UInt(0b0101) => 10.0)
+      #psi = SparseState{Float64, UInt}(UInt(0b0011) => 2.0, UInt(0b0101) => 10.0)
 
-      @test apply(psi, NullOperator()) == SparseState{Float64, UInt}(hs)
+      @test apply(psi, NullOperator()) == SparseState{Float64, UInt}()
 
-      @test apply(psi, σ(1, :+)) == SparseState{Float64, UInt}(hs)
-      @test apply(psi, σ(1, :-)) == SparseState{Float64, UInt}(hs, UInt(0b0010) => 2.0, UInt(0b0100) => 10.0)
+      @test apply(psi, σ(1, :+)) == SparseState{Float64, UInt}()
+      @test apply(psi, σ(1, :-)) == SparseState{Float64, UInt}(UInt(0b0010) => 2.0, UInt(0b0100) => 10.0)
 
-      @test apply(psi, σ(2, :+)) == SparseState{Float64, UInt}(hs, UInt(0b0111) => 10.0)
-      @test apply(psi, σ(2, :-)) == SparseState{Float64, UInt}(hs, UInt(0b0001) => 2.0)
+      @test apply(psi, σ(2, :+)) == SparseState{Float64, UInt}(UInt(0b0111) => 10.0)
+      @test apply(psi, σ(2, :-)) == SparseState{Float64, UInt}(UInt(0b0001) => 2.0)
 
-      @test apply(NullOperator(), psi) == SparseState{Float64, UInt}(hs)
+      @test apply(NullOperator(), psi) == SparseState{Float64, UInt}()
 
-      @test apply(σ(1, :+), psi) == SparseState{Float64, UInt}(hs, UInt(0b0010) => 2.0, UInt(0b0100) => 10.0)
-      @test apply(σ(1, :-), psi) == SparseState{Float64, UInt}(hs)
+      @test apply(σ(1, :+), psi) == SparseState{Float64, UInt}(UInt(0b0010) => 2.0, UInt(0b0100) => 10.0)
+      @test apply(σ(1, :-), psi) == SparseState{Float64, UInt}()
 
-      @test apply(σ(2, :+), psi) == SparseState{Float64, UInt}(hs, UInt(0b0001) => 2.0)
-      @test apply(σ(2, :-), psi) == SparseState{Float64, UInt}(hs, UInt(0b0111) => 10.0)
+      @test apply(σ(2, :+), psi) == SparseState{Float64, UInt}(UInt(0b0001) => 2.0)
+      @test apply(σ(2, :-), psi) == SparseState{Float64, UInt}(UInt(0b0111) => 10.0)
 
 
       for i1 in 1:4, j1 in [:x, :y, :z, :+, :-]
@@ -77,73 +68,59 @@ using ExactDiagonalization
 
     @testset "apply!" begin
       let
-        psi2 = SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
+        psi2 = SparseState{Float64, UInt}(UInt(0b0010) => 0.25)
         apply!(psi2, psi, NullOperator())
-        @test psi2 == SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
+        @test psi2 == SparseState{Float64, UInt}(UInt(0b0010) => 0.25)
         apply!(psi2, NullOperator(), psi)
-        @test psi2 == SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
-
-        apply_unsafe!(psi2, psi, NullOperator())
-        @test psi2 == SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
-        apply_unsafe!(psi2, NullOperator(), psi)
-        @test psi2 == SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
+        @test psi2 == SparseState{Float64, UInt}(UInt(0b0010) => 0.25)
       end
 
       let
-        hs2 = HilbertSpace([spin_site, spin_site, spin_site,])
-        psi2 = SparseState{Float64, UInt}(hs2, UInt(0b0011) => 2.0, UInt(0b0101) => 10.0)
-        @test_throws ArgumentError apply!(psi2, psi, σ(1, :+))
-        @test_throws ArgumentError apply!(psi2, psi, σ(1, :x))
-        @test_throws ArgumentError apply!(psi2, σ(1, :+), psi)
-        @test_throws ArgumentError apply!(psi2, σ(1, :x), psi)
-      end
-
-      let
-        #psi = SparseState{Float64, UInt}(hs, UInt(0b0011) => 2.0, UInt(0b0101) => 10.0)
-        psi2 = SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
+        #psi = SparseState{Float64, UInt}(UInt(0b0011) => 2.0, UInt(0b0101) => 10.0)
+        psi2 = SparseState{Float64, UInt}(UInt(0b0010) => 0.25)
         apply!(psi2, psi, σ(1, :+))
-        @test psi2 == SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
+        @test psi2 == SparseState{Float64, UInt}(UInt(0b0010) => 0.25)
 
-        psi2 = SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
+        psi2 = SparseState{Float64, UInt}(UInt(0b0010) => 0.25)
         apply!(psi2, σ(1, :+), psi)
-        @test psi2 == SparseState{Float64, UInt}(hs, UInt(0b0010) => 2.25, UInt(0b0100) => 10.0)
+        @test psi2 == SparseState{Float64, UInt}(UInt(0b0010) => 2.25, UInt(0b0100) => 10.0)
       end
 
       let
-        #psi = SparseState{Float64, UInt}(hs, UInt(0b0011) => 2.0, UInt(0b0101) => 10.0)
-        psi2 = SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
+        #psi = SparseState{Float64, UInt}(UInt(0b0011) => 2.0, UInt(0b0101) => 10.0)
+        psi2 = SparseState{Float64, UInt}(UInt(0b0010) => 0.25)
         apply!(psi2, psi, σ(1, :-))
-        @test psi2 == SparseState{Float64, UInt}(hs, UInt(0b0010) => 2.25, UInt(0b0100) => 10.0)
+        @test psi2 == SparseState{Float64, UInt}(UInt(0b0010) => 2.25, UInt(0b0100) => 10.0)
 
-        psi2 = SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
+        psi2 = SparseState{Float64, UInt}(UInt(0b0010) => 0.25)
         apply!(psi2, σ(1, :-), psi)
-        @test psi2 == SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
+        @test psi2 == SparseState{Float64, UInt}(UInt(0b0010) => 0.25)
       end
 
       let
-        #psi = SparseState{Float64, UInt}(hs, UInt(0b0011) => 2.0, UInt(0b0101) => 10.0)
-        psi2 = SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
+        #psi = SparseState{Float64, UInt}(UInt(0b0011) => 2.0, UInt(0b0101) => 10.0)
+        psi2 = SparseState{Float64, UInt}(UInt(0b0010) => 0.25)
         apply!(psi2, psi, σ(2, :+))
-        @test psi2 == SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25, UInt(0b0111) => 10.0)
+        @test psi2 == SparseState{Float64, UInt}(UInt(0b0010) => 0.25, UInt(0b0111) => 10.0)
 
-        psi2 = SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
+        psi2 = SparseState{Float64, UInt}(UInt(0b0010) => 0.25)
         apply!(psi2, σ(2, :+), psi)
-        @test psi2 == SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25, UInt(0b0001) => 2.0)
+        @test psi2 == SparseState{Float64, UInt}(UInt(0b0010) => 0.25, UInt(0b0001) => 2.0)
       end
 
       let
-        psi2 = SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
+        psi2 = SparseState{Float64, UInt}(UInt(0b0010) => 0.25)
         apply!(psi2, psi, σ(2, :-))
-        @test psi2 == SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25, UInt(0b0001) => 2.0)
+        @test psi2 == SparseState{Float64, UInt}(UInt(0b0010) => 0.25, UInt(0b0001) => 2.0)
 
-        psi2 = SparseState{Float64, UInt}(hs, UInt(0b0010) => 0.25)
+        psi2 = SparseState{Float64, UInt}(UInt(0b0010) => 0.25)
         apply!(psi2, σ(2, :-), psi)
-        @test psi2 == SparseState{Float64, UInt}(hs,  UInt(0b0010) => 0.25, UInt(0b0111) => 10.0)
+        @test psi2 == SparseState{Float64, UInt}( UInt(0b0010) => 0.25, UInt(0b0111) => 10.0)
       end
 
       for i1 in 1:4, j1 in [:x, :z]
-        ϕ1 = SparseState{ComplexF64, UInt}(hs)
-        ϕ2 = SparseState{ComplexF64, UInt}(hs)
+        ϕ1 = SparseState{ComplexF64, UInt}()
+        ϕ2 = SparseState{ComplexF64, UInt}()
         apply!(ϕ1, psi, σ(i1, j1))
         apply!(ϕ2, σ(i1, j1), psi)
         @test ϕ1 == ϕ2
@@ -151,15 +128,15 @@ using ExactDiagonalization
 
       for i1 in 1:4, j1 in [:x, :y, :z, :+, :-]
         ϕ1 = apply(psi, σ(i1, j1))
-        ϕ2 = SparseState{ComplexF64, UInt}(hs)
+        ϕ2 = SparseState{ComplexF64, UInt}()
         apply!(ϕ2, psi, σ(i1, j1))
         @test ϕ1 == ϕ2
       end
 
       let
-        psi2 = SparseState{ComplexF64, UInt}(hs, UInt(0b0010) => 0.25)
+        psi2 = SparseState{ComplexF64, UInt}(UInt(0b0010) => 0.25)
         psi3 = apply(psi2, σ(2, :y))
-        psi4 = SparseState{Float64, UInt}(hs)
+        psi4 = SparseState{Float64, UInt}()
         @test_throws InexactError apply!(psi4, psi2, σ(2, :y))
         # TODO more
       end
