@@ -51,6 +51,9 @@ end
 
   @test is_compatible([0//1, 0//1], [0,0])
   @test !is_compatible([0//1, 1//2], [0,1])
+
+  @test is_compatible([0//1, 0//1], [[0,0]])
+  @test !is_compatible([0//1, 1//2], [[0,0], [0,1]])
 end
 
 @testset "symmetry_apply" begin
@@ -96,5 +99,4 @@ end
   @test !is_invariant(HilbertSpaceSector(hs, 0), tg, sop)
   @test is_invariant(hs, tg, j1)
   @test is_invariant(HilbertSpaceSector(hs, 0), tg, j1)
-
 end
