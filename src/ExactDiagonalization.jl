@@ -1,6 +1,5 @@
 module ExactDiagonalization
 
-using DataStructures
 using StaticArrays
 using SparseArrays
 using Memento
