@@ -16,6 +16,7 @@ end
     symmetry_reduce_serial(hsr, trans_group, frac_momentum; ComplexType=ComplexF64, tol=sqrt(eps(Float64)))
 
 Symmetry-reduce the HilbertSpaceRepresentation using translation group.
+
 """
 function symmetry_reduce_serial(
     hsr ::HilbertSpaceRepresentation{QN, BR},
@@ -244,7 +245,21 @@ end
 
 
 
-"""
+raw"""
+    symmetry_unreduce
+
+```math
+\begin{pmatrix} l_1 \\ l_2 \\ l_3 \\ \vdots \\ l_n \end{pmatrix}
+=
+\begin{pmatrix}
+. & \cdots & . \\
+. & \cdots & . \\
+. & \cdots & . \\
+  & \dots & \\
+. & \cdots & 
+\end{pmatrix}
+\begin{pmatrix} s_1 \\ \vdots \\ s_m \end{pmatrix}
+```
 """
 function symmetry_unreduce(
     rhsr::ReducedHilbertSpaceRepresentation{HSR, BR, C},
