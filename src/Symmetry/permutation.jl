@@ -46,7 +46,7 @@ import Base.*
     *(p1 ::Permutation, p2 ::Permutation)
 
 Multiply the two permutation.
-Return `[p2.map[ p1.map[x] ] for x in 1:length(p1.map)]`.
+Return `[p2.map[x] for x in p1.map]`.
 
 # Examples
 ```jldoctest
@@ -63,8 +63,7 @@ function *(p1 ::Permutation, p2 ::Permutation)
   if length(p1.map) != length(p2.map)
     throw(ArgumentError("permutations of different universes"))
   end
-  p3 = Int[p2.map[ p1.map[x] ] for x in 1:length(p1.map)]
-  return Permutation(p3)
+  return Permutation(Int[p2.map[x] for x in p1.map])
 end
 
 import Base.^
@@ -79,6 +78,7 @@ julia> using ExactDiagonalization
 
 julia> Permutation([2,3,4,1])^2
 Permutation([3, 4, 1, 2], 2)
+```
 """
 function ^(perm ::Permutation, pow ::Integer)
   p = mod(pow, perm.cycle_length)
