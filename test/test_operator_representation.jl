@@ -156,81 +156,45 @@ end;
         @test typeof(opr_y * rand(ComplexF64, dim)) === Vector{ComplexF64}
       end
 
-      @testset "single-threaded" begin
-        opr = represent(hsr_0, σ[2, :+])
+      @testset "apply!" begin
+        for APP! in [apply!, apply_serial!, apply_parallel!]
+          opr = represent(hsr_0, σ[2, :+])
 
-        σ₊ = [0 1; 0 0]
-        σ₀ = [1 0; 0 1]
+          σ₊ = [0 1; 0 0]
+          σ₀ = [1 0; 0 1]
 
-        op_dense = kron(σ₀, σ₀, σ₊, σ₀)
-        state = rand(ComplexF64, dim)
+          op_dense = kron(σ₀, σ₀, σ₊, σ₀)
+          state = rand(ComplexF64, dim)
 
-        out1 = zeros(ComplexF64, dim)
+          out1 = zeros(ComplexF64, dim)
 
-        # matrix * columnvector
-        out0 = op_dense * state
-        apply!(out1, opr, state)
-        out2 = opr * state
-        @test isapprox(out0, out1, atol=1E-6)
-        @test isapprox(out0, out2, atol=1E-6)
+          # matrix * columnvector
+          out0 = op_dense * state
+          APP!(out1, opr, state)
+          out2 = opr * state
+          @test isapprox(out0, out1, atol=1E-6)
+          @test isapprox(out0, out2, atol=1E-6)
 
-        # add to the previous (do not overwrite)
-        apply!(out1, opr, state)
-        @test !isapprox(out0, out1, atol=1E-6)
+          # add to the previous (do not overwrite)
+          APP!(out1, opr, state)
+          @test !isapprox(out0, out1, atol=1E-6)
 
-        # rowvector * matrix
-        out1[:] .= zero(ComplexF64)
+          # rowvector * matrix
+          out1[:] .= zero(ComplexF64)
 
-        out0 = transpose( transpose(state) * op_dense )
-        apply!(out1, state, opr)
-        out2 = state * opr
-        @test isapprox(out0, out1, atol=1E-6)
-        @test isapprox(out0, out2, atol=1E-6)
+          out0 = transpose( transpose(state) * op_dense )
+          APP!(out1, state, opr)
+          out2 = state * opr
+          @test isapprox(out0, out1, atol=1E-6)
+          @test isapprox(out0, out2, atol=1E-6)
 
-        # add to the previous (do not overwrite)
-        apply!(out1, state, opr)
-        @test !isapprox(out0, out1, atol=1E-6)
+          # add to the previous (do not overwrite)
+          apply!(out1, state, opr)
+          @test !isapprox(out0, out1, atol=1E-6)
 
-        @test_throws BoundsError apply!(out1, opr, state; range=1:100)
-        @test_throws BoundsError apply!(out1, state, opr; range=1:100)
-
-      end
-
-      @testset "multi-threaded" begin
-        opr = represent(hsr_0, σ[1, :+] * σ[4, :-] + σ[2, :z] * 3)
-
-        σ₊ = [0 1; 0 0]
-        σ₋ = [0 0; 1 0]
-        σ₀ = [1 0; 0 1]
-        σ₃ = [1 0; 0 -1]
-
-        op_dense = kron(σ₋, σ₀, σ₀, σ₊) + kron(σ₀, σ₀, σ₃, σ₀) * 3
-        state = rand(ComplexF64, dim)
-
-        out1 = zeros(ComplexF64, dim)
-
-        # matrix * columnvector
-        out0 = op_dense * state
-        apply_threaded!(out1, opr, state)
-        @test isapprox(out0, out1, atol=1E-6)
-
-        # add to the previous (do not overwrite)
-        apply_threaded!(out1, opr, state)
-        @test !isapprox(out0, out1, atol=1E-6)
-
-        # rowvector * matrix
-        out1[:] .= zero(ComplexF64)
-
-        out0 = transpose( transpose(state) * op_dense )
-        apply_threaded!(out1, state, opr)
-        @test isapprox(out0, out1, atol=1E-6)
-
-        # add to the previous (do not overwrite)
-        apply_threaded!(out1, state, opr)
-        @test !isapprox(out0, out1, atol=1E-6)
-
-        @test_throws BoundsError apply_threaded!(out1, opr, state; range=1:100)
-        @test_throws BoundsError apply_threaded!(out1, state, opr; range=1:100)
+          @test_throws BoundsError APP!(out1, opr, state; range=1:100)
+          @test_throws BoundsError APP!(out1, state, opr; range=1:100)
+        end
       end
       # TODO(kyungminlee): Check for bounds error with range.
 
@@ -241,17 +205,15 @@ end;
         state = 2im*ones(ComplexF64, dim_small)
 
         out1 = zeros(ComplexF64, dim_small)
-        e1, e2 = apply!(out1, opr, state)
-        tol = sqrt(eps(Float64))
-        @test isapprox(e1, 12im; atol=tol)
-        @test isapprox(e2, 24.0; atol=tol)
-        @test all(isapprox.(out1, 0; atol=tol))
 
-        out1[:] .= zero(ComplexF64)
-        e1, e2 = apply_threaded!(out1, opr, state)
-        @test isapprox(e1, 12im; atol=tol)
-        @test isapprox(e2, 24.0; atol=tol)
-        @test all(isapprox.(out1, 0; atol=tol))
+        for APP! in [apply!, apply_serial!, apply_parallel!]
+          out1[:] .= zero(ComplexF64)
+          e1, e2 = APP!(out1, opr, state)
+          tol = sqrt(eps(Float64))
+          @test isapprox(e1, 12im; atol=tol)
+          @test isapprox(e2, 24.0; atol=tol)
+          @test all(isapprox.(out1, 0; atol=tol))
+        end
       end
 
     end

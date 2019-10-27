@@ -171,7 +171,7 @@ function apply_serial!(out ::Vector{S1},
   for irow in range
     v = state[irow]
     for (icol, amplitude) in get_row_iterator(opr, irow; include_all=true)
-      if 1 <= icol <= dim
+      if 1 <= icol <= ncols
         @inbounds out[icol] += v * amplitude
       else
         err += amplitude * v
