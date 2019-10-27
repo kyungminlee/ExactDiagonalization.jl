@@ -12,13 +12,15 @@ matrix:
     - julia: 1.0
       script:
         - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-        - julia -e 'import Pkg; Pkg.add(Pkg.PackageSpec(url="https://github.com/kyungminlee/TightBindingLattice.jl.git"))'
+        - git clone https://github.com/JuliaRegistries/General.git $HOME/.julia/registries/General
+        - git clone https://github.com/kyungminlee/KyungminLeeRegistry.jl.git $HOME/.julia/registries/KyungminLeeRegistry
         - julia --project -e 'import Pkg; Pkg.build()'
         - JULIA_NUM_THREADS=2 julia --project --check-bounds=yes -e 'import Pkg; Pkg.test(; coverage=false)'
     - julia: 1.2
       script:
         - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-        - julia -e 'import Pkg; Pkg.add(Pkg.PackageSpec(url="https://github.com/kyungminlee/TightBindingLattice.jl.git"))'
+        - git clone https://github.com/JuliaRegistries/General.git $HOME/.julia/registries/General
+        - git clone https://github.com/kyungminlee/KyungminLeeRegistry.jl.git $HOME/.julia/registries/KyungminLeeRegistry
         - julia --project -e 'import Pkg; Pkg.build()'
         - JULIA_NUM_THREADS=2 julia --project --check-bounds=yes -e 'import Pkg; Pkg.test(; coverage=true)'
       after_success:
@@ -28,12 +30,14 @@ matrix:
     - julia: 1.3
       script:
         - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-        - julia -e 'import Pkg; Pkg.add(Pkg.PackageSpec(url="https://github.com/kyungminlee/TightBindingLattice.jl.git"))'
+        - git clone https://github.com/JuliaRegistries/General.git $HOME/.julia/registries/General
+        - git clone https://github.com/kyungminlee/KyungminLeeRegistry.jl.git $HOME/.julia/registries/KyungminLeeRegistry
         - julia --project -e 'import Pkg; Pkg.build()'
         - JULIA_NUM_THREADS=2 julia --project --check-bounds=yes -e 'import Pkg; Pkg.test(; coverage=false)'
     - julia: nightly
       script:
         - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-        - julia -e 'import Pkg; Pkg.add(Pkg.PackageSpec(url="https://github.com/kyungminlee/TightBindingLattice.jl.git"))'
+        - git clone https://github.com/JuliaRegistries/General.git $HOME/.julia/registries/General
+        - git clone https://github.com/kyungminlee/KyungminLeeRegistry.jl.git $HOME/.julia/registries/KyungminLeeRegistry
         - julia --project -e 'import Pkg; Pkg.build()'
         - JULIA_NUM_THREADS=2 julia --project --check-bounds=yes -e 'import Pkg; Pkg.test(; coverage=false)'
