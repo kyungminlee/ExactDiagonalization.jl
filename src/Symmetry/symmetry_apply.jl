@@ -2,6 +2,8 @@ export symmetry_apply
 export is_invariant
 
 ## AbstractSymmetryOperation
+
+### HilbertSpaceSector
 @inline function symmetry_apply(hss::HilbertSpaceSector{QN},
                                 symop ::AbstractSymmetryOperation,
                                 args...; kwargs...) where {QN}
@@ -20,6 +22,7 @@ end
   return is_invariant(hss.parent, symgroup, args...; kwargs...)
 end
 
+### generic symmetry operations for NullOperator and SumOperator
 @inline function symmetry_apply(hs ::HilbertSpace{QN}, symop ::AbstractSymmetryOperation, op::NullOperator) where {QN}
   return op
 end
@@ -50,14 +53,10 @@ end
 
 
 ## isinvariant
-
-
-function is_invariant(hs::HilbertSpace{QN}, symop ::AbstractSymmetryOperation, op::AbstractOperator) where {QN}
+@inline function is_invariant(hs::HilbertSpace{QN}, symop ::AbstractSymmetryOperation, op::AbstractOperator) where {QN}
   return simplify(op - symmetry_apply(hs, symop, op)) == NullOperator()
 end
 
-function is_invariant(hs::HilbertSpace{QN}, symgroup ::AbstractSymmetryGroup, op::AbstractOperator) where {QN}
-  return all(
-    is_invariant(hs, g, op) for g in symgroup.generators
-  )
+@inline function is_invariant(hs::HilbertSpace{QN}, symgroup ::AbstractSymmetryGroup, op::AbstractOperator) where {QN}
+  return all(is_invariant(hs, g, op) for g in symgroup.generators)
 end

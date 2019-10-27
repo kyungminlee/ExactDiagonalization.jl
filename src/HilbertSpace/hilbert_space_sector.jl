@@ -33,8 +33,8 @@ export basespace
 @inline basespace(hs::HilbertSpaceSector{QN}) where QN = basespace(hs.parent) ::HilbertSpace{QN}
 
 import Base.==
-function ==(lhs ::HilbertSpaceSector{Q1}, rhs ::HilbertSpaceSector{Q2}) where {Q1, Q2}
-  return (Q1 == Q2) && basespace(lhs) == basespace(rhs) && lhs.allowed_quantum_numbers == rhs.allowed_quantum_numbers
+@inline function ==(lhs ::HilbertSpaceSector{Q1}, rhs ::HilbertSpaceSector{Q2}) where {Q1, Q2}
+  return basespace(lhs) == basespace(rhs) && lhs.allowed_quantum_numbers == rhs.allowed_quantum_numbers
 end
 
 

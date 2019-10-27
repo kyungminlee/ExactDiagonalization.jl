@@ -15,7 +15,7 @@ end
 @inline operatortype(lhs ::Type{ReducedOperatorRepresentation{RHSR, O}}) where {RHSR<:ReducedHilbertSpaceRepresentation, O<:AbstractOperator} = O
 @inline get_space(lhs ::ReducedOperatorRepresentation{RHSR, O}) where {RHSR<:ReducedHilbertSpaceRepresentation, O<:AbstractOperator} = lhs.reduced_hilbert_space_representation ::RHSR
 
-function represent(rhsr ::RHSR, op ::O) where {RHSR <:ReducedHilbertSpaceRepresentation, O <:AbstractOperator}
+@inline function represent(rhsr ::RHSR, op ::O) where {RHSR <:ReducedHilbertSpaceRepresentation, O <:AbstractOperator}
     return ReducedOperatorRepresentation{RHSR, O}(rhsr, op)
 end
 
@@ -34,7 +34,6 @@ function get_row_iterator(opr ::ReducedOperatorRepresentation{RHSR, O},
   @assert irow_r == irow_r2 "$irow_r != $irow_r2"
 
   zero_val = zero(S)
-  #missing_val ::Pair{Int, S} = (-1 => zero_val)
 
   function element(bcol, ampl) ::Pair{Int, S}
     haskey(rhsr.parent.basis_lookup, bcol) || return (-1 => ampl)
@@ -66,7 +65,6 @@ function get_column_iterator(opr ::ReducedOperatorRepresentation{RHSR, O}, icol_
   @assert icol_r == icol_r2 "$icol_r != $icol_r2"
 
   zero_val = zero(S)
-  #missing_val ::Pair{Int, S} = (-1 => zero_val)
 
   function element(brow, ampl) ::Pair{Int, S}
     haskey(rhsr.parent.basis_lookup, brow) || return (-1 => ampl)

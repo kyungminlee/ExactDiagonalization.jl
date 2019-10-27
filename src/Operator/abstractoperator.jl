@@ -5,8 +5,8 @@ abstract type AbstractOperator end
 
 export scalartype
 export bintype
-scalartype(lhs::AbstractOperator) = scalartype(typeof(lhs)) ::DataType
-bintype(lhs::AbstractOperator) = bintype(typeof(lhs)) ::DataType
+@inline scalartype(lhs::AbstractOperator) = scalartype(typeof(lhs)) ::DataType
+@inline bintype(lhs::AbstractOperator) = bintype(typeof(lhs)) ::DataType
 
 #=
  UNARY OPERATORS
@@ -31,5 +31,5 @@ bintype(lhs::AbstractOperator) = bintype(typeof(lhs)) ::DataType
 =#
 
 import Base.-, Base.+
-(-)(lhs ::AbstractOperator, rhs::AbstractOperator) = (lhs) + (-rhs)
-(+)(op ::AbstractOperator) = op
+@inline (-)(lhs ::AbstractOperator, rhs::AbstractOperator) = (lhs) + (-rhs)
+@inline (+)(op ::AbstractOperator) = op

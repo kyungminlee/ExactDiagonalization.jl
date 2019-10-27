@@ -40,7 +40,7 @@ end
 
 
 import Base.==
-function (==)(lhs ::AbstractOperatorRepresentation,
+@inline function (==)(lhs ::AbstractOperatorRepresentation,
               rhs ::AbstractOperatorRepresentation)
   return ((get_space(lhs) == get_space(rhs)) && (lhs.operator == rhs.operator))
 end
@@ -135,14 +135,14 @@ end
 
 
 import Base.getindex
-function getindex(oprep ::AbstractOperatorRepresentation, ::Colon, icol::Integer)
+@inline function getindex(oprep ::AbstractOperatorRepresentation, ::Colon, icol::Integer)
   return get_column(oprep, icol)
 end
 
-function getindex(oprep ::AbstractOperatorRepresentation, irow::Integer, ::Colon)
+@inline function getindex(oprep ::AbstractOperatorRepresentation, irow::Integer, ::Colon)
   return get_row(oprep, irow)
 end
 
-function getindex(oprep ::AbstractOperatorRepresentation, ::Colon, ::Colon)
+@inline function getindex(oprep ::AbstractOperatorRepresentation, ::Colon, ::Colon)
   return sparse(oprep)
 end

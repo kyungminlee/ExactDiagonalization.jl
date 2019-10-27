@@ -73,8 +73,8 @@ end
 @inline qntype(::Type{Site{QN}}) where QN = QN
 
 import Base.==
-function ==(lhs ::Site{Q1}, rhs ::Site{Q2}) where {Q1, Q2}
-  return (Q1 == Q2) && (lhs.states == rhs.states)
+@inline function ==(lhs ::Site{Q1}, rhs ::Site{Q2}) where {Q1, Q2}
+  return (lhs.states == rhs.states)
 end
 
 """
@@ -82,14 +82,14 @@ end
 
 Number of bits necessary to represent the states of the given site.
 """
-bitwidth(site ::Site) ::Int = Int(ceil(log2(length(site.states))))
+@inline bitwidth(site ::Site) ::Int = Int(ceil(log2(length(site.states))))
 
 """
     dimension(site ::Site)
 
 Hilbert space dimension of a given site ( = number of states).
 """
-dimension(site ::Site) ::Int = length(site.states)
+@inline dimension(site ::Site) ::Int = length(site.states)
 
 
 """
@@ -122,10 +122,4 @@ end
 
 
 import Base.keys
-keys(site::Site{QN}) where QN = 1:dimension(site)
-# import Base.iterate
-# @inline iterate(site::Site{QN}) where {QN} = Base.iterate(1:length(site.states))
-# @inline iterate(site::Site{QN}, i) where QN = Base.iterate(1:length(site.states), i)
-
-# import Base.length
-# @inline length(site::Site{QN}) where QN = length(site.states)
+@inline keys(site::Site{QN}) where QN = 1:dimension(site)

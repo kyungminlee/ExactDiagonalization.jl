@@ -1,8 +1,8 @@
 export simplify
 
-simplify(op ::NullOperator; tol::AbstractFloat=0.0) = op
+@inline simplify(op ::NullOperator; tol::AbstractFloat=0.0) = op
 
-function simplify(op ::PureOperator{S, BR}; tol ::AbstractFloat=sqrt(eps(Float64))) where {S<:Real, BR}
+@inline function simplify(op ::PureOperator{S, BR}; tol ::AbstractFloat=sqrt(eps(Float64))) where {S<:Real, BR}
   if isapprox(op.amplitude, 0.0; rtol=tol, atol=tol)
     return NullOperator()
   else
@@ -10,7 +10,7 @@ function simplify(op ::PureOperator{S, BR}; tol ::AbstractFloat=sqrt(eps(Float64
   end
 end
 
-function simplify(op ::PureOperator{Complex{S}, BR}; tol ::AbstractFloat=sqrt(eps(Float64))) where {S<:Real, BR}
+@inline function simplify(op ::PureOperator{Complex{S}, BR}; tol ::AbstractFloat=sqrt(eps(Float64))) where {S<:Real, BR}
   if isapprox(abs(op.amplitude), 0.0; rtol=tol, atol=tol)
     return NullOperator()
   end

@@ -1,5 +1,6 @@
 export ReducedHilbertSpaceRepresentation
 export bintype
+export symmetry_reduce, symmetry_unreduce
 
 struct ReducedHilbertSpaceRepresentation{HSR <:HilbertSpaceRepresentation, BR, C<:Complex} <:AbstractHilbertSpaceRepresentation
   parent ::HSR

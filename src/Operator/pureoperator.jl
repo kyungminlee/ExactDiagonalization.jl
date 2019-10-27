@@ -24,13 +24,8 @@ struct PureOperator{Scalar<:Number, BR<:Unsigned} <:AbstractOperator
   end
 end
 
-
-@inline scalartype(lhs ::PureOperator{S, BR}) where {S, BR} = S ::DataType
 @inline scalartype(lhs ::Type{PureOperator{S, BR}}) where {S, BR} = S ::DataType
-
-@inline bintype(lhs ::PureOperator{S, BR}) where {S, BR} = BR ::DataType
 @inline bintype(lhs ::Type{PureOperator{S, BR}}) where {S, BR} = BR ::DataType
-
 
 # === 1/6 (In)equality ===
 
@@ -69,41 +64,41 @@ end
 
 import Base.real, Base.imag, Base.conj, Base.transpose, Base.adjoint
 
-real(arg ::PureOperator{R, BR}) where {R<:Real, BR} = arg
-imag(arg ::PureOperator{R, BR}) where {R<:Real, BR} = PureOperator{R, BR}(arg.bitmask, arg.bitrow, arg.bitcol, zero(R))
-conj(arg ::PureOperator{R, BR}) where {R<:Real, BR} = arg
+@inline real(arg ::PureOperator{R, BR}) where {R<:Real, BR} = arg
+@inline imag(arg ::PureOperator{R, BR}) where {R<:Real, BR} = PureOperator{R, BR}(arg.bitmask, arg.bitrow, arg.bitcol, zero(R))
+@inline conj(arg ::PureOperator{R, BR}) where {R<:Real, BR} = arg
 
-real(arg ::PureOperator{Complex{R}, BR}) where {R<:Real, BR} = PureOperator{R, BR}(arg.bitmask, arg.bitrow, arg.bitcol, real(arg.amplitude))
-imag(arg ::PureOperator{Complex{R}, BR}) where {R<:Real, BR} = PureOperator{R, BR}(arg.bitmask, arg.bitrow, arg.bitcol, imag(arg.amplitude))
-conj(arg ::PureOperator{Complex{R}, BR}) where {R<:Real, BR} = PureOperator{Complex{R}, BR}(arg.bitmask, arg.bitrow, arg.bitcol, conj(arg.amplitude))
+@inline real(arg ::PureOperator{Complex{R}, BR}) where {R<:Real, BR} = PureOperator{R, BR}(arg.bitmask, arg.bitrow, arg.bitcol, real(arg.amplitude))
+@inline imag(arg ::PureOperator{Complex{R}, BR}) where {R<:Real, BR} = PureOperator{R, BR}(arg.bitmask, arg.bitrow, arg.bitcol, imag(arg.amplitude))
+@inline conj(arg ::PureOperator{Complex{R}, BR}) where {R<:Real, BR} = PureOperator{Complex{R}, BR}(arg.bitmask, arg.bitrow, arg.bitcol, conj(arg.amplitude))
 
-transpose(arg ::PureOperator{S, BR}) where {S, BR} = PureOperator{S, BR}(arg.bitmask, arg.bitcol, arg.bitrow, arg.amplitude)
-adjoint(arg ::PureOperator{S, BR}) where {S, BR} = PureOperator{S, BR}(arg.bitmask, arg.bitcol, arg.bitrow, conj(arg.amplitude))
+@inline transpose(arg ::PureOperator{S, BR}) where {S, BR} = PureOperator{S, BR}(arg.bitmask, arg.bitcol, arg.bitrow, arg.amplitude)
+@inline adjoint(arg ::PureOperator{S, BR}) where {S, BR} = PureOperator{S, BR}(arg.bitmask, arg.bitcol, arg.bitrow, conj(arg.amplitude))
 
 
 # === 3/6 Scalar Operators ===
 
 import Base.+, Base.-, Base.*, Base./, Base.\
 
-(-)(op ::PureOperator{S, BR}) where {S, BR} = PureOperator{S, BR}(op.bitmask, op.bitrow, op.bitcol, -op.amplitude)
+@inline (-)(op ::PureOperator{S, BR}) where {S, BR} = PureOperator{S, BR}(op.bitmask, op.bitrow, op.bitcol, -op.amplitude)
 
 
-function (*)(lhs ::S1, rhs ::PureOperator{S2, BR}) where {S1<:Number, S2<:Number, BR}
+@inline function (*)(lhs ::S1, rhs ::PureOperator{S2, BR}) where {S1<:Number, S2<:Number, BR}
   S = promote_type(S1, S2)
   return PureOperator{S, BR}(rhs.bitmask, rhs.bitrow, rhs.bitcol, lhs * rhs.amplitude)
 end
 
-function (*)(lhs ::PureOperator{S1, BR}, rhs ::S2) where {S1<:Number, S2<:Number, BR}
+@inline function (*)(lhs ::PureOperator{S1, BR}, rhs ::S2) where {S1<:Number, S2<:Number, BR}
   S = promote_type(S1, S2)
   return PureOperator{S, BR}(lhs.bitmask, lhs.bitrow, lhs.bitcol, lhs.amplitude * rhs)
 end
 
-function (\)(lhs ::S1, rhs ::PureOperator{S2, BR}) where {S1<:Number, S2<:Number, BR}
+@inline function (\)(lhs ::S1, rhs ::PureOperator{S2, BR}) where {S1<:Number, S2<:Number, BR}
   S = promote_type(S1, S2)
   return PureOperator{S, BR}(rhs.bitmask, rhs.bitrow, rhs.bitcol, lhs \ rhs.amplitude)
 end
 
-function (/)(lhs ::PureOperator{S1, BR}, rhs ::S2) where {S1<:Number, S2<:Number, BR}
+@inline function (/)(lhs ::PureOperator{S1, BR}, rhs ::S2) where {S1<:Number, S2<:Number, BR}
   S = promote_type(S1, S2)
   return PureOperator{S, BR}(lhs.bitmask, lhs.bitrow, lhs.bitcol, lhs.amplitude / rhs)
 end
@@ -137,13 +132,13 @@ end
 # === 6/6 Conversion ===
 
 import Base.promote_rule
-function promote_rule(lhs::Type{PureOperator{S1, BR}}, rhs::Type{PureOperator{S2, BR}}) where {S1, S2, BR}
+@inline function promote_rule(lhs::Type{PureOperator{S1, BR}}, rhs::Type{PureOperator{S2, BR}}) where {S1, S2, BR}
   S3 = promote_type(S1, S2)
   return PureOperator{S3, BR}
 end
 
 import Base.convert
-function convert(type ::Type{PureOperator{S1, BR}}, obj::PureOperator{S2, BR}) where {S1, S2, BR}
+@inline function convert(type ::Type{PureOperator{S1, BR}}, obj::PureOperator{S2, BR}) where {S1, S2, BR}
   return PureOperator{S1, BR}(obj.bitmask, obj.bitrow, obj.bitcol, convert(S1, obj.amplitude))
 end
 

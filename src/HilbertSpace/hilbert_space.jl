@@ -74,11 +74,11 @@ julia> bitwidth(hs)
 @inline basespace(hs::HilbertSpace) = hs
 
 import Base.==
-function (==)(lhs ::HilbertSpace{Q1}, rhs ::HilbertSpace{Q2}) where {Q1, Q2}
-  return (Q1 == Q2) && (lhs.sites == rhs.sites) #&& (lhs.bitwidths == rhs.bitwidths) && (lhs.bitoffsets == rhs.bitoffsets)
+@inline function (==)(lhs ::HilbertSpace{Q1}, rhs ::HilbertSpace{Q2}) where {Q1, Q2}
+  return lhs.sites == rhs.sites
 end
 
-function get_bitmask(hs ::HilbertSpace, isite ::Integer; dtype ::Type{T}=UInt) ::T where {T<:Unsigned}
+@inline function get_bitmask(hs ::HilbertSpace, isite ::Integer; dtype ::Type{T}=UInt) ::T where {T<:Unsigned}
   return make_bitmask(hs.bitoffsets[isite+1], hs.bitoffsets[isite]; dtype=dtype)
 end
 
@@ -164,7 +164,7 @@ function compress(hs ::HilbertSpace{QN}, indexarray ::CartesianIndex; BR::DataTy
 end
 
 
-function update(hs ::HilbertSpace, binrep ::U, isite ::Integer, new_state_index ::Integer) where {U<:Unsigned}
+@inline function update(hs ::HilbertSpace, binrep ::U, isite ::Integer, new_state_index ::Integer) where {U<:Unsigned}
   @boundscheck if !(1 <= new_state_index <= dimension(hs.sites[isite]))
     throw(BoundsError(1:dimension(hs.sites[isite]), new_state_index))
   end
@@ -172,11 +172,11 @@ function update(hs ::HilbertSpace, binrep ::U, isite ::Integer, new_state_index 
   return (binrep & (~mask)) | (U(new_state_index-1) << hs.bitoffsets[isite])
 end
 
-function get_state_index(hs ::HilbertSpace, binrep ::U, isite ::Integer) where {U<:Unsigned}
+@inline function get_state_index(hs ::HilbertSpace, binrep ::U, isite ::Integer) where {U<:Unsigned}
   return Int( ( binrep >> hs.bitoffsets[isite] ) & make_bitmask(hs.bitwidths[isite]; dtype=U) ) + 1
 end
 
-function get_state(hs ::HilbertSpace, binrep ::U, isite ::Integer) where {U<:Unsigned}
+@inline function get_state(hs ::HilbertSpace, binrep ::U, isite ::Integer) where {U<:Unsigned}
   return hs.sites[isite].states[get_state_index(hs, binrep, isite)]
 end
 

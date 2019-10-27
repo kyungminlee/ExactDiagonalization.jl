@@ -40,7 +40,7 @@ end
 import Base.==
 function (==)(lhs ::HilbertSpaceRepresentation{H1, B1},
               rhs ::HilbertSpaceRepresentation{H2, B2}) where {H1, B1, H2, B2}
-  return (B1 == B2) && basespace(lhs) == basespace(rhs) && (lhs.basis_list == rhs.basis_list)
+  return basespace(lhs) == basespace(rhs) && (lhs.basis_list == rhs.basis_list)
 end
 
 function checkvalidbasis(hsr::HilbertSpaceRepresentation{HS, BR}) where {HS <:AbstractHilbertSpace, BR <:Unsigned}
@@ -55,7 +55,7 @@ end
 
 Dimension of the Concrete Hilbert space, i.e. number of basis vectors.
 """
-dimension(hsr ::HilbertSpaceRepresentation) = length(hsr.basis_list)
+@inline dimension(hsr ::HilbertSpaceRepresentation) = length(hsr.basis_list)
 
 """
     represent(hs; BR ::DataType=UInt)
@@ -90,10 +90,7 @@ Make a HilbertSpaceRepresentation with all the basis vectors of the specified Hi
 - `allowed`: Allowed quantum numbers
 - `BR ::DataType=UInt`: Binary representation type
 """
-function represent(
-    hss::HilbertSpaceSector{QN};
-    BR::DataType=UInt) where {QN}
-
+function represent(hss::HilbertSpaceSector{QN}; BR::DataType=UInt) where {QN}
   hs = hss.parent
   allowed = hss.allowed_quantum_numbers
   sectors = Set(quantum_number_sectors(hs))
