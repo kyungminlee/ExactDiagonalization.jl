@@ -1,8 +1,8 @@
-include("Operator/abstractoperator.jl")
+include("Operator/abstract_operator.jl")
 
-include("Operator/nulloperator.jl")
-include("Operator/pureoperator.jl")
-include("Operator/sumoperator.jl")
+include("Operator/null_operator.jl")
+include("Operator/pure_operator.jl")
+include("Operator/sum_operator.jl")
 
 include("Operator/operator_simplify.jl")
 include("Operator/operator_iterator.jl")
