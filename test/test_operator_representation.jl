@@ -23,7 +23,7 @@ end;
 
 
 
-@testset "OperatorRepresentation" begin
+@testset "OpRep" begin
   @testset "spin half" begin
     up = State("Up", +1)
     dn = State("Dn", -1)
@@ -189,7 +189,7 @@ end;
           @test isapprox(out0, out2, atol=1E-6)
 
           # add to the previous (do not overwrite)
-          apply!(out1, state, opr)
+          APP!(out1, state, opr)
           @test !isapprox(out0, out1, atol=1E-6)
 
           @test_throws BoundsError APP!(out1, opr, state; range=1:100)
@@ -209,6 +209,12 @@ end;
         for APP! in [apply!, apply_serial!, apply_parallel!]
           out1[:] .= zero(ComplexF64)
           e1, e2 = APP!(out1, opr, state)
+          tol = sqrt(eps(Float64))
+          @test isapprox(e1, 12im; atol=tol)
+          @test isapprox(e2, 24.0; atol=tol)
+          @test all(isapprox.(out1, 0; atol=tol))
+
+          e1, e2 = APP!(out1, state, opr)
           tol = sqrt(eps(Float64))
           @test isapprox(e1, 12im; atol=tol)
           @test isapprox(e2, 24.0; atol=tol)

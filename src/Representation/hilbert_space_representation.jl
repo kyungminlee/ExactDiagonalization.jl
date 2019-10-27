@@ -120,11 +120,14 @@ function represent(hss::HilbertSpaceSector{QN}; BR::DataType=UInt) where {QN}
     end
     result_prev = generate(i-1, allowed_prev)
 
-    result = DefaultDict{QN, Vector{BR}}(Vector{BR})
+    result = Dict{QN, Vector{BR}}()
     for (i_state, q_curr) in enumerate(quantum_numbers[i])
       for (q_prev, states_prev) in result_prev
         q = q_prev + q_curr
         if q in allowed
+          if !haskey(result, q)
+            result[q] = BR[]
+          end
           append!(result[q], (s | (BR(i_state-1) << hs.bitoffsets[i])) for s in states_prev)
         end
       end
@@ -155,74 +158,3 @@ function represent(hs ::AbstractHilbertSpace,
   basis_lookup = FrozenSortedArrayIndex{BR}(basis_list)
   return HilbertSpaceRepresentation(basespace(hs), basis_list, basis_lookup)
 end
-
-# function represent(hss ::HilbertSpaceSector{QN},
-#                    basis_list ::AbstractVector{BR}) where {QN, BR<:Unsigned}
-#   HS = HilbertSpace{QN}
-#   hs = hss.parent
-#   basis_list = sort(basis_list)
-#   #basis_lookup = Dict{BR, Int}(basis => ibasis for (ibasis, basis) in enumerate(basis_list))
-#   basis_lookup = FrozenSortedArrayIndex{BR}(basis_list)
-#   return HilbertSpaceRepresentation(basespace(hs), basis_list, basis_lookup)
-# end
-#
-
-
-#
-# function represent(
-#     hs::HilbertSpace{QN},
-#     allowed::Union{AbstractSet{QN}, AbstractVector{QN}};
-#     BR::DataType=UInt) where {QN}
-#   allowed = Set(allowed)
-#   sectors = Set(quantum_number_sectors(hs))
-#   if isempty(intersect(allowed, sectors))
-#     return HilbertSpaceRepresentation{QN, BR}(hs, BR[], FrozenSortedArrayIndex{BR}(BR[]))
-#   end
-#
-#   quantum_numbers = [[state.quantum_number for state in site.states] for site in hs.sites]
-#   possible_quantum_numbers = [Set([zero(QN)])]  # PQN[i]: possible QN left of i
-#
-#   n_sites = length(hs.sites)
-#   for i in 1:n_sites
-#     pq = Set{QN}(q1 + q2 for q1 in possible_quantum_numbers[i], q2 in quantum_numbers[i])
-#     push!(possible_quantum_numbers, pq)
-#   end
-#
-#   function generate(i ::Int, allowed ::AbstractSet{QN})
-#     if i == 0
-#       return (zero(QN) in allowed) ? Dict(zero(QN) => [BR(0x0)]) : Dict()
-#     end
-#     allowed_prev = Set{QN}()
-#     for q1 in quantum_numbers[i], q2 in allowed
-#       q = q2 - q1
-#       if q in possible_quantum_numbers[i]
-#         push!(allowed_prev, q)
-#       end
-#     end
-#     result_prev = generate(i-1, allowed_prev)
-#
-#     result = DefaultDict{QN, Vector{BR}}(Vector{BR})
-#     for (i_state, q_curr) in enumerate(quantum_numbers[i])
-#       for (q_prev, states_prev) in result_prev
-#         q = q_prev + q_curr
-#         if q in allowed
-#           append!(result[q], (s | (BR(i_state-1) << hs.bitoffsets[i])) for s in states_prev)
-#         end
-#       end
-#     end
-#     return result
-#   end
-#
-#   basis_list ::Vector{BR} = let
-#     basis_list = BR[]
-#     result = generate(n_sites, allowed)
-#     for (q, states) in result
-#       basis_list = merge_vec(basis_list, states)
-#     end
-#     basis_list
-#   end
-#
-#   sort!(basis_list)
-#   basis_lookup = FrozenSortedArrayIndex{BR}(basis_list)
-#   return HilbertSpaceRepresentation{QN, BR}(hs, basis_list, basis_lookup)
-# end
