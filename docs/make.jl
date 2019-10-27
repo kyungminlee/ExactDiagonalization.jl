@@ -15,7 +15,8 @@ makedocs(
         "Operator" => "operator.md",
         "Representation" => "representation.md",
         "Symmetry" => "symmetry.md"
-      ]
+      ],
+      "API" => "api.md",
     ]
   )
 

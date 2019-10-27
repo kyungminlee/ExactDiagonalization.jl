@@ -1,7 +1,16 @@
 # ExactDiagonalization
 
-Implements exact diagonalization
+Implements exact diagonalization.
 
-```@autodocs
-Modules = [ExactDiagonalization]
+Schematics for the structure of the package
+```
+                State
+                  ↓
+                Site
+                  ↓
+                HilbertSpace → HilbertSpaceSector    Operator
+                  ↓              ↓                     ↓
+                HilbertSpaceRepresentation         → OperatorRepresentation
+                  ↓                                    ↓
+SymmetryGroup → ReducedHilbertSpaceRepresentation  → ReducedOperatorRepresentation
 ```
