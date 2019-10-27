@@ -33,7 +33,7 @@ end;
 
   translation_group = TranslationGroup([Permutation([2,3,4,1])])
 
-  for symred in [symmetry_reduce, symmetry_reduce_parallel]
+  for symred in [symmetry_reduce, symmetry_reduce_serial, symmetry_reduce_parallel]
     rhsr = symred(hsr, translation_group, [0//1])
     @test rhsr.basis_list == UInt[0b0011, 0b0101]
     @test rhsr.parent === hsr
@@ -52,13 +52,14 @@ end;
 
     @test_throws ArgumentError symred(hsr, translation_group, [1//5])
 
+    tol = sqrt(eps(Float64))
     for k in translation_group.fractional_momenta
       rhsr = symred(hsr, translation_group, k)
       for (i_p, b) in enumerate(hsr.basis_list)
         if b in rhsr.basis_list
           @test 1 <= rhsr.basis_mapping[i_p].index <= dimension(rhsr)
           @test rhsr.basis_list[rhsr.basis_mapping[i_p].index] == b
-          @test isapprox(imag(rhsr.basis_mapping[i_p].amplitude), 0; atol=sqrt(eps(Float64)))
+          @test isapprox(imag(rhsr.basis_mapping[i_p].amplitude), 0; atol=tol)
         end
       end
       for (i_p, (i_r, amplitude)) in enumerate(rhsr.basis_mapping)
@@ -66,6 +67,11 @@ end;
           @test ! (rhsr.parent.basis_list[i_p] in rhsr.basis_list)
         end
       end
+
+      sv = rand(ComplexF64, dimension(rhsr))
+      lv = symmetry_unreduce(rhsr, sv)
+      sv2 = symmetry_reduce(rhsr, lv)
+      @test isapprox(sv, sv2; atol=tol)
     end
   end
   # σ = Dict( (isite, j) => pauli_matrix(hs, isite, j) for isite in 1:n_sites, j in [:x, :y, :z, :+, :-]);
