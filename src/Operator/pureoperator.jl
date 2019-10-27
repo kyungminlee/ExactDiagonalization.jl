@@ -30,7 +30,7 @@ end
 # === 1/6 (In)equality ===
 
 import Base.==
-function (==)(lhs ::PureOperator{S1, BR}, rhs::PureOperator{S2, BR}) where {S1, S2, BR}
+@inline function (==)(lhs ::PureOperator{S1, BR}, rhs::PureOperator{S2, BR}) where {S1, S2, BR}
   return ((lhs.bitmask == rhs.bitmask) &&
           (lhs.bitrow == rhs.bitrow) &&
           (lhs.bitcol == rhs.bitcol) &&
@@ -38,25 +38,13 @@ function (==)(lhs ::PureOperator{S1, BR}, rhs::PureOperator{S2, BR}) where {S1, 
 end
 
 import Base.<
-function (<)(lhs ::PureOperator{S1, BR}, rhs ::PureOperator{S2, BR}) where {S1, S2, BR}
-  if lhs.bitmask < rhs.bitmask
-    return true
-  elseif lhs.bitmask > rhs.bitmask
-    return false
-  end
-
-  if lhs.bitrow < rhs.bitrow
-    return true
-  elseif lhs.bitrow > rhs.bitrow
-    return false
-  end
-
-  if lhs.bitcol < rhs.bitcol
-    return true
-  elseif lhs.bitcol > rhs.bitcol
-    return false
-  end
-
+@inline function (<)(lhs ::PureOperator{S1, BR}, rhs ::PureOperator{S2, BR}) where {S1, S2, BR}
+  lhs.bitmask < rhs.bitmask && return true
+  lhs.bitmask > rhs.bitmask && return false
+  lhs.bitrow < rhs.bitrow && return true
+  lhs.bitrow > rhs.bitrow && return false
+  lhs.bitcol < rhs.bitcol && return true
+  lhs.bitcol > rhs.bitcol && return false
   return abs(lhs.amplitude) < abs(rhs.amplitude)
 end
 
@@ -106,7 +94,7 @@ end
 
 # === 4/6 Operator Products ===
 
-function (*)(lhs ::PureOperator{S1, BR}, rhs ::PureOperator{S2, BR}) where {S1<:Number, S2<:Number, BR}
+function (*)(lhs ::PureOperator{S1, BR}, rhs ::PureOperator{S2, BR}) ::AbstractOperator where {S1<:Number, S2<:Number, BR}
   S3 = promote_type(S1, S2)
 
   onlylhs_bitmask   =   lhs.bitmask  & (~rhs.bitmask)
@@ -142,12 +130,13 @@ import Base.convert
   return PureOperator{S1, BR}(obj.bitmask, obj.bitrow, obj.bitcol, convert(S1, obj.amplitude))
 end
 
-function pure_operator(hilbert_space ::HilbertSpace,
-                       isite ::Integer,
-                       istate_row ::Integer,
-                       istate_col ::Integer,
-                       amplitude::Number=1;
-                       dtype ::DataType=UInt)
+@inline function pure_operator(
+    hilbert_space ::HilbertSpace,
+    isite ::Integer,
+    istate_row ::Integer,
+    istate_col ::Integer,
+    amplitude::Number=1;
+    dtype ::DataType=UInt)
   @boundscheck let
     site = hilbert_space.sites[isite]
     state_row = site.states[istate_row]
