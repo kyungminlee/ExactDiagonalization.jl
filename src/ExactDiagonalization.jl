@@ -10,6 +10,9 @@ function __init__()
   Memento.register(LOGGER)
 end
 
+# workaround?
+import TightBindingLattice.dimension
+
 include("util.jl")
 include("frozensortedarray.jl")
 

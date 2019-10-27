@@ -2,6 +2,8 @@ export symmetry_reduce, symmetry_reduce_serial, symmetry_reduce_parallel
 #export materialize, materialize_serial, materialize_parallel
 export symmetry_reduce, symmetry_unreduce
 
+import TightBindingLattice.TranslationGroup
+
 function symmetry_reduce(
     hsr ::HilbertSpaceRepresentation{QN, BR},
     trans_group ::TranslationGroup,
