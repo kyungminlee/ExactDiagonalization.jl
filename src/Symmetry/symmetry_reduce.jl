@@ -42,16 +42,17 @@ function symmetry_reduce_serial(
     denom = max(1, length(trans_group.fractional_momenta) - 1)
     n_basis ÷ denom
   end
-  sizehint!(reduced_basis_list, size_estimate)
 
+  sizehint!(reduced_basis_list, size_estimate)
   visited = falses(n_basis)
+
   for ivec_p in 1:n_basis
     visited[ivec_p] && continue
     bvec = hsr.basis_list[ivec_p]
 
     compatible = true
     ψ = Dict{BR, ComplexType}()
-    #ψ = SparseState{ComplexType, BR}(hsr.hilbert_space)
+
     for i in 1:length(trans_group.elements)
       t = trans_group.translations[i]
       g = trans_group.elements[i]
@@ -76,12 +77,11 @@ function symmetry_reduce_serial(
 
     ivec_p_primes = Int[hsr.basis_lookup[bvec_prime] for bvec_prime in keys(ψ)]
 
-    any(visited[ivec_p_primes]) && continue
+    @assert !any(visited[ivec_p_primes])
     visited[ivec_p_primes] .= true
 
-    norm = sqrt( sum( (abs.(values(ψ)).^2) ) )
-    # normalize!(ψ)
     push!(reduced_basis_list, bvec)
+    norm = sqrt(sum((abs.(values(ψ)).^2)))
     for (bvec_prime, amplitude) in ψ
       ivec_p_prime = hsr.basis_lookup[bvec_prime]
       representative_amplitude_list[ivec_p_prime] = (representative=ivec_p, amplitude=amplitude / norm)
@@ -193,7 +193,7 @@ function symmetry_reduce_parallel(
     ivec_p_primes = Int[hsr.basis_lookup[bvec_prime] for bvec_prime in keys(ψ)]
 
     lock(visit_lock)
-    if any(visited[ivec_p_primes])
+    if any(visited[ivec_p_primes]) # check again for thread-safety
       unlock(visit_lock)
       continue
     else
@@ -256,7 +256,7 @@ raw"""
 . & \cdots & . \\
 . & \cdots & . \\
   & \dots & \\
-. & \cdots & 
+. & \cdots &
 \end{pmatrix}
 \begin{pmatrix} s_1 \\ \vdots \\ s_m \end{pmatrix}
 ```
