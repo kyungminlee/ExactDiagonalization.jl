@@ -26,4 +26,6 @@ include("Symmetry.jl")
 
 include("prettyprintln.jl")
 
+include("Toolkit.jl")
+
 end
