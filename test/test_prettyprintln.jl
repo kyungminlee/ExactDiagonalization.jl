@@ -2,23 +2,9 @@ using Test
 using Suppressor
 using ExactDiagonalization
 
-@testset "prettyprintln" begin
-  function pauli_matrix(hs::HilbertSpace, isite ::Integer, j ::Symbol)
-    if j == :x
-      return pure_operator(hs, isite, 1, 2, 1.0; dtype=UInt) + pure_operator(hs, isite, 2, 1, 1.0; dtype=UInt)
-    elseif j == :y
-      return pure_operator(hs, isite, 1, 2, -1.0im; dtype=UInt) + pure_operator(hs, isite, 2, 1, 1.0im; dtype=UInt)
-    elseif j == :z
-      return pure_operator(hs, isite, 1, 1, 1.0; dtype=UInt) + pure_operator(hs, isite, 2, 2, -1.0; dtype=UInt)
-    elseif j == :+
-      return pure_operator(hs, isite, 1, 2, 1.0; dtype=UInt)
-    elseif j == :-
-      return pure_operator(hs, isite, 2, 1, 1.0; dtype=UInt)
-    else
-      throw(ArgumentError("pauli matrix of type $(j) not supported"))
-    end
-  end
+using ExactDiagonalization.Toolkit: pauli_matrix
 
+@testset "prettyprintln" begin
   @testset "spinhalf" begin
     QN = Int
     up = State("Up", QN( 1))
@@ -45,7 +31,7 @@ using ExactDiagonalization
                            "| M: 0000000000000000000000000000000000000000000000000000000000000001",
                            "| R: 0000000000000000000000000000000000000000000000000000000000000000",
                            "| C: 0000000000000000000000000000000000000000000000000000000000000001",
-                           "| A: 1.0", ""], "\n")
+                           "| A: 1", ""], "\n")
     val = σ(2, :x)
     result1 = @capture_out prettyprintln(val)
     prettyprintln(buf, val)
@@ -56,12 +42,12 @@ using ExactDiagonalization
                            "| | M: 0000000000000000000000000000000000000000000000000000000000000010",
                            "| | R: 0000000000000000000000000000000000000000000000000000000000000000",
                            "| | C: 0000000000000000000000000000000000000000000000000000000000000010",
-                           "| | A: 1.0",
+                           "| | A: 1",
                            "| PureOperator",
                            "| | M: 0000000000000000000000000000000000000000000000000000000000000010",
                            "| | R: 0000000000000000000000000000000000000000000000000000000000000010",
                            "| | C: 0000000000000000000000000000000000000000000000000000000000000000",
-                           "| | A: 1.0",
+                           "| | A: 1",
                            ""], "\n")
 
     # val = SparseState{Float64, UInt}(hs, UInt(0b0010)=>0.2, UInt(0b100) => 0.3 )

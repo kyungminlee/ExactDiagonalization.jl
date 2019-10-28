@@ -2,8 +2,7 @@ using Test
 using ExactDiagonalization
 
 using TightBindingLattice
-
-include("pauli_matrix.jl")
+using ExactDiagonalization.Toolkit: pauli_matrix
 
 @testset "symmetry_apply" begin
   QN = Int

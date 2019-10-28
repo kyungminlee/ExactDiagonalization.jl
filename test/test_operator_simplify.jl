@@ -1,28 +1,13 @@
 using Test
 using ExactDiagonalization
 
+using ExactDiagonalization.Toolkit: pauli_matrix
+
 @testset "simplify" begin
   nop = NullOperator()
   @test simplify(nop) == nop
 
   @testset "spinhalf" begin
-
-
-    function pauli_matrix(hs::HilbertSpace, isite ::Integer, j ::Symbol)
-      if j == :x
-        return pure_operator(hs, isite, 1, 2, 1.0; dtype=UInt) + pure_operator(hs, isite, 2, 1, 1.0; dtype=UInt)
-      elseif j == :y
-        return pure_operator(hs, isite, 1, 2, -1.0im; dtype=UInt) + pure_operator(hs, isite, 2, 1, 1.0im; dtype=UInt)
-      elseif j == :z
-        return pure_operator(hs, isite, 1, 1, 1.0; dtype=UInt) + pure_operator(hs, isite, 2, 2, -1.0; dtype=UInt)
-      elseif j == :+
-        return pure_operator(hs, isite, 1, 2, 1.0; dtype=UInt)
-      elseif j == :-
-        return pure_operator(hs, isite, 2, 1, 1.0; dtype=UInt)
-      else
-        throw(ArgumentError("pauli matrix of type $(j) not supported"))
-      end
-    end
 
     QN = Int
     up = State("Up", QN( 1))
@@ -87,7 +72,7 @@ using ExactDiagonalization
       heisenberg2 = sum(σ(i, j) * σ(mod(i,n)+1, j) for i in 1:n, j in [:x, :y, :z])
       heisenberg3 = simplify(heisenberg)
       heisenberg4 = simplify(heisenberg2)
-      
+
       @test heisenberg != heisenberg2
       @test length(heisenberg.terms) < length(heisenberg2.terms)
       @test Set(heisenberg.terms) != Set(heisenberg2.terms)
