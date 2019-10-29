@@ -108,6 +108,10 @@ using ExactDiagonalization.Toolkit: pauli_matrix
       σ₀ = [1 0; 0 1]
       H0 = kron(σ₀, σ₀, σ₊, σ₀)
       opr_s = sparse(opr)
+      opr_s1 = sparse_serial(opr)
+      opr_s2 = sparse_parallel(opr)
+      @test opr_s == opr_s1
+      @test opr_s == opr_s2
       opr_d = Matrix(opr)
       @test opr_s == H0
       @test opr_d == H0
