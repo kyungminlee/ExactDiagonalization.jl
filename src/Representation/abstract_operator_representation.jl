@@ -4,6 +4,7 @@ export spacetype, operatortype
 export bintype
 export get_space
 export get_row, get_column
+export sparse_serial, sparse_parallel
 
 # AbstractOperatorRepresentation
 
@@ -25,7 +26,8 @@ abstract type AbstractOperatorRepresentation end
 @inline bintype(lhs ::AbstractOperatorRepresentation) = bintype(typeof(lhs)) ::DataType
 @inline bintype(lhs ::Type{<:AbstractOperatorRepresentation}) = bintype(spacetype(lhs)) ::DataType
 
-@inline scalartype(lhs::AbstractOperatorRepresentation) ::DataType = scalartype(typeof(lhs)) ::DataType
+#@inline scalartype(lhs::AbstractOperatorRepresentation) ::DataType = scalartype(typeof(lhs)) ::DataType
+@inline scalartype(lhs::AbstractOperatorRepresentation) ::DataType = promote_type(scalartype(spacetype(lhs)), scalartype(operatortype(lhs))) ::DataType
 @inline scalartype(lhs::Type{<:AbstractOperatorRepresentation}) ::DataType = promote_type(scalartype(spacetype(lhs)), scalartype(operatortype(lhs))) ::DataType
 
 import Base.size
@@ -34,9 +36,7 @@ import Base.size
   return (dim, dim)
 end
 
-@inline function size(arg::AbstractOperatorRepresentation, i::Integer) ::Int
-  return size(arg)[i]
-end
+@inline size(arg::AbstractOperatorRepresentation, i::Integer) = size(arg)[i]
 
 
 import Base.==
@@ -76,7 +76,7 @@ function Matrix(opr::AbstractOperatorRepresentation)
   S = scalartype(opr)
   m, n = size(opr)
   out = zeros(S, (m, n))
-  for icol in 1:n
+  Threads.@threads for icol in 1:n
     for (irow, ampl) in get_column_iterator(opr, icol; include_all=false)
       out[irow, icol] += ampl
     end
@@ -84,8 +84,15 @@ function Matrix(opr::AbstractOperatorRepresentation)
   return out
 end
 
+
 import SparseArrays.sparse
+
 function sparse(opr::AbstractOperatorRepresentation; tol ::Real=sqrt(eps(Float64)))
+  sp = Threads.nthreads() == 1 ? sparse_serial : sparse_parallel
+  return sp(opr; tol=tol)
+end
+
+function sparse_serial(opr::AbstractOperatorRepresentation; tol ::Real=sqrt(eps(Float64)))
   S = scalartype(opr)
   m, n = size(opr)
   colptr = zeros(Int, n+1)
@@ -99,7 +106,6 @@ function sparse(opr::AbstractOperatorRepresentation; tol ::Real=sqrt(eps(Float64
       colvec[irow] = get(colvec, irow, zero(S)) + ampl
     end
     choptol!(colvec, tol)
-
     colptr[icol+1] = colptr[icol] + length(colvec)
     sorted_items = sort(collect(colvec), by = item -> item[1])
     append!(rowval, irow for (irow, ampl) in sorted_items)
@@ -107,6 +113,42 @@ function sparse(opr::AbstractOperatorRepresentation; tol ::Real=sqrt(eps(Float64
   end
   return SparseMatrixCSC{S, Int}(m, n, colptr, rowval, nzval)
 end
+
+function sparse_parallel(opr::AbstractOperatorRepresentation; tol ::Real=sqrt(eps(Float64)))
+  S = scalartype(opr)
+  m, n = size(opr)
+
+  colsize = zeros(Int, n)
+
+  nblocks = Threads.nthreads()
+  block_ranges = splitrange(1:n, nblocks) # guaranteed to be ordered
+  spinlock = Threads.SpinLock()
+
+  local_rowval = Vector{Int}[Int[] for i in 1:nblocks]
+  local_nzval = Vector{S}[S[] for i in 1:nblocks]
+
+  Threads.@threads for iblock in 1:nblocks
+    subrange = block_ranges[iblock]
+    for icol in subrange
+      colvec = Dict{Int, S}()
+      for (irow, ampl) in get_column_iterator(opr, icol; include_all=false)
+        colvec[irow] = get(colvec, irow, zero(S)) + ampl
+      end
+      choptol!(colvec, tol)
+      sorted_items = sort(collect(colvec), by=item->item[1])
+      colsize[icol] = length(sorted_items)
+      append!(local_rowval[iblock], irow for (irow, ampl) in sorted_items)
+      append!(local_nzval[iblock], ampl for (irow, ampl) in sorted_items)
+    end
+  end
+
+  colptr = cumsum(Int[1, colsize...])
+  rowval = vcat(local_rowval...)
+  nzval = vcat(local_nzval...)
+  return SparseMatrixCSC{S, Int}(m, n, colptr, rowval, nzval)
+end
+
+
 
 function get_row(opr ::AbstractOperatorRepresentation, irow::Integer)
   S = scalartype(opr)

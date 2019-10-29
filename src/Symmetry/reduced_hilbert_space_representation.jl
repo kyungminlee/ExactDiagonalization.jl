@@ -2,6 +2,8 @@ export ReducedHilbertSpaceRepresentation
 export bintype
 export symmetry_reduce, symmetry_unreduce
 
+import TightBindingLattice.TranslationGroup
+
 struct ReducedHilbertSpaceRepresentation{HSR <:HilbertSpaceRepresentation, BR, C<:Complex} <:AbstractHilbertSpaceRepresentation
   parent ::HSR
   translation_group ::TranslationGroup

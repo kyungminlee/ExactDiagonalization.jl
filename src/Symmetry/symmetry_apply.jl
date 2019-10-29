@@ -1,6 +1,10 @@
 export symmetry_apply
 export is_invariant
 
+import TightBindingLattice.AbstractSymmetryOperation
+import TightBindingLattice.AbstractSymmetryGroup
+
+
 ## AbstractSymmetryOperation
 
 ### HilbertSpaceSector

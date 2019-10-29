@@ -2,23 +2,8 @@ using Test
 using ExactDiagonalization
 
 using LinearAlgebra
-
-
-function pauli_matrix(hs::HilbertSpace, isite ::Integer, j ::Symbol)
-  if j == :x
-    return pure_operator(hs, isite, 1, 2, 1; dtype=UInt) + pure_operator(hs, isite, 2, 1, 1; dtype=UInt)
-  elseif j == :y
-    return pure_operator(hs, isite, 1, 2, -im; dtype=UInt) + pure_operator(hs, isite, 2, 1, im; dtype=UInt)
-  elseif j == :z
-    return pure_operator(hs, isite, 1, 1, 1; dtype=UInt) + pure_operator(hs, isite, 2, 2, -1; dtype=UInt)
-  elseif j == :+
-    return pure_operator(hs, isite, 1, 2, 1; dtype=UInt)
-  elseif j == :-
-    return pure_operator(hs, isite, 2, 1, 1; dtype=UInt)
-  else
-    throw(ArgumentError("pauli matrix of type $(j) not supported"))
-  end
-end;
+using TightBindingLattice
+using ExactDiagonalization.Toolkit: pauli_matrix
 
 @testset "symmetry_reduce" begin
   QN = Int;
@@ -74,6 +59,45 @@ end;
       @test isapprox(sv, sv2; atol=tol)
     end
   end
+
+  @testset "convention" begin
+    # want  |ψ(k)⟩ = ∑ exp(+ikx) |ψ(x)⟩
+    QN = Int;
+    up = State{QN}("Up", 1);
+    dn = State{QN}("Dn",-1);
+    spin_site = Site{QN}([up, dn]);
+    n_sites = 7;
+    hs = HilbertSpace([spin_site for i in 1:n_sites]);
+
+    let
+      hss = HilbertSpaceSector(hs, 5)
+      hsr = represent(hss)
+      p = Permutation([2,3,4,5,6,7,1])
+      translation_group = TranslationGroup(p)
+      @test symmetry_apply(hs, p, 0b0000001) == 0b0000010
+      rhsr = symmetry_reduce(hsr, translation_group, [1//7])
+      @test hsr.basis_list == UInt[0b0000001, 0b0000010, 0b0000100, 0b0001000, 0b0010000, 0b0100000, 0b1000000]
+      @test rhsr.basis_list == UInt[0b0000001]
+      ψk = symmetry_unreduce(rhsr, [1.0])
+      @test isapprox(ψk, [cis(2π * i/n_sites) / sqrt(n_sites) for i in 0:(n_sites-1)]; atol=sqrt(eps(Float64)))
+    end
+
+    let
+      hss = HilbertSpaceSector(hs, -5)
+      hsr = represent(hss)
+      p = Permutation([2,3,4,5,6,7,1])
+      translation_group = TranslationGroup(p)
+      @test symmetry_apply(hs, p, 0b0000001) == 0b0000010
+      rhsr = symmetry_reduce(hsr, translation_group, [1//7])
+      # opposite order
+      @test hsr.basis_list == UInt[0b0111111, 0b1011111, 0b1101111, 0b1110111, 0b1111011, 0b1111101, 0b1111110]
+      @test rhsr.basis_list == UInt[0b0111111]
+      ψk = symmetry_unreduce(rhsr, [1.0])
+      @test isapprox(ψk, [cis(-2π * i/n_sites) / sqrt(n_sites) for i in 0:(n_sites-1)]; atol=sqrt(eps(Float64)))
+    end
+
+  end
+
   # σ = Dict( (isite, j) => pauli_matrix(hs, isite, j) for isite in 1:n_sites, j in [:x, :y, :z, :+, :-]);
   # j1 = simplify( sum(σ[(i, j)] * σ[( mod(i, n_sites) + 1 , j)] for i in 1:n_sites, j in [:x, :y, :z]) );
 end

@@ -57,7 +57,7 @@ A site with quantum number type `QN`.
 ```jldoctest
 julia> using ExactDiagonalization
 
-julia> up = State{Int}("Up", 1); dn = State{Int}("Dn", -1);
+julia> up = State{Int}("Up", 1); dn = State("Dn", -1);
 
 julia> Site([up, dn])
 Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)])
@@ -82,14 +82,14 @@ end
 
 Number of bits necessary to represent the states of the given site.
 """
-@inline bitwidth(site ::Site) ::Int = Int(ceil(log2(length(site.states))))
+@inline bitwidth(site ::Site) = Int(ceil(log2(length(site.states))))
 
 """
     dimension(site ::Site)
 
 Hilbert space dimension of a given site ( = number of states).
 """
-@inline dimension(site ::Site) ::Int = length(site.states)
+@inline dimension(site ::Site) = length(site.states)
 
 
 """

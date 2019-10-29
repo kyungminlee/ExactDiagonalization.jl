@@ -1,8 +1,9 @@
 
-include("Symmetry/abstract_symmetry.jl")
+#include("Symmetry/abstract_symmetry.jl")
+# include("Symmetry/permutation.jl")
+# include("Symmetry/translation.jl")
+using TightBindingLattice
 
-include("Symmetry/permutation.jl")
-include("Symmetry/translation.jl")
 include("Symmetry/symmetry_apply.jl")
 
 include("Symmetry/reduced_hilbert_space_representation.jl")

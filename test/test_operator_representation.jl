@@ -5,22 +5,7 @@ using StaticArrays
 using LinearAlgebra
 using SparseArrays
 
-function pauli_matrix(hs::HilbertSpace, isite ::Integer, j ::Symbol)
-  if j == :x
-    return pure_operator(hs, isite, 1, 2, 1; dtype=UInt) + pure_operator(hs, isite, 2, 1, 1; dtype=UInt)
-  elseif j == :y
-    return pure_operator(hs, isite, 1, 2, -im; dtype=UInt) + pure_operator(hs, isite, 2, 1, im; dtype=UInt)
-  elseif j == :z
-    return pure_operator(hs, isite, 1, 1, 1; dtype=UInt) + pure_operator(hs, isite, 2, 2, -1; dtype=UInt)
-  elseif j == :+
-    return pure_operator(hs, isite, 1, 2, 1; dtype=UInt)
-  elseif j == :-
-    return pure_operator(hs, isite, 2, 1, 1; dtype=UInt)
-  else
-    throw(ArgumentError("pauli matrix of type $(j) not supported"))
-  end
-end;
-
+using ExactDiagonalization.Toolkit: pauli_matrix
 
 
 @testset "OpRep" begin
@@ -123,6 +108,10 @@ end;
       σ₀ = [1 0; 0 1]
       H0 = kron(σ₀, σ₀, σ₊, σ₀)
       opr_s = sparse(opr)
+      opr_s1 = sparse_serial(opr)
+      opr_s2 = sparse_parallel(opr)
+      @test opr_s == opr_s1
+      @test opr_s == opr_s2
       opr_d = Matrix(opr)
       @test opr_s == H0
       @test opr_d == H0
