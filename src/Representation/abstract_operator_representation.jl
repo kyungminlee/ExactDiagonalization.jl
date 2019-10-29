@@ -26,7 +26,8 @@ abstract type AbstractOperatorRepresentation end
 @inline bintype(lhs ::AbstractOperatorRepresentation) = bintype(typeof(lhs)) ::DataType
 @inline bintype(lhs ::Type{<:AbstractOperatorRepresentation}) = bintype(spacetype(lhs)) ::DataType
 
-@inline scalartype(lhs::AbstractOperatorRepresentation) ::DataType = scalartype(typeof(lhs)) ::DataType
+#@inline scalartype(lhs::AbstractOperatorRepresentation) ::DataType = scalartype(typeof(lhs)) ::DataType
+@inline scalartype(lhs::AbstractOperatorRepresentation) ::DataType = promote_type(scalartype(spacetype(lhs)), scalartype(operatortype(lhs))) ::DataType
 @inline scalartype(lhs::Type{<:AbstractOperatorRepresentation}) ::DataType = promote_type(scalartype(spacetype(lhs)), scalartype(operatortype(lhs))) ::DataType
 
 import Base.size
@@ -35,9 +36,7 @@ import Base.size
   return (dim, dim)
 end
 
-@inline function size(arg::AbstractOperatorRepresentation, i::Integer) ::Int
-  return size(arg)[i]
-end
+@inline size(arg::AbstractOperatorRepresentation, i::Integer) = size(arg)[i]
 
 
 import Base.==
@@ -77,13 +76,14 @@ function Matrix(opr::AbstractOperatorRepresentation)
   S = scalartype(opr)
   m, n = size(opr)
   out = zeros(S, (m, n))
-  for icol in 1:n
+  Threads.@threads for icol in 1:n
     for (irow, ampl) in get_column_iterator(opr, icol; include_all=false)
       out[irow, icol] += ampl
     end
   end
   return out
 end
+
 
 import SparseArrays.sparse
 
@@ -106,7 +106,6 @@ function sparse_serial(opr::AbstractOperatorRepresentation; tol ::Real=sqrt(eps(
       colvec[irow] = get(colvec, irow, zero(S)) + ampl
     end
     choptol!(colvec, tol)
-
     colptr[icol+1] = colptr[icol] + length(colvec)
     sorted_items = sort(collect(colvec), by = item -> item[1])
     append!(rowval, irow for (irow, ampl) in sorted_items)

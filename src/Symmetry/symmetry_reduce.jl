@@ -5,11 +5,11 @@ export symmetry_reduce, symmetry_unreduce
 import TightBindingLattice.TranslationGroup
 
 function symmetry_reduce(
-    hsr ::HilbertSpaceRepresentation{QN, BR},
+    hsr ::HilbertSpaceRepresentation{QN, BR, DT},
     trans_group ::TranslationGroup,
     fractional_momentum ::AbstractVector{<:Rational};
     ComplexType::DataType=ComplexF64,
-    tol::Real=sqrt(eps(Float64))) where {QN, BR}
+    tol::Real=sqrt(eps(Float64))) where {QN, BR, DT}
   symred = Threads.nthreads() == 1 ? symmetry_reduce_serial : symmetry_reduce_parallel
   return symred(hsr, trans_group, fractional_momentum; ComplexType=ComplexType, tol=tol)
 end
@@ -21,16 +21,16 @@ Symmetry-reduce the HilbertSpaceRepresentation using translation group.
 
 """
 function symmetry_reduce_serial(
-    hsr ::HilbertSpaceRepresentation{QN, BR},
+    hsr ::HilbertSpaceRepresentation{QN, BR, DT},
     trans_group ::TranslationGroup,
     fractional_momentum ::AbstractVector{<:Rational};
     ComplexType::DataType=ComplexF64,
-    tol::Real=sqrt(eps(Float64))) where {QN, BR}
+    tol::Real=sqrt(eps(Float64))) where {QN, BR, DT}
 
   ik = findfirst(collect(
     trans_group.fractional_momenta[ik] == fractional_momentum
     for ik in 1:length(trans_group.fractional_momenta) ))
-  HSR = HilbertSpaceRepresentation{QN, BR}
+  HSR = HilbertSpaceRepresentation{QN, BR, DT}
   ik === nothing && throw(ArgumentError("fractional momentum $(fractional_momentum) not an irrep of the translation group"))
 
   phases = trans_group.character_table[ik, :]
@@ -112,13 +112,13 @@ end
 
 
 function symmetry_reduce_parallel(
-    hsr ::HilbertSpaceRepresentation{QN, BR},
+    hsr ::HilbertSpaceRepresentation{QN, BR, DT},
     trans_group ::TranslationGroup,
     fractional_momentum ::AbstractVector{<:Rational};
     ComplexType::DataType=ComplexF64,
-    tol::Real=sqrt(eps(Float64))) where {QN, BR}
+    tol::Real=sqrt(eps(Float64))) where {QN, BR, DT}
 
-  HSR = HilbertSpaceRepresentation{QN, BR}
+  HSR = HilbertSpaceRepresentation{QN, BR, DT}
   debug(LOGGER, "BEGIN symmetry_reduce_parallel")
   ik = findfirst(collect(
     trans_group.fractional_momenta[ik] == fractional_momentum
