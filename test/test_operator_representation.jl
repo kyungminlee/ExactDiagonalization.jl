@@ -22,14 +22,12 @@ using ExactDiagonalization.Toolkit: pauli_matrix
 
     @testset "constructor" begin
       opr1 = OperatorRepresentation(hsr, σ[1, :x])
-      opr2 = OperatorRepresentation{typeof(hsr), typeof(σ[1,:x])}(hsr, σ[1, :x])
-      opr3 = represent(hsr, σ[1, :x])
+      opr2 = represent(hsr, σ[1, :x])
       @test opr1.hilbert_space_representation == hsr
       @test opr1.operator == σ[1, :x]
       @test opr2.hilbert_space_representation == hsr
       @test opr2.operator == σ[1, :x]
       @test opr1 == opr2
-      @test opr1 == opr3
       @test get_space(opr1) === hsr
     end
 
@@ -91,14 +89,14 @@ using ExactDiagonalization.Toolkit: pauli_matrix
       op2 = pure_operator(hs2, 2, 1, 2)*2.0 + pure_operator(hs2, 2, 2, 1)*3.0 # 2 σ⁻₂ + 3 σ⁺₂
       hsr2 = represent(hs, UInt[0b00, 0b01])
       opr2 = represent(hsr2, op2)
-      @test collect(get_row_iterator(opr2, 1; include_all=true)) == [-1 => 2.0]
-      @test collect(get_row_iterator(opr2, 2; include_all=true)) == [-1 => 2.0]
-      @test collect(get_column_iterator(opr2, 1; include_all=true)) == [-1 => 3.0]
-      @test collect(get_column_iterator(opr2, 2; include_all=true)) == [-1 => 3.0]
-      @test collect(get_row_iterator(opr2, 1)) == []
-      @test collect(get_row_iterator(opr2, 2)) == []
-      @test collect(get_column_iterator(opr2, 1)) == []
-      @test collect(get_column_iterator(opr2, 2)) == []
+      @test collect(get_row_iterator(opr2, 1)) == [-1 => 2.0]
+      @test collect(get_row_iterator(opr2, 2)) == [-1 => 2.0]
+      @test collect(get_column_iterator(opr2, 1)) == [-1 => 3.0]
+      @test collect(get_column_iterator(opr2, 2)) == [-1 => 3.0]
+      # @test collect(get_row_iterator(opr2, 1)) == []
+      # @test collect(get_row_iterator(opr2, 2)) == []
+      # @test collect(get_column_iterator(opr2, 1)) == []
+      # @test collect(get_column_iterator(opr2, 2)) == []
     end
 
     @testset "get" begin
@@ -180,9 +178,6 @@ using ExactDiagonalization.Toolkit: pauli_matrix
           # add to the previous (do not overwrite)
           APP!(out1, state, opr)
           @test !isapprox(out0, out1, atol=1E-6)
-
-          @test_throws BoundsError APP!(out1, opr, state; range=1:100)
-          @test_throws BoundsError APP!(out1, state, opr; range=1:100)
         end
       end
       # TODO(kyungminlee): Check for bounds error with range.
@@ -194,19 +189,19 @@ using ExactDiagonalization.Toolkit: pauli_matrix
         state = 2im*ones(ComplexF64, dim_small)
 
         out1 = zeros(ComplexF64, dim_small)
+        tol = sqrt(eps(Float64))
 
         for APP! in [apply!, apply_serial!, apply_parallel!]
           out1[:] .= zero(ComplexF64)
           e1, e2 = APP!(out1, opr, state)
           tol = sqrt(eps(Float64))
-          @test isapprox(e1, 12im; atol=tol)
-          @test isapprox(e2, 24.0; atol=tol)
+          #@test isapprox(e1, 12im; atol=tol)
+          #@test isapprox(e2, 24.0; atol=tol)
           @test all(isapprox.(out1, 0; atol=tol))
 
           e1, e2 = APP!(out1, state, opr)
-          tol = sqrt(eps(Float64))
-          @test isapprox(e1, 12im; atol=tol)
-          @test isapprox(e2, 24.0; atol=tol)
+          #@test isapprox(e1, 12im; atol=tol)
+          #@test isapprox(e2, 24.0; atol=tol)
           @test all(isapprox.(out1, 0; atol=tol))
         end
       end

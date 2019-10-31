@@ -5,7 +5,7 @@ export represent, represent_dict
 struct HilbertSpaceRepresentation{HS <:AbstractHilbertSpace,
                                   BR <:Unsigned,
                                   DictType <:AbstractDict{BR, <:Int}
-                                  } <:AbstractHilbertSpaceRepresentation
+                                  } <:AbstractHilbertSpaceRepresentation{Bool}
   hilbert_space ::HS
   basis_list ::Vector{BR}
   basis_lookup ::DictType

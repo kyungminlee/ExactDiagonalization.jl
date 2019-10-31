@@ -28,13 +28,15 @@ struct HilbertSpace{QN} <: AbstractHilbertSpace
 
   HilbertSpace{QN}() where {QN} = new{QN}([], [], [0])
   function HilbertSpace(sites ::AbstractArray{Site{QN}, 1}) where QN
-    bitwidths = Int[bitwidth(site) for site in sites]
+    #bitwidths = Int[bitwidth(site) for site in sites]
+    bitwidths = map(bitwidth, sites)
     bitoffsets = Int[0, cumsum(bitwidths)...]
     new{QN}(sites, bitwidths, bitoffsets)
   end
 
   function HilbertSpace{QN}(sites ::AbstractArray{Site{QN}, 1}) where QN
-    bitwidths = Int[bitwidth(site) for site in sites]
+    #bitwidths = Int[bitwidth(site) for site in sites]
+    bitwidths = map(bitwidth, sites)
     bitoffsets = Int[0, cumsum(bitwidths)...]
     new{QN}(sites, bitwidths, bitoffsets)
   end
@@ -132,7 +134,7 @@ Examples
 function extract(hs ::HilbertSpace{QN}, binrep ::U) ::CartesianIndex where {QN, U <:Unsigned}
   out = Int[]
   for (isite, site) in enumerate(hs.sites)
-    mask = make_bitmask(hs.bitwidths[isite]; dtype=U)
+    @inbounds mask = make_bitmask(hs.bitwidths[isite]; dtype=U)
     index = Int(binrep & mask) + 1
     @boundscheck if !(1 <= index <= length(site.states))
       throw(BoundsError(1:length(site.states), index))

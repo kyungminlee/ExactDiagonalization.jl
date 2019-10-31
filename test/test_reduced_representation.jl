@@ -70,14 +70,8 @@ using ExactDiagonalization.Toolkit: pauli_matrix
         rowvec = zeros(ComplexF64, dimension(rhsr))
         for irow_r in 1:dimension(rhsr)
           rowvec[:] .= zero(ComplexF64)
-          for (icol_r, ampl) in get_row_iterator(j1_redrep, irow_r; include_all=false)
-            rowvec[icol_r] += ampl
-          end
-          @test isapprox(rowvec, H[irow_r, :]; atol=tol)
-
-          rowvec[:] .= zero(ComplexF64)
           err = zero(ComplexF64)
-          for (icol_r, ampl) in get_row_iterator(j1_redrep, irow_r; include_all=true)
+          for (icol_r, ampl) in get_row_iterator(j1_redrep, irow_r)
             if 1 <= icol_r <= dimension(rhsr)
               rowvec[icol_r] += ampl
             else
@@ -93,14 +87,10 @@ using ExactDiagonalization.Toolkit: pauli_matrix
         colvec = zeros(ComplexF64, dimension(rhsr))
         for icol_r in 1:dimension(rhsr)
           colvec[:] .= zero(ComplexF64)
-          for (irow_r, ampl) in get_column_iterator(j1_redrep, icol_r; include_all=false)
-            colvec[irow_r] += ampl
-          end
-          @test isapprox(colvec, H[:, icol_r]; atol=tol)
 
           colvec[:] .= zero(ComplexF64)
           err = zero(ComplexF64)
-          for (irow_r, ampl) in get_column_iterator(j1_redrep, icol_r; include_all=true)
+          for (irow_r, ampl) in get_column_iterator(j1_redrep, icol_r)
             if 1 <= irow_r <= dimension(rhsr)
               colvec[irow_r] += ampl
             else

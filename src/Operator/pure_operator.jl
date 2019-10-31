@@ -4,7 +4,7 @@ export bintype
 
 using LinearAlgebra
 
-struct PureOperator{Scalar<:Number, BR<:Unsigned} <:AbstractOperator
+struct PureOperator{Scalar<:Number, BR<:Unsigned} <:AbstractOperator{Scalar}
   bitmask ::BR
   bitrow ::BR  # Row
   bitcol ::BR  # Column
