@@ -10,7 +10,7 @@ struct FrozenSortedArrayIndex{K} <:AbstractFrozenSortedArray{K, Int}
 
     if length(keys) > 1
       for i in 2:length(keys)
-        keys[i-1] == keys[i] && throw(ArgumentError("vals contains duplicates $(keys[i])"))
+        @inbounds keys[i-1] == keys[i] && throw(ArgumentError("vals contains duplicates $(keys[i])"))
       end
     end
     return new{K}(keys)
@@ -22,9 +22,8 @@ struct FrozenSortedArrayIndex{K} <:AbstractFrozenSortedArray{K, Int}
 end
 
 @inline function fs_index(arr::FrozenSortedArrayIndex{K}, key) ::Int where K
-  idxrange ::UnitRange{Int} = searchsorted(arr.keys, key) ::UnitRange{Int}
-  isempty(idxrange) && return 0
-  return idxrange[1]
+  idx = searchsortedfirst(arr.keys, key)
+  return (idx <= length(arr.keys) && @inbounds arr.keys[idx] == key) ? idx : 0
 end
 
 import Base.getindex
