@@ -4,7 +4,7 @@ export symmetry_reduce, symmetry_unreduce
 
 import TightBindingLattice.TranslationGroup
 
-struct ReducedHilbertSpaceRepresentation{HSR <:HilbertSpaceRepresentation, BR, C<:Complex} <:AbstractHilbertSpaceRepresentation
+struct ReducedHilbertSpaceRepresentation{HSR <:HilbertSpaceRepresentation, BR, C<:Complex} <:AbstractHilbertSpaceRepresentation{C}
   parent ::HSR
   translation_group ::TranslationGroup
   basis_list ::Vector{BR}

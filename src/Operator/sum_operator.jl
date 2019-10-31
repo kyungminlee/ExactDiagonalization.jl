@@ -2,7 +2,7 @@
 export SumOperator
 export bintype
 
-struct SumOperator{Scalar<:Number, BR <:Unsigned} <:AbstractOperator
+struct SumOperator{Scalar<:Number, BR <:Unsigned} <:AbstractOperator{Scalar}
   terms ::Vector{PureOperator{Scalar, BR}}
 
   function SumOperator{S, BR}(terms) where {S, BR}

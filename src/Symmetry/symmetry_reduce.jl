@@ -83,7 +83,7 @@ function symmetry_reduce_serial(
     visited[ivec_p_primes] .= true
 
     push!(reduced_basis_list, bvec)
-    norm = sqrt(sum((abs.(values(ψ)).^2)))
+    norm = sqrt(sum((abs2.(values(ψ)))))
     for (bvec_prime, amplitude) in ψ
       ivec_p_prime = hsr.basis_lookup[bvec_prime]
       representative_amplitude_list[ivec_p_prime] = (representative=ivec_p, amplitude=amplitude / norm)
@@ -205,7 +205,7 @@ function symmetry_reduce_parallel(
 
     push!(local_reduced_basis_list[id], bvec)
 
-    norm = sqrt( sum( (abs.(values(ψ)).^2) ) )
+    norm = sqrt( sum( (abs2.(values(ψ))) ) )
     for (bvec_prime, amplitude) in ψ
       ivec_p_prime = hsr.basis_lookup[bvec_prime]
       representative_amplitude_list[ivec_p_prime] = (representative=ivec_p, amplitude=amplitude / norm)

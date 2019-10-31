@@ -1,6 +1,6 @@
 export NullOperator
 
-struct NullOperator <:AbstractOperator end
+struct NullOperator <:AbstractOperator{Bool} end
 
 import Base.-, Base.+, Base.*, Base.==
 
@@ -29,7 +29,7 @@ conj(arg::NullOperator) = arg
 transpose(arg::NullOperator) = arg
 adjoint(arg::NullOperator) = arg
 
-@inline scalartype(lhs ::Type{NullOperator}) = Bool
+#@inline scalartype(lhs ::Type{NullOperator}) = Bool
 @inline bintype(lhs ::Type{NullOperator}) = UInt8
 
 
