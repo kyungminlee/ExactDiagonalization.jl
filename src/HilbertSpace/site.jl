@@ -108,7 +108,7 @@ end
 
 @inline function get_state_index(site::Site, binrep::U) where {U<:Unsigned}
   i = Int(binrep+1)
-  @boundscheck 0 <= i <= dimension(site) || throw(BoundsError("attempt to access a $(dimension(site))-state site at index $i"))
+  @boundscheck 1 <= i <= dimension(site) || throw(BoundsError("attempt to access a $(dimension(site))-state site at index $i"))
   return i
 end
 
