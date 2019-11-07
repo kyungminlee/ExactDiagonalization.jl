@@ -4,6 +4,8 @@ export symmetry_reduce, symmetry_unreduce
 
 import TightBindingLattice.TranslationGroup
 
+import Dates
+
 function symmetry_reduce(
     hsr ::HilbertSpaceRepresentation{QN, BR, DT},
     trans_group ::TranslationGroup,
@@ -134,6 +136,7 @@ function symmetry_reduce_parallel(
 
   visit_lock = Threads.SpinLock()
   nthreads = Threads.nthreads()
+  local_progress = zeros(Int, nthreads)
   local_reduced_basis_list = [BR[] for i in 1:nthreads]
   RepresentativeAmplitudeList = NamedTuple{(:representative,:amplitude), Tuple{Int,ComplexType}}
   representative_amplitude_list = RepresentativeAmplitudeList[(representative=-1,amplitude=zero(ComplexType)) for i in 1:n_basis]
@@ -158,6 +161,8 @@ function symmetry_reduce_parallel(
     end
   end
   @assert sort(reorder) == 1:n_basis
+
+  prev_progress_time = Dates.now()
 
   visited = falses(n_basis)
   debug(LOGGER, "Starting reduction (parallel)")
@@ -201,6 +206,7 @@ function symmetry_reduce_parallel(
     else
       visited[ivec_p_primes] .= true
       unlock(visit_lock)
+      local_progress[id] += length(ivec_p_primes)
     end
 
     push!(local_reduced_basis_list[id], bvec)
@@ -209,6 +215,15 @@ function symmetry_reduce_parallel(
     for (bvec_prime, amplitude) in ψ
       ivec_p_prime = hsr.basis_lookup[bvec_prime]
       representative_amplitude_list[ivec_p_prime] = (representative=ivec_p, amplitude=amplitude / norm)
+    end
+
+    if id == 0
+      t = Dates.now()
+      if t - prev_progress_time > Dates.second(10)
+        prev_progress_time = t
+        prog = 100.0 * sum(local_progress) / n_basis
+        debug(LOGGER, "Progress: $prog%")
+      end
     end
   end
   debug(LOGGER, "Finished reduction (parallel)")
