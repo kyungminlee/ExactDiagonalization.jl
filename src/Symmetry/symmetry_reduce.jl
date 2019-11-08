@@ -1,5 +1,4 @@
 export symmetry_reduce, symmetry_reduce_serial, symmetry_reduce_parallel
-#export materialize, materialize_serial, materialize_parallel
 export symmetry_reduce, symmetry_unreduce
 
 import TightBindingLattice.TranslationGroup
@@ -145,7 +144,7 @@ function symmetry_reduce_parallel(
     denom = max(1, length(trans_group.fractional_momenta) - 1)
     n_basis ÷ denom
   end
-  debug(LOGGER, "Estimate for the reduced Hilbert space dimension (local): $size_estimate")
+  debug(LOGGER, "Estimate for the reduced Hilbert space dimension: $size_estimate")
   for i in eachindex(local_reduced_basis_list)
     sizehint!(local_reduced_basis_list[i], size_estimate ÷ nthreads + 1)
   end
@@ -216,24 +215,17 @@ function symmetry_reduce_parallel(
       ivec_p_prime = hsr.basis_lookup[bvec_prime]
       representative_amplitude_list[ivec_p_prime] = (representative=ivec_p, amplitude=amplitude / norm)
     end
-
-    if id == 0
-      t = Dates.now()
-      if t - prev_progress_time > Dates.second(10)
-        prev_progress_time = t
-        prog = 100.0 * sum(local_progress) / n_basis
-        debug(LOGGER, "Progress: $prog%")
-      end
-    end
   end
   debug(LOGGER, "Finished reduction (parallel)")
 
   debug(LOGGER, "Collecting basis list")
   reduced_basis_list = BR[]
+  sizehint!(reduced_basis_list, sum(length(x) for x in local_reduced_basis_list))
   while !isempty(local_reduced_basis_list)
     lbl = pop!(local_reduced_basis_list)
     append!(reduced_basis_list, lbl)
   end
+  debug(LOGGER, "Sorting basis list")
   sort!(reduced_basis_list)
 
   ItemType = NamedTuple{(:index, :amplitude), Tuple{Int, ComplexType}}
