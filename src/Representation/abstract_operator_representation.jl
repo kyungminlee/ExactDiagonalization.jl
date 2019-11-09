@@ -69,6 +69,17 @@ for binop in [:+, :-, :*]
   eval(expr)
 end
 
+@inline function (*)(lhs ::AbstractOperatorRepresentation{T}, rhs ::Number) where {T}
+  return represent(get_space(lhs), simplify(lhs.operator * rhs))
+end
+
+@inline function (*)(lhs ::Number, rhs ::AbstractOperatorRepresentation{T}) where {T}
+  return represent(get_space(rhs), simplify(lhs * rhs.operator))
+end
+
+@inline function simplify(arg::AbstractOperatorRepresentation{T}) where {T}
+  return represent(get_space(arg), simplify(arg.operator))
+end
 
 import LinearAlgebra.ishermitian
 function ishermitian(arg::AbstractOperatorRepresentation{S}) where S
