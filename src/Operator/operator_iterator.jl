@@ -1,5 +1,6 @@
 export get_row_iterator
 export get_column_iterator
+export get_element
 
 @inline function get_row_iterator(nullop ::NullOperator, br ::BR) where {BR<:Unsigned}
   return Pair{Bool, Bool}[]
@@ -35,4 +36,22 @@ end
   element(pureop::PureOperator{S, BR}, b ::BR2) ::Pair{BR, S} = (((b & ~pureop.bitmask) | pureop.bitcol) => pureop.amplitude)
   return (element(t, brow) for t in sumop.terms if match(t, brow))
   #return Base.Iterators.flatten(get_row_iterator(t, brow) for t in sumop.terms)
+end
+
+@inline function get_element(nullop::NullOperator, br ::BR2, bc::BR3) ::Bool where {BR2 <:Unsigned, BR3<:Unsigned}
+  return false
+end
+
+@inline function get_element(pureop::PureOperator{S, BR}, br ::BR2, bc::BR3) ::S where {S, BR, BR2 <:Unsigned, BR3<:Unsigned}
+  match(b ::BR2) ::Bool = (b & pureop.bitmask) == pureop.bitcol
+  element(b ::BR2) ::Pair{BR, S} = (((b & ~pureop.bitmask) | pureop.bitrow) => pureop.amplitude)
+  if ((br & pureop.bitmask) == pureop.bitrow) && ((bc & pureop.bitmask) == pureop.bitcol)
+    return pureop.amplitude
+  else
+    return zero(S)
+  end
+end
+
+@inline function get_element(sumop::SumOperator{S, BR}, br ::BR2, bc::BR3) where {S, BR, BR2 <:Unsigned, BR3<:Unsigned}
+  return sum(get_element(op, br, bc)::S for op in sumop.terms)
 end

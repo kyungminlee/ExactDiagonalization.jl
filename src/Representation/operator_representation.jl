@@ -39,12 +39,21 @@ function ishermitian(arg::OperatorRepresentation{HSR, S, O}) where {HSR, S, O}
 end
 
 
+
+import Base.show
+function show(io::IO, ::MIME"text/plain", arg::OperatorRepresentation{HSR, S, O}) where {HSR, S, O}
+  print(io, string(typeof(arg)), "(", arg.hilbert_space_representation, ", ", arg.operator, ")")
+end
+
+
+
+
 ## iterators
 
 """
 May contain duplicates
 """
-function get_row_iterator(opr ::OperatorRepresentation{HSR, S, O},
+@inline function get_row_iterator(opr ::OperatorRepresentation{HSR, S, O},
                           irow ::Integer) where {HSR, S, O}
   hsr = opr.hilbert_space_representation
   brow = hsr.basis_list[irow]
@@ -55,8 +64,7 @@ function get_row_iterator(opr ::OperatorRepresentation{HSR, S, O},
   return iter
 end
 
-
-function get_column_iterator(opr ::OperatorRepresentation{HSR, S, O}, icol ::Integer) where {HSR, S, O}
+@inline function get_column_iterator(opr ::OperatorRepresentation{HSR, S, O}, icol ::Integer) where {HSR, S, O}
   hsr = opr.hilbert_space_representation
   bcol = hsr.basis_list[icol]
   basis_lookup = hsr.basis_lookup
@@ -66,6 +74,18 @@ function get_column_iterator(opr ::OperatorRepresentation{HSR, S, O}, icol ::Int
   return iter
 end
 
+@inline function get_element(opr ::OperatorRepresentation{HSR, S, O}, irow ::Integer, icol ::Integer) where {HSR, S, O}
+  hsr = opr.hilbert_space_representation
+  @boundscheck let
+    dim = length(hsr.basis_list)
+    if irow <= 0 || irow > dim || icol <= 0 || icol > dim
+      throw(BoundsError(opr, [irow, icol]))
+    end
+  end
+  @inbounds brow = hsr.basis_list[irow]
+  @inbounds bcol = hsr.basis_list[icol]
+  return get_element(opr.operator, brow, bcol)
+end
 
 import Base.*
 function (*)(opr ::OperatorRepresentation{HSR, SO, O}, state ::AbstractVector{SV}) where {HSR, O, SO, SV<:Number}

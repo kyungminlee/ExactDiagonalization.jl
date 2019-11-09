@@ -24,6 +24,10 @@ end
   return ReducedOperatorRepresentation(rhsr, op)
 end
 
+import Base.show
+function show(io::IO, ::MIME"text/plain", arg::ReducedOperatorRepresentation{RHSR, O, S, BR})  where {RHSR, O, S, BR}
+  print(io, string(typeof(arg)), "(", arg.reduced_hilbert_space_representation, ", ", arg.operator, ")")
+end
 
 @inline function get_row_iterator(opr ::ReducedOperatorRepresentation{RHSR, O, S, BR},
                                   irow_r ::Integer) where {RHSR, O, S, BR}
@@ -81,4 +85,17 @@ end
     (element(brow, ampl) for (brow::BR, ampl::S) in get_column_iterator(operator, bcol))
   end
   return full_iter
+end
+
+# TODO: better implementation
+@inline function get_element(opr ::ReducedOperatorRepresentation{RHSR, O, S, BR},
+                             irow_r ::Integer, icol_r ::Integer) where {RHSR, O, S, BR}
+  rhsr = opr.reduced_hilbert_space_representation
+  @boundscheck let
+   dim = length(rhsr.basis_list)
+   if irow_r <= 0 || irow_r > dim || icol_r <= 0 || icol_r > dim
+     throw(BoundsError(opr, [irow_r, icol_r]))
+   end
+  end
+  return @inbounds sum(ampl for (irow_r2, ampl::S) in get_column_iterator(opr, icol_r) if irow_r2 == irow_r)
 end

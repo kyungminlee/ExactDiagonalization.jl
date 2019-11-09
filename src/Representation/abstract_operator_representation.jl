@@ -207,6 +207,10 @@ end
   return sparse(oprep)
 end
 
+@inline function getindex(oprep ::AbstractOperatorRepresentation{S}, irow::Integer, icol::Integer) where S
+  return get_element(oprep, irow, icol)
+end
+
 
 """
     apply!(out, opr, state)
