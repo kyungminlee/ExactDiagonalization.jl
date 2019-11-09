@@ -63,7 +63,7 @@ for binop in [:+, :-, :*]
     @boundscheck if (get_space(lhs) != get_space(rhs))
       throw(ArgumentError("The two OperatorRepresentation s do not have the same HilbertSpaceRepresentation"))
     end
-    return represent(lhs.hilbert_space_representation, ($binop)(lhs.operator, rhs.operator))
+    return represent(get_space(lhs), simplify(($binop)(lhs.operator, rhs.operator)))
   end
   )
   eval(expr)
