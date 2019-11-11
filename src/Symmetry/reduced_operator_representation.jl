@@ -29,7 +29,7 @@ function show(io::IO, ::MIME"text/plain", arg::ReducedOperatorRepresentation{RHS
   print(io, string(typeof(arg)), "(", arg.reduced_hilbert_space_representation, ", ", arg.operator, ")")
 end
 
-@inline function get_row_iterator(opr ::ReducedOperatorRepresentation{RHSR, O, S, BR},
+function get_row_iterator(opr ::ReducedOperatorRepresentation{RHSR, O, S, BR},
                                   irow_r ::Integer) where {RHSR, O, S, BR}
   rhsr = opr.reduced_hilbert_space_representation
   hsr = rhsr.parent
@@ -58,7 +58,7 @@ end
   return full_iter
 end
 
-@inline function get_column_iterator(opr ::ReducedOperatorRepresentation{RHSR, O, S, BR},
+function get_column_iterator(opr ::ReducedOperatorRepresentation{RHSR, O, S, BR},
                                      icol_r ::Integer) where {RHSR, O, S, BR}
   rhsr = opr.reduced_hilbert_space_representation
   hsr = rhsr.parent
