@@ -45,3 +45,32 @@ import LinearAlgebra.ishermitian
 function ishermitian(arg::AbstractOperator{S}) where S
   return simplify(arg - adjoint(arg)) == NullOperator()
 end
+
+import Base.^
+function ^(lhs ::AbstractOperator{S}, p ::Integer) where S
+  p <= 0 && error("Non-positive power for AbstractOperator not supported")
+
+  # smallest nonzero power
+  pow = simplify(lhs)
+  while (p & 0x1) == 0
+    pow = simplify(pow * pow)
+    if pow == NullOperator()
+      return NullOperator()
+    end
+    p = p >> 1
+  end
+
+  out = pow
+  p = p >> 1
+  while p > 0
+    pow = simplify(pow * pow)
+    if (p & 0b1) != 0
+      out = simplify(out * pow)
+    end
+    if out == NullOperator()
+      return NullOperator()
+    end
+    p = p >> 1
+  end
+  return out
+end

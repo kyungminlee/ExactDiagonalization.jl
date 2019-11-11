@@ -1,8 +1,9 @@
 export symmetry_reduce, symmetry_reduce_serial, symmetry_reduce_parallel
-#export materialize, materialize_serial, materialize_parallel
 export symmetry_reduce, symmetry_unreduce
 
 import TightBindingLattice.TranslationGroup
+
+import Dates
 
 function symmetry_reduce(
     hsr ::HilbertSpaceRepresentation{QN, BR, DT},
@@ -134,6 +135,7 @@ function symmetry_reduce_parallel(
 
   visit_lock = Threads.SpinLock()
   nthreads = Threads.nthreads()
+  local_progress = zeros(Int, nthreads)
   local_reduced_basis_list = [BR[] for i in 1:nthreads]
   RepresentativeAmplitudeList = NamedTuple{(:representative,:amplitude), Tuple{Int,ComplexType}}
   representative_amplitude_list = RepresentativeAmplitudeList[(representative=-1,amplitude=zero(ComplexType)) for i in 1:n_basis]
@@ -142,7 +144,7 @@ function symmetry_reduce_parallel(
     denom = max(1, length(trans_group.fractional_momenta) - 1)
     n_basis ÷ denom
   end
-  debug(LOGGER, "Estimate for the reduced Hilbert space dimension (local): $size_estimate")
+  debug(LOGGER, "Estimate for the reduced Hilbert space dimension: $size_estimate")
   for i in eachindex(local_reduced_basis_list)
     sizehint!(local_reduced_basis_list[i], size_estimate ÷ nthreads + 1)
   end
@@ -158,6 +160,8 @@ function symmetry_reduce_parallel(
     end
   end
   @assert sort(reorder) == 1:n_basis
+
+  prev_progress_time = Dates.now()
 
   visited = falses(n_basis)
   debug(LOGGER, "Starting reduction (parallel)")
@@ -201,6 +205,7 @@ function symmetry_reduce_parallel(
     else
       visited[ivec_p_primes] .= true
       unlock(visit_lock)
+      local_progress[id] += length(ivec_p_primes)
     end
 
     push!(local_reduced_basis_list[id], bvec)
@@ -215,10 +220,12 @@ function symmetry_reduce_parallel(
 
   debug(LOGGER, "Collecting basis list")
   reduced_basis_list = BR[]
+  sizehint!(reduced_basis_list, sum(length(x) for x in local_reduced_basis_list))
   while !isempty(local_reduced_basis_list)
     lbl = pop!(local_reduced_basis_list)
     append!(reduced_basis_list, lbl)
   end
+  debug(LOGGER, "Sorting basis list")
   sort!(reduced_basis_list)
 
   ItemType = NamedTuple{(:index, :amplitude), Tuple{Int, ComplexType}}

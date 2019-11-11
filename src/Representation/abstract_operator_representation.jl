@@ -63,12 +63,23 @@ for binop in [:+, :-, :*]
     @boundscheck if (get_space(lhs) != get_space(rhs))
       throw(ArgumentError("The two OperatorRepresentation s do not have the same HilbertSpaceRepresentation"))
     end
-    return represent(lhs.hilbert_space_representation, ($binop)(lhs.operator, rhs.operator))
+    return represent(get_space(lhs), simplify(($binop)(lhs.operator, rhs.operator)))
   end
   )
   eval(expr)
 end
 
+@inline function (*)(lhs ::AbstractOperatorRepresentation{T}, rhs ::Number) where {T}
+  return represent(get_space(lhs), simplify(lhs.operator * rhs))
+end
+
+@inline function (*)(lhs ::Number, rhs ::AbstractOperatorRepresentation{T}) where {T}
+  return represent(get_space(rhs), simplify(lhs * rhs.operator))
+end
+
+@inline function simplify(arg::AbstractOperatorRepresentation{T}) where {T}
+  return represent(get_space(arg), simplify(arg.operator))
+end
 
 import LinearAlgebra.ishermitian
 function ishermitian(arg::AbstractOperatorRepresentation{S}) where S
@@ -205,6 +216,10 @@ end
 
 @inline function getindex(oprep ::AbstractOperatorRepresentation{S}, ::Colon, ::Colon) where S
   return sparse(oprep)
+end
+
+@inline function getindex(oprep ::AbstractOperatorRepresentation{S}, irow::Integer, icol::Integer) where S
+  return get_element(oprep, irow, icol)
 end
 
 
