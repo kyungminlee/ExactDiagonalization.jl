@@ -42,16 +42,16 @@ struct HilbertSpace{QN} <: AbstractHilbertSpace
   end
 end
 
-@inline scalartype(arg ::HilbertSpace{QN}) where QN = Bool
-@inline scalartype(arg ::Type{HilbertSpace{QN}}) where QN = Bool
+scalartype(arg ::HilbertSpace{QN}) where QN = Bool
+scalartype(arg ::Type{HilbertSpace{QN}}) where QN = Bool
 
 """
     qntype
 
 
 """
-@inline qntype(arg ::HilbertSpace{QN}) where QN = QN
-@inline qntype(arg ::Type{HilbertSpace{QN}}) where QN = QN
+qntype(arg ::HilbertSpace{QN}) where QN = QN
+qntype(arg ::Type{HilbertSpace{QN}}) where QN = QN
 
 
 """
@@ -70,17 +70,17 @@ julia> bitwidth(hs)
 3
 ```
 """
-@inline bitwidth(hs::HilbertSpace) = hs.bitoffsets[end]
+bitwidth(hs::HilbertSpace) = hs.bitoffsets[end]
 
 
-@inline basespace(hs::HilbertSpace) = hs
+basespace(hs::HilbertSpace) = hs
 
 import Base.==
-@inline function (==)(lhs ::HilbertSpace{Q1}, rhs ::HilbertSpace{Q2}) where {Q1, Q2}
+function (==)(lhs ::HilbertSpace{Q1}, rhs ::HilbertSpace{Q2}) where {Q1, Q2}
   return lhs.sites == rhs.sites
 end
 
-@inline function get_bitmask(hs ::HilbertSpace, isite ::Integer; dtype ::Type{T}=UInt) ::T where {T<:Unsigned}
+function get_bitmask(hs ::HilbertSpace, isite ::Integer; dtype ::Type{T}=UInt) ::T where {T<:Unsigned}
   return make_bitmask(hs.bitoffsets[isite+1], hs.bitoffsets[isite]; dtype=dtype)
 end
 
@@ -174,11 +174,11 @@ end
   return (binrep & (~mask)) | (U(new_state_index-1) << hs.bitoffsets[isite])
 end
 
-@inline function get_state_index(hs ::HilbertSpace, binrep ::U, isite ::Integer) where {U<:Unsigned}
+function get_state_index(hs ::HilbertSpace, binrep ::U, isite ::Integer) where {U<:Unsigned}
   return Int( ( binrep >> hs.bitoffsets[isite] ) & make_bitmask(hs.bitwidths[isite]; dtype=U) ) + 1
 end
 
-@inline function get_state(hs ::HilbertSpace, binrep ::U, isite ::Integer) where {U<:Unsigned}
+function get_state(hs ::HilbertSpace, binrep ::U, isite ::Integer) where {U<:Unsigned}
   return hs.sites[isite].states[get_state_index(hs, binrep, isite)]
 end
 
@@ -201,6 +201,6 @@ end
 # end
 
 import Base.keys
-@inline function keys(hs ::HilbertSpace{QN}) where QN
+function keys(hs ::HilbertSpace{QN}) where QN
   return CartesianIndices( ((1:length(site.states) for site in hs.sites)..., ) )
 end

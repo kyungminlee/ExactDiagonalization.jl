@@ -2,12 +2,12 @@ export get_row_iterator
 export get_column_iterator
 export get_element
 
-@inline function get_row_iterator(nullop ::NullOperator, br ::BR) where {BR<:Unsigned}
-  return (zero(BR) => false for i in 1:0)
+function get_row_iterator(nullop ::NullOperator, br ::BR) where {BR<:Unsigned}
+  return (zero(UInt8) => false for i in 1:0)
 end
 
-@inline function get_column_iterator(nullop ::NullOperator, bc ::BR) where {BR<:Unsigned}
-  return (zero(BR) => false for i in 1:0)
+function get_column_iterator(nullop ::NullOperator, bc ::BR) where {BR<:Unsigned}
+  return (zero(UInt8) => false for i in 1:0)
 end
 
 function get_column_iterator(pureop ::PureOperator{S, BR}, bcol ::BR2) where {S, BR<:Unsigned, BR2<:Unsigned}

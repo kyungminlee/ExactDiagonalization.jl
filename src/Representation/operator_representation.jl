@@ -21,9 +21,9 @@ function represent(hsr ::HSR, op ::O) where {HSR<:HilbertSpaceRepresentation, O<
 end
 
 
-@inline spacetype(lhs::Type{OperatorRepresentation{HSR, S, O}}) where {HSR, S, O} = HSR
-@inline operatortype(lhs ::Type{OperatorRepresentation{HSR, S, O}}) where {HSR, S, O} = O
-@inline get_space(lhs ::OperatorRepresentation{HSR, S, O}) where {HSR, S, O} = lhs.hilbert_space_representation ::HSR
+spacetype(lhs::Type{OperatorRepresentation{HSR, S, O}}) where {HSR, S, O} = HSR
+operatortype(lhs ::Type{OperatorRepresentation{HSR, S, O}}) where {HSR, S, O} = O
+get_space(lhs ::OperatorRepresentation{HSR, S, O}) where {HSR, S, O} = lhs.hilbert_space_representation ::HSR
 
 
 
@@ -53,7 +53,7 @@ end
 """
 May contain duplicates
 """
-@inline function get_row_iterator(opr ::OperatorRepresentation{HSR, S, O},
+function get_row_iterator(opr ::OperatorRepresentation{HSR, S, O},
                           irow ::Integer) where {HSR, S, O}
   hsr = opr.hilbert_space_representation
   brow = hsr.basis_list[irow]
@@ -64,7 +64,7 @@ May contain duplicates
   return iter
 end
 
-@inline function get_column_iterator(opr ::OperatorRepresentation{HSR, S, O}, icol ::Integer) where {HSR, S, O}
+function get_column_iterator(opr ::OperatorRepresentation{HSR, S, O}, icol ::Integer) where {HSR, S, O}
   hsr = opr.hilbert_space_representation
   bcol = hsr.basis_list[icol]
   basis_lookup = hsr.basis_lookup
@@ -74,7 +74,7 @@ end
   return iter
 end
 
-@inline function get_element(opr ::OperatorRepresentation{HSR, S, O}, irow ::Integer, icol ::Integer) where {HSR, S, O}
+function get_element(opr ::OperatorRepresentation{HSR, S, O}, irow ::Integer, icol ::Integer) where {HSR, S, O}
   hsr = opr.hilbert_space_representation
   @boundscheck let
     dim = length(hsr.basis_list)

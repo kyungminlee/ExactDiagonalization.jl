@@ -175,7 +175,7 @@ function symmetry_reduce_parallel(
 
     compatible = true
     ψ = Dict{BR, ComplexType}()
-    #ψ = SparseState{ComplexType, BR}(hsr.hilbert_space)
+    
     for i in 1:length(trans_group.elements)
       t = trans_group.translations[i]
       g = trans_group.elements[i]

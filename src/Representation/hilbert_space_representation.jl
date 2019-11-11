@@ -35,12 +35,12 @@ struct HilbertSpaceRepresentation{HS <:AbstractHilbertSpace,
   end
 end
 
-@inline scalartype(lhs ::Type{HilbertSpaceRepresentation{HS, BR, DT}}) where {HS, BR, DT} = Bool
-@inline bintype(lhs ::Type{HilbertSpaceRepresentation{HS, BR, DT}}) where {HS, BR, DT} = BR ::DataType
+scalartype(lhs ::Type{HilbertSpaceRepresentation{HS, BR, DT}}) where {HS, BR, DT} = Bool
+bintype(lhs ::Type{HilbertSpaceRepresentation{HS, BR, DT}}) where {HS, BR, DT} = BR ::DataType
 
-@inline basespace(lhs::HilbertSpaceRepresentation{HS, BR, DT}) where {HS, BR, DT} = lhs.hilbert_space ::HS
+basespace(lhs::HilbertSpaceRepresentation{HS, BR, DT}) where {HS, BR, DT} = lhs.hilbert_space ::HS
 
-@inline bitwidth(hss::HilbertSpaceSector{QN}) where QN = bitwidth(hss.parent) ::Int
+bitwidth(hss::HilbertSpaceSector{QN}) where QN = bitwidth(hss.parent) ::Int
 
 
 import Base.==
@@ -61,7 +61,7 @@ end
 
 Dimension of the Concrete Hilbert space, i.e. number of basis vectors.
 """
-@inline dimension(hsr ::HilbertSpaceRepresentation) = length(hsr.basis_list)
+dimension(hsr ::HilbertSpaceRepresentation) = length(hsr.basis_list)
 
 
 

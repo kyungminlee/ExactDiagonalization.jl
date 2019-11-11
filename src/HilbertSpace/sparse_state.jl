@@ -38,22 +38,22 @@ end
 
 import Base.getindex, Base.setindex!
 
-@inline function Base.getindex(state ::SparseState{Scalar, BR}, basis ::BR2) where {Scalar, BR, BR2 <:Unsigned}
+function Base.getindex(state ::SparseState{Scalar, BR}, basis ::BR2) where {Scalar, BR, BR2 <:Unsigned}
   return get(state.components, basis, zero(Scalar))
 end
 
-@inline function Base.setindex!(state ::SparseState{Scalar, BR}, value ::S, basis ::BR2) where {Scalar, BR, S<:Number, BR2 <:Unsigned}
+function Base.setindex!(state ::SparseState{Scalar, BR}, value ::S, basis ::BR2) where {Scalar, BR, S<:Number, BR2 <:Unsigned}
   Base.setindex!(state.components, value, basis)
   return state
 end
 
-@inline scalartype(::SparseState{Scalar, BR}) where {Scalar, BR} = Scalar
-@inline scalartype(::Type{SparseState{Scalar, BR}}) where {Scalar, BR} = Scalar
-@inline bintype(::SparseState{Scalar, BR}) where {Scalar, BR} = BR
-@inline bintype(::Type{SparseState{Scalar, BR}}) where {Scalar, BR} = BR
+scalartype(::SparseState{Scalar, BR}) where {Scalar, BR} = Scalar
+scalartype(::Type{SparseState{Scalar, BR}}) where {Scalar, BR} = Scalar
+bintype(::SparseState{Scalar, BR}) where {Scalar, BR} = BR
+bintype(::Type{SparseState{Scalar, BR}}) where {Scalar, BR} = BR
 
 import Base.==
-@inline function (==)(lhs ::SparseState{S1, BR}, rhs::SparseState{S2, BR}) where {S1, S2, BR}
+function (==)(lhs ::SparseState{S1, BR}, rhs::SparseState{S2, BR}) where {S1, S2, BR}
   return lhs.components == rhs.components
 end
 
@@ -72,32 +72,32 @@ function isapprox(lhs ::SparseState{S1, BR}, rhs::SparseState{S2, BR}; atol=sqrt
 end
 
 import Base.copy
-@inline function copy(arg ::SparseState{S, BR}) where {S, BR}
+function copy(arg ::SparseState{S, BR}) where {S, BR}
   return SparseState{S, BR}(copy(arg.components))
 end
 
 import Base.real, Base.imag, Base.conj
-@inline real(arg ::SparseState{R, BR}) where {R<:Real, BR} = copy(arg)
-@inline imag(arg ::SparseState{R, BR}) where {R<:Real, BR} = SparseState{R, BR}()
-@inline conj(arg ::SparseState{R, BR}) where {R<:Real, BR} = copy(arg)
+real(arg ::SparseState{R, BR}) where {R<:Real, BR} = copy(arg)
+imag(arg ::SparseState{R, BR}) where {R<:Real, BR} = SparseState{R, BR}()
+conj(arg ::SparseState{R, BR}) where {R<:Real, BR} = copy(arg)
 
-@inline function real(arg ::SparseState{Complex{R}, BR}) where {R<:Real, BR}
+function real(arg ::SparseState{Complex{R}, BR}) where {R<:Real, BR}
   return SparseState{R, BR}(Dict{BR, R}((k, real(v)) for (k, v) in arg.components))
 end
 
-@inline function imag(arg ::SparseState{Complex{R}, BR}) where {R<:Real, BR}
+function imag(arg ::SparseState{Complex{R}, BR}) where {R<:Real, BR}
   return SparseState{R, BR}(Dict{BR, R}((k, imag(v)) for (k, v) in arg.components))
 end
 
-@inline function conj(arg ::SparseState{Complex{R}, BR}) where {R<:Real, BR}
+function conj(arg ::SparseState{Complex{R}, BR}) where {R<:Real, BR}
   return SparseState{Complex{R}, BR}(Dict{BR, Complex{R}}((k, conj(v)) for (k, v) in arg.components))
 end
 
 import Base.-, Base.+, Base.*, Base./, Base.\
 
-@inline (+)(arg ::SparseState{S, BR}) where {S, BR} = copy(arg)
+(+)(arg ::SparseState{S, BR}) where {S, BR} = copy(arg)
 
-@inline function (-)(arg ::SparseState{S, BR}) where {S, BR}
+function (-)(arg ::SparseState{S, BR}) where {S, BR}
   return SparseState{S, BR}(Dict{BR, S}((k, -v) for (k, v) in arg.components))
 end
 
@@ -119,44 +119,39 @@ function (-)(lhs ::SparseState{S1, BR}, rhs ::SparseState{S2, BR}) where {S1, S2
   return SparseState{S3, BR}(components)
 end
 
-@inline function (*)(lhs ::SparseState{S1, BR}, rhs ::S2) where {S1, S2<:Number, BR}
+function (*)(lhs ::SparseState{S1, BR}, rhs ::S2) where {S1, S2<:Number, BR}
   return SparseState(Dict(k => v * rhs for (k, v) in lhs.components))
 end
 
-@inline function (*)(lhs ::S1, rhs ::SparseState{S2, BR}) where {S1<:Number, S2<:Number, BR}
+function (*)(lhs ::S1, rhs ::SparseState{S2, BR}) where {S1<:Number, S2<:Number, BR}
   return SparseState(Dict(k => lhs * v for (k, v) in rhs.components))
 end
 
-@inline function (/)(lhs ::SparseState{S1, BR}, rhs ::S2) where {S1, S2<:Number, BR}
+function (/)(lhs ::SparseState{S1, BR}, rhs ::S2) where {S1, S2<:Number, BR}
   return SparseState(Dict(k => v / rhs for (k, v) in lhs.components))
 end
 
-@inline function (\)(lhs ::S1, rhs ::SparseState{S2, BR}) where {S1<:Number, S2<:Number, BR}
+function (\)(lhs ::S1, rhs ::SparseState{S2, BR}) where {S1<:Number, S2<:Number, BR}
   return SparseState(Dict(k => lhs \ v for (k, v) in rhs.components))
 end
 
 import Base.convert
-@inline function convert(type ::Type{SparseState{S1, BR}}, obj::SparseState{S2, BR}) where {S1, S2, BR}
+function convert(type ::Type{SparseState{S1, BR}}, obj::SparseState{S2, BR}) where {S1, S2, BR}
   return SparseState{S1, BR}(Dict{BR, S1}(obj.components))
 end
 
 import Base.eltype
-@inline Base.eltype(::Type{SparseState{Scalar, BR}}) where {Scalar, BR} = Pair{BR, Scalar}
+Base.eltype(::Type{SparseState{Scalar, BR}}) where {Scalar, BR} = Pair{BR, Scalar}
 
 import Base.isempty
-@inline isempty(psi::SparseState{S, BR}) where {S, BR} = isempty(psi.components)
+Base.isempty(psi::SparseState{S, BR}) where {S, BR} = isempty(psi.components)
 
 import Base.length
-@inline length(psi::SparseState{S, BR}) where {S, BR} = length(psi.components)
+Base.length(psi::SparseState{S, BR}) where {S, BR} = length(psi.components)
 
 import Base.iterate
-@inline function Base.iterate(iter ::SparseState{S, BR}) where {S, BR}
-  return Base.iterate(iter.components)
-end
-
-@inline function Base.iterate(iter ::SparseState{S, BR}, i) where {S, BR}
-  return Base.iterate(iter.components, i)
-end
+Base.iterate(iter ::SparseState{S, BR}) where {S, BR} = Base.iterate(iter.components)
+Base.iterate(iter ::SparseState{S, BR}, i) where {S, BR} =  Base.iterate(iter.components, i)
 
 function choptol!(arg ::SparseState{S1, BR}, tol::Real) where {S1, BR}
   to_delete = [k for (k, v) in arg.components if isapprox(v, 0; atol=tol)]
@@ -167,7 +162,7 @@ function choptol!(arg ::SparseState{S1, BR}, tol::Real) where {S1, BR}
 end
 
 import LinearAlgebra.norm
-@inline function norm(arg ::SparseState{S1, BR}) where {S1, BR}
+function norm(arg ::SparseState{S1, BR}) where {S1, BR}
   if isempty(arg.components)
     return zero(real(S1))
   else

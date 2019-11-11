@@ -14,7 +14,7 @@ abstract type AbstractHilbertSpace end
 ## TODO: Think about this
 AbstractQuantumNumber = Union{Int, SVector{N, Int} where N}
 
-@inline qntype(arg ::T) where T = qntype(T)
+qntype(arg ::T) where T = qntype(T)
 
 """
     State{QN}
@@ -46,7 +46,7 @@ function ==(lhs ::State{Q1}, rhs ::State{Q2}) where {Q1, Q2}
   return (Q1 == Q2) && (lhs.name == rhs.name) && (lhs.quantum_number == rhs.quantum_number)
 end
 
-@inline qntype(::Type{State{QN}}) where QN = QN
+qntype(::Type{State{QN}}) where QN = QN
 
 """
     Site{QN}
@@ -70,10 +70,10 @@ struct Site{QN<:AbstractQuantumNumber} <: AbstractHilbertSpace
   Site{QN}(states ::AbstractArray{State{QN}, 1}) where QN = new{QN}(states)
 end
 
-@inline qntype(::Type{Site{QN}}) where QN = QN
+qntype(::Type{Site{QN}}) where QN = QN
 
 import Base.==
-@inline function ==(lhs ::Site{Q1}, rhs ::Site{Q2}) where {Q1, Q2}
+function ==(lhs ::Site{Q1}, rhs ::Site{Q2}) where {Q1, Q2}
   return (lhs.states == rhs.states)
 end
 
@@ -82,14 +82,14 @@ end
 
 Number of bits necessary to represent the states of the given site.
 """
-@inline bitwidth(site ::Site) = Int(ceil(log2(length(site.states))))
+bitwidth(site ::Site) = Int(ceil(log2(length(site.states))))
 
 """
     dimension(site ::Site)
 
 Hilbert space dimension of a given site ( = number of states).
 """
-@inline dimension(site ::Site) = length(site.states)
+dimension(site ::Site) = length(site.states)
 
 
 """
@@ -97,7 +97,7 @@ Hilbert space dimension of a given site ( = number of states).
 
 Returns the state of `site` represented by the bits `binrep`.
 """
-@inline function get_state(site::Site, binrep::U) where {U<:Unsigned}
+function get_state(site::Site, binrep::U) where {U<:Unsigned}
   return site.states[Int(binrep+1)]
 end
 
@@ -112,14 +112,14 @@ end
   return i
 end
 
-@inline function quantum_number_sectors(site ::Site{QN})::Vector{QN} where QN
+function quantum_number_sectors(site ::Site{QN})::Vector{QN} where QN
   return sort(collect(Set([state.quantum_number for state in site.states])))
 end
 
-@inline function get_quantum_number(site ::Site{QN}, i ::Integer)::QN where QN
+function get_quantum_number(site ::Site{QN}, i ::Integer)::QN where QN
   return site.states[i].quantum_number
 end
 
 
 import Base.keys
-@inline keys(site::Site{QN}) where QN = 1:dimension(site)
+keys(site::Site{QN}) where QN = 1:dimension(site)

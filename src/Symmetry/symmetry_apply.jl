@@ -8,7 +8,7 @@ import TightBindingLattice.AbstractSymmetryGroup
 ## AbstractSymmetryOperation
 
 ### HilbertSpaceSector
-@inline function symmetry_apply(hss::HilbertSpaceSector{QN},
+function symmetry_apply(hss::HilbertSpaceSector{QN},
                                 symop ::AbstractSymmetryOperation,
                                 args...; kwargs...) where {QN}
   return symmetry_apply(hss.parent, symop, args...; kwargs...)

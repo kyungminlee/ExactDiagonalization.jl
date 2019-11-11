@@ -5,10 +5,10 @@ abstract type AbstractOperator{S<:Number} end
 
 export scalartype
 export bintype
-@inline scalartype(lhs::AbstractOperator{S}) where S = S
-@inline bintype(lhs::AbstractOperator{S}) where S = bintype(typeof(lhs)) ::DataType
+scalartype(lhs::AbstractOperator{S}) where S = S
+bintype(lhs::AbstractOperator{S}) where S = bintype(typeof(lhs)) ::DataType
 
-@inline scalartype(lhs::Type{<:AbstractOperator{S}}) where S = S
+scalartype(lhs::Type{<:AbstractOperator{S}}) where S = S
 
 #=
  UNARY OPERATORS
@@ -33,8 +33,8 @@ export bintype
 =#
 
 import Base.-, Base.+
-@inline (-)(lhs ::AbstractOperator{S1}, rhs::AbstractOperator{S2}) where {S1, S2} = (lhs) + (-rhs)
-@inline (+)(op ::AbstractOperator{S}) where S = op
+(-)(lhs ::AbstractOperator{S1}, rhs::AbstractOperator{S2}) where {S1, S2} = (lhs) + (-rhs)
+(+)(op ::AbstractOperator{S}) where S = op
 
 import LinearAlgebra.issymmetric
 function issymmetric(arg::AbstractOperator{S}) where S
@@ -54,8 +54,8 @@ function ^(lhs ::AbstractOperator{S}, p ::Integer) where S
   pow = simplify(lhs)
   while (p & 0x1) == 0
     pow = simplify(pow * pow)
-    if pow == NullOperator()
-      return NullOperator()
+    if isa(pow, NullOperator)
+      return pow
     end
     p = p >> 1
   end
@@ -67,8 +67,8 @@ function ^(lhs ::AbstractOperator{S}, p ::Integer) where S
     if (p & 0b1) != 0
       out = simplify(out * pow)
     end
-    if out == NullOperator()
-      return NullOperator()
+    if isa(out, NullOperator)
+      return out
     end
     p = p >> 1
   end
