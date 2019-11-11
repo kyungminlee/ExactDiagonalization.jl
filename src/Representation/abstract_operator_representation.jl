@@ -15,32 +15,32 @@ abstract type AbstractOperatorRepresentation{T} <: AbstractMatrix{T} end
 # a subclass of AbstractOperatorRepresentation should implement
 # spacetype, operatortype, and get_space.
 
-@inline spacetype(lhs::AbstractOperatorRepresentation{T}) where T = spacetype(typeof(lhs)) ::Type{<:AbstractHilbertSpaceRepresentation}
-@inline operatortype(lhs ::AbstractOperatorRepresentation{T}) where T = operatortype(typeof(lhs)) ::Type{<:AbstractOperator}
+spacetype(lhs::AbstractOperatorRepresentation{T}) where T = spacetype(typeof(lhs)) ::Type{<:AbstractHilbertSpaceRepresentation}
+operatortype(lhs ::AbstractOperatorRepresentation{T}) where T = operatortype(typeof(lhs)) ::Type{<:AbstractOperator}
 
 #if not specialized
 # @inline spacetype(lhs::Type{AbstractOperatorRepresentation}) = error("spacetype not implemented")
 # @inline operatortype(lhs ::Type{AbstractOperatorRepresentation}) = error("operatortype not implemented")
 #@inline get_space(lhs::AbstractOperatorRepresentation) = error("get_space not implemented")
 
-@inline bintype(lhs ::AbstractOperatorRepresentation{T}) where T = bintype(typeof(lhs)) ::DataType
-@inline bintype(lhs ::Type{<:AbstractOperatorRepresentation{T}}) where T = bintype(spacetype(lhs)) ::DataType
+bintype(lhs ::AbstractOperatorRepresentation{T}) where T = bintype(typeof(lhs)) ::DataType
+bintype(lhs ::Type{<:AbstractOperatorRepresentation{T}}) where T = bintype(spacetype(lhs)) ::DataType
 
-#@inline scalartype(lhs::AbstractOperatorRepresentation) ::DataType = scalartype(typeof(lhs)) ::DataType
-@inline scalartype(lhs::AbstractOperatorRepresentation{T}) where T = T
-@inline scalartype(lhs::Type{<:AbstractOperatorRepresentation{T}}) where T = T
+#scalartype(lhs::AbstractOperatorRepresentation) ::DataType = scalartype(typeof(lhs)) ::DataType
+scalartype(lhs::AbstractOperatorRepresentation{T}) where T = T
+scalartype(lhs::Type{<:AbstractOperatorRepresentation{T}}) where T = T
 
 import Base.size
-@inline function size(arg::AbstractOperatorRepresentation{T}) ::Tuple{Int, Int} where T
+function size(arg::AbstractOperatorRepresentation{T}) ::Tuple{Int, Int} where T
   dim = dimension(get_space(arg))
   return (dim, dim)
 end
 
-@inline size(arg::AbstractOperatorRepresentation{T}, i::Integer) where T = size(arg)[i]
+size(arg::AbstractOperatorRepresentation{T}, i::Integer) where T = size(arg)[i]
 
 
 import Base.==
-@inline function (==)(lhs ::AbstractOperatorRepresentation{T1},
+function (==)(lhs ::AbstractOperatorRepresentation{T1},
                       rhs ::AbstractOperatorRepresentation{T2}) where {T1, T2}
   return ((get_space(lhs) == get_space(rhs)) && (lhs.operator == rhs.operator))
 end
@@ -48,36 +48,34 @@ end
 import Base.+, Base.-, Base.*
 
 for uniop in [:+, :-]
-  expr = :(
-  @inline function ($uniop)(lhs ::AbstractOperatorRepresentation{T}) where T
-    return represent(lhs.hilbert_space_representation, ($uniop)(lhs.operator))
+  @eval begin
+    function ($uniop)(lhs ::AbstractOperatorRepresentation{T}) where T
+      return represent(lhs.hilbert_space_representation, ($uniop)(lhs.operator))
+    end
   end
-  )
-  eval(expr)
 end
 
 for binop in [:+, :-, :*]
-  expr = :(
-  @inline function ($binop)(lhs ::AbstractOperatorRepresentation{T1},
-                            rhs ::AbstractOperatorRepresentation{T2}) where {T1, T2}
-    @boundscheck if (get_space(lhs) != get_space(rhs))
-      throw(ArgumentError("The two OperatorRepresentation s do not have the same HilbertSpaceRepresentation"))
+  @eval begin
+    function ($binop)(lhs ::AbstractOperatorRepresentation{T1},
+                              rhs ::AbstractOperatorRepresentation{T2}) where {T1, T2}
+      @boundscheck if (get_space(lhs) != get_space(rhs))
+        throw(ArgumentError("The two OperatorRepresentation s do not have the same HilbertSpaceRepresentation"))
+      end
+      return represent(get_space(lhs), simplify(($binop)(lhs.operator, rhs.operator)))
     end
-    return represent(get_space(lhs), simplify(($binop)(lhs.operator, rhs.operator)))
   end
-  )
-  eval(expr)
 end
 
-@inline function (*)(lhs ::AbstractOperatorRepresentation{T}, rhs ::Number) where {T}
+function (*)(lhs ::AbstractOperatorRepresentation{T}, rhs ::Number) where {T}
   return represent(get_space(lhs), simplify(lhs.operator * rhs))
 end
 
-@inline function (*)(lhs ::Number, rhs ::AbstractOperatorRepresentation{T}) where {T}
+function (*)(lhs ::Number, rhs ::AbstractOperatorRepresentation{T}) where {T}
   return represent(get_space(rhs), simplify(lhs * rhs.operator))
 end
 
-@inline function simplify(arg::AbstractOperatorRepresentation{T}) where {T}
+function simplify(arg::AbstractOperatorRepresentation{T}) where {T}
   return represent(get_space(arg), simplify(arg.operator))
 end
 
@@ -435,125 +433,3 @@ function apply_parallel!(out ::AbstractVector{S1},
   @fastmath err_sq = sum(local_err_sq)
   return (err, err_sq)
 end
-
-
-#
-# """
-#     apply_parallel!(out, opr, state; range=1:size(opr, 2))
-#
-# Perform `out += opr * state`. Apply the operator representation `opr` to the
-# column vector `state` and *add* it to the column vector `out`.
-# Return sum of errors and sum of error-squared.
-# Multi-threaded version.
-#
-# # Arguments
-# - `out ::Vector{S1}`
-# - `opr ::AbstractOperatorRepresentation{S}`
-# - `state ::AbstractVector{S2}`
-# - `range ::AbstractVector{<:Integer}=1:size(opr, 2)`
-# """
-# function apply_parallel!(out ::AbstractVector{S1},
-#                          opr ::AbstractOperatorRepresentation{S},
-#                          state ::AbstractVector{S2};
-#                          range ::AbstractVector{<:Integer}=1:size(opr, 2)
-#                          ) where {S, S1<:Number, S2<:Number}
-#   nrows, ncols = size(opr)
-#   length(out) != nrows && throw(DimensionMismatch("out has length $(length(out)) != dimension $(nrows)"))
-#   length(state) != ncols && throw(DimensionMismatch("state has length $(length(state)) != dimension $(ncols)"))
-#   for i in range # check bounds first before multithreading
-#     (1<=i<=ncols) || throw(BoundsError("attempt to access $ncols-element $(typeof(state)) at index [$i]"))
-#   end
-#
-#   err ::S1 = zero(S1)
-#   err_sq ::real(S1) = zero(real(S1))
-#
-#   nblocks = Threads.nthreads()
-#   block_ranges = splitrange(range, nblocks)
-#   spinlock = Threads.SpinLock()
-#   Threads.@threads for iblock in 1:nblocks
-#     subrange = block_ranges[iblock]
-#     local_err, local_err_sq, local_offdiag = zero(S1), zero(real(S1)), Dict{Int, S1}()
-#     for icol in subrange
-#       @inbounds v = state[icol]
-#       for (irow, amplitude) in get_column_iterator(opr, icol)
-#         if 1 <= irow <= nrows
-#           if irow in subrange
-#             @inbounds out[irow] += amplitude * v
-#           else
-#             local_offdiag[irow] = get(local_offdiag, irow, zero(S1)) + amplitude * v
-#           end
-#         else
-#           local_err += amplitude * v
-#           local_err_sq += abs(amplitude * v)^2
-#         end
-#       end
-#     end
-#     lock(spinlock)
-#     err += local_err
-#     err_sq += local_err_sq
-#     for (irow, ampl) in local_offdiag
-#       @inbounds out[irow] += ampl
-#     end
-#     unlock(spinlock)
-#   end
-#   return (err ::S1, err_sq ::real(S1))
-# end
-
-
-# """
-#     apply_parallel!(out, state, opr; range=1:size(opr, 1))
-#
-# Perform `out += state * opr`. Apply the operator representation `opr` to the
-# row vector `state` and *add* it to the row vector `out`.
-# Return sum of errors and sum of error-squared.
-# Multi-threaded version.
-#
-# # Arguments
-# - `out ::Vector{S1}`
-# - `state ::AbstractVector{S2}`
-# - `opr ::OperatorRepresentation{HSR, O}`
-# - `range ::AbstractVector{<:Integer}=1:dimension(opr.hilbert_space_representation)`
-# """
-# function apply_parallel!(out ::AbstractVector{S1},
-#                          state ::AbstractVector{S2},
-#                          opr ::AbstractOperatorRepresentation{S};
-#                          range ::AbstractVector{<:Integer}=1:size(opr, 1)
-#                          ) where {S, S1<:Number, S2<:Number}
-#   nrows, ncols = size(opr)
-#   length(out) != ncols && throw(ArgumentError("out has length $(length(out)) != dimension $(ncols)"))
-#   length(state) != nrows && throw(ArgumentError("state has length $(length(state)) != dimension $(nrows)"))
-#   for i in range  # check bounds first before multithreading
-#     (1<=i<=nrows) || throw(BoundsError("attempt to access $nrows-element $(typeof(state)) at index [$i]"))
-#   end
-#   err, err_sq = zero(S1), zero(real(S1))
-#   nblocks = Threads.nthreads()
-#   block_ranges = splitrange(range, nblocks)
-#   spinlock = Threads.SpinLock()
-#   Threads.@threads for iblock in 1:nblocks
-#     subrange = block_ranges[iblock]
-#     local_err, local_err_sq, local_offdiag = zero(S1), zero(real(S1)), Dict{Int, S1}()
-#     for irow in subrange
-#       @inbounds v = state[irow]
-#       for (icol, amplitude) in get_row_iterator(opr, irow)
-#         if 1 <= icol <= ncols
-#           if icol in subrange
-#             @inbounds out[icol] += amplitude * v
-#           else
-#             local_offdiag[icol] = get(local_offdiag, icol, zero(S1)) + v * amplitude
-#           end
-#         else
-#           local_err += v * amplitude
-#           local_err_sq += abs(v * amplitude)^2
-#         end
-#       end
-#     end
-#     lock(spinlock)
-#     err += local_err
-#     err_sq += local_err_sq
-#     for (icol, ampl) in local_offdiag
-#       @inbounds out[icol] += ampl
-#     end
-#     unlock(spinlock)
-#   end
-#   return (err, err_sq)
-# end

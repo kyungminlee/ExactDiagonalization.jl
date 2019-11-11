@@ -21,26 +21,26 @@ struct FrozenSortedArrayIndex{K} <:AbstractFrozenSortedArray{K, Int}
   end
 end
 
-@inline function fs_index(arr::FrozenSortedArrayIndex{K}, key) ::Int where K
+@noinline function fs_index(arr::FrozenSortedArrayIndex{K}, key) ::Int where K
   idx = searchsortedfirst(arr.keys, key)
   return (idx <= length(arr.keys) && @inbounds arr.keys[idx] == key) ? idx : 0
 end
 
 import Base.getindex
-@inline function Base.getindex(arr::FrozenSortedArrayIndex{K}, key) ::Int where K
+function Base.getindex(arr::FrozenSortedArrayIndex{K}, key) ::Int where K
   idx = fs_index(arr, key)
   @boundscheck idx <= 0 && throw(KeyError("key $key not found"))
   return idx
 end
 
 import Base.haskey
-@inline function Base.haskey(arr::FrozenSortedArrayIndex{K}, key) ::Bool where K
+function Base.haskey(arr::FrozenSortedArrayIndex{K}, key) ::Bool where K
   idx = fs_index(arr, key)
   return idx > 0
 end
 
 import Base.get
-@inline function Base.get(arr::FrozenSortedArrayIndex{K}, key, default::Int) ::Int where K
+function Base.get(arr::FrozenSortedArrayIndex{K}, key, default::Int) ::Int where K
   idx = fs_index(arr, key)
   return (idx > 0) ? idx : default
 end
@@ -52,10 +52,10 @@ function iterate(iter::FrozenSortedArrayIndex{K}, state::Int=1) ::Union{Nothing,
 end
 
 import Base.eltype
-@inline eltype(iter::Type{FrozenSortedArrayIndex{K}}) where K = Pair{K, Int}
+eltype(iter::Type{FrozenSortedArrayIndex{K}}) where K = Pair{K, Int}
 
 import Base.length
-@inline length(iter::FrozenSortedArrayIndex{K}) where K = length(iter.keys)
+length(iter::FrozenSortedArrayIndex{K}) where K = length(iter.keys)
 
 import Base.keys
-@inline keys(iter::FrozenSortedArrayIndex{K}) where K = iter.keys
+keys(iter::FrozenSortedArrayIndex{K}) where K = iter.keys

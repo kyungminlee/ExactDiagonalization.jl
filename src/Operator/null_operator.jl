@@ -30,7 +30,7 @@ transpose(arg::NullOperator) = arg
 adjoint(arg::NullOperator) = arg
 
 #@inline scalartype(lhs ::Type{NullOperator}) = Bool
-@inline bintype(lhs ::Type{NullOperator}) = UInt8
+bintype(lhs ::Type{NullOperator}) = UInt8
 
 
 import Base.<

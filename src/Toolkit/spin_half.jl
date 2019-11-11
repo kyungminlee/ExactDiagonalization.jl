@@ -11,7 +11,8 @@ function spin_half_system(n_sites ::Integer)
   dn = State{QN}("Dn", -1)
   spin_site = Site{QN}([up, dn])
   hilbert_space = HilbertSpace([spin_site for i in 1:n_sites])
-  return hilbert_space
+  pauli(isite ::Integer, j::Symbol) = pauli_matrix(hilbert_space, isite, j)
+  return (hilbert_space, pauli)
 end
 
 """

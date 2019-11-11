@@ -28,13 +28,14 @@ function symmetry_reduce_serial(
     ComplexType::DataType=ComplexF64,
     tol::Real=sqrt(eps(Float64))) where {QN, BR, DT}
 
-  ik = findfirst(collect(
-    trans_group.fractional_momenta[ik] == fractional_momentum
-    for ik in 1:length(trans_group.fractional_momenta) ))
+  ik = let
+    match(k ::Vector{Rational{Int}}) ::Bool = k == fractional_momentum
+    findfirst(match, trans_group.fractional_momenta)
+  end
   HSR = HilbertSpaceRepresentation{QN, BR, DT}
   ik === nothing && throw(ArgumentError("fractional momentum $(fractional_momentum) not an irrep of the translation group"))
 
-  phases = trans_group.character_table[ik, :]
+  phases = conj.(trans_group.character_table[ik, :])
   n_basis = length(hsr.basis_list)
 
   reduced_basis_list = BR[]
@@ -121,15 +122,16 @@ function symmetry_reduce_parallel(
 
   HSR = HilbertSpaceRepresentation{QN, BR, DT}
   debug(LOGGER, "BEGIN symmetry_reduce_parallel")
-  ik = findfirst(collect(
-    trans_group.fractional_momenta[ik] == fractional_momentum
-    for ik in 1:length(trans_group.fractional_momenta) ))
+  ik = let
+    match(k ::Vector{Rational{Int}}) ::Bool  = k == fractional_momentum
+    findfirst(match, trans_group.fractional_momenta)
+  end
 
   if ik === nothing
     throw(ArgumentError("fractional momentum $(fractional_momentum)" *
                         " not an irrep of the translation group"))
   end
-  phases = trans_group.character_table[ik, :]
+  phases = conj.(trans_group.character_table[ik, :])
   n_basis = length(hsr.basis_list)
   debug(LOGGER, "Original Hilbert space dimension: $n_basis")
 
@@ -173,7 +175,7 @@ function symmetry_reduce_parallel(
 
     compatible = true
     ψ = Dict{BR, ComplexType}()
-    #ψ = SparseState{ComplexType, BR}(hsr.hilbert_space)
+    
     for i in 1:length(trans_group.elements)
       t = trans_group.translations[i]
       g = trans_group.elements[i]

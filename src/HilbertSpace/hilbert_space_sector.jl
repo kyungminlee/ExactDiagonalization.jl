@@ -1,4 +1,7 @@
 export HilbertSpaceSector
+export scalartype
+export qntype
+export basespace
 
 struct HilbertSpaceSector{QN} <: AbstractHilbertSpace
   parent ::HilbertSpace{QN}
@@ -21,19 +24,16 @@ struct HilbertSpaceSector{QN} <: AbstractHilbertSpace
   end
 end
 
-export scalartype
-@inline scalartype(arg ::HilbertSpaceSector{QN}) where QN = Bool
-@inline scalartype(arg ::Type{HilbertSpaceSector{QN}}) where QN = Bool
+scalartype(arg ::HilbertSpaceSector{QN}) where QN = Bool
+scalartype(arg ::Type{HilbertSpaceSector{QN}}) where QN = Bool
 
-export qntype
-@inline qntype(arg ::HilbertSpaceSector{QN}) where QN = QN
-@inline qntype(arg ::Type{HilbertSpaceSector{QN}}) where QN = QN
+qntype(arg ::HilbertSpaceSector{QN}) where QN = QN
+qntype(arg ::Type{HilbertSpaceSector{QN}}) where QN = QN
 
-export basespace
-@inline basespace(hs::HilbertSpaceSector{QN}) where QN = basespace(hs.parent) ::HilbertSpace{QN}
+basespace(hs::HilbertSpaceSector{QN}) where QN = basespace(hs.parent) ::HilbertSpace{QN}
 
 import Base.==
-@inline function ==(lhs ::HilbertSpaceSector{Q1}, rhs ::HilbertSpaceSector{Q2}) where {Q1, Q2}
+function ==(lhs ::HilbertSpaceSector{Q1}, rhs ::HilbertSpaceSector{Q2}) where {Q1, Q2}
   return basespace(lhs) == basespace(rhs) && lhs.allowed_quantum_numbers == rhs.allowed_quantum_numbers
 end
 
@@ -46,33 +46,7 @@ for fname in [:get_bitmask,
               :update,
               :get_state_index,
               :get_state]
-  eval(:(@inline $fname(hss ::HilbertSpaceSector, args...;kwargs...) = $fname(hss.parent, args...; kwargs...)))
+  @eval begin
+    @inline $fname(hss ::HilbertSpaceSector, args...;kwargs...) = $fname(hss.parent, args...; kwargs...)
+  end
 end
-
-# function extract(hss ::HilbertSpaceSector{QN}, binrep ::U) where {QN, U <:Unsigned}
-#   return extract(hss.parent, binrep)
-# end
-#
-# function compress(hss ::HilbertSpaceSector{QN}, indexarray ::AbstractVector{I}; BR::DataType=UInt) where {QN, I<:Integer}
-#   return compress(hss.parent, indexarray; BR=BR)
-# end
-#
-# function update(hss ::HilbertSpaceSector, binrep ::U, isite ::Integer, new_state_index ::Integer) where {U<:Unsigned}
-#   return update(hss.parent, binrep, isite, new_state_index)
-# end
-#
-# function get_state_index(hss ::HilbertSpaceSector, binrep ::U, isite ::Integer) where {U<:Unsigned}
-#   return get_state_index(hss.parent, binrep, isite)
-# end
-#
-# function get_state(hss ::HilbertSpaceSector, binrep ::U, isite ::Integer) where {U<:Unsigned}
-#   return get_state(hss.parent, binrep, isite)
-# end
-#
-# @inline bitwidth(hss::HilbertSpaceSector) = bitwidth(hss.parent)
-
-# import Base.iterate
-# @inline function iterate(hss ::HilbertSpaceSector{QN}) where {QN}
-#   @warn "Use of iterate for HilbertSpaceSector is deprecated"
-#   error("Not implemented")
-# end

@@ -16,11 +16,11 @@ struct ReducedOperatorRepresentation{RHSR <:ReducedHilbertSpaceRepresentation, O
   end
 end
 
-@inline spacetype(lhs::Type{ReducedOperatorRepresentation{RHSR, O, S, BR}}) where {RHSR, O, S, BR} = RHSR
-@inline operatortype(lhs ::Type{ReducedOperatorRepresentation{RHSR, O, S, BR}}) where {RHSR, O, S, BR} = O
-@inline get_space(lhs ::ReducedOperatorRepresentation{RHSR, O, S, BR}) where {RHSR, O, S, BR} = lhs.reduced_hilbert_space_representation ::RHSR
+spacetype(lhs::Type{ReducedOperatorRepresentation{RHSR, O, S, BR}}) where {RHSR, O, S, BR} = RHSR
+operatortype(lhs ::Type{ReducedOperatorRepresentation{RHSR, O, S, BR}}) where {RHSR, O, S, BR} = O
+get_space(lhs ::ReducedOperatorRepresentation{RHSR, O, S, BR}) where {RHSR, O, S, BR} = lhs.reduced_hilbert_space_representation ::RHSR
 
-@inline function represent(rhsr ::RHSR, op ::O) where {RHSR <:ReducedHilbertSpaceRepresentation, O <:AbstractOperator}
+function represent(rhsr ::RHSR, op ::O) where {RHSR <:ReducedHilbertSpaceRepresentation, O <:AbstractOperator}
   return ReducedOperatorRepresentation(rhsr, op)
 end
 
@@ -29,7 +29,7 @@ function show(io::IO, ::MIME"text/plain", arg::ReducedOperatorRepresentation{RHS
   print(io, string(typeof(arg)), "(", arg.reduced_hilbert_space_representation, ", ", arg.operator, ")")
 end
 
-@inline function get_row_iterator(opr ::ReducedOperatorRepresentation{RHSR, O, S, BR},
+function get_row_iterator(opr ::ReducedOperatorRepresentation{RHSR, O, S, BR},
                                   irow_r ::Integer) where {RHSR, O, S, BR}
   rhsr = opr.reduced_hilbert_space_representation
   hsr = rhsr.parent
@@ -51,14 +51,14 @@ end
       (icol_p > 0) || return (-1 => ampl)
       (icol_r, ampl_col) = basis_mapping[icol_p]
       (icol_r > 0) || return (-1 => ampl)
-      return icol_r => (ampl * ampl_col) * inv_ampl_row
+      return icol_r => ampl * ampl_col * inv_ampl_row
     end
     (element(bcol, ampl) for (bcol::BR, ampl::S) in get_row_iterator(operator, brow))
   end
   return full_iter
 end
 
-@inline function get_column_iterator(opr ::ReducedOperatorRepresentation{RHSR, O, S, BR},
+function get_column_iterator(opr ::ReducedOperatorRepresentation{RHSR, O, S, BR},
                                      icol_r ::Integer) where {RHSR, O, S, BR}
   rhsr = opr.reduced_hilbert_space_representation
   hsr = rhsr.parent
@@ -88,7 +88,7 @@ end
 end
 
 # TODO: better implementation
-@inline function get_element(opr ::ReducedOperatorRepresentation{RHSR, O, S, BR},
+function get_element(opr ::ReducedOperatorRepresentation{RHSR, O, S, BR},
                              irow_r ::Integer, icol_r ::Integer) where {RHSR, O, S, BR}
   rhsr = opr.reduced_hilbert_space_representation
   @boundscheck let
