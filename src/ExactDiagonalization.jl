@@ -2,13 +2,13 @@ module ExactDiagonalization
 
 using StaticArrays
 using SparseArrays
-using Memento
+#using Memento
 
-const LOGGER = getlogger(@__MODULE__)
+#const LOGGER = getlogger(@__MODULE__)
 
-function __init__()
-  Memento.register(LOGGER)
-end
+#function __init__()
+#  Memento.register(LOGGER)
+#end
 
 # workaround?
 import TightBindingLattice.dimension
