@@ -220,6 +220,10 @@ function symmetry_reduce_parallel(
   end
   @debug "Finished reduction (parallel)"
 
+  @debug "Starting garbage collection"
+  GC.gc()
+  @debug "Finished garbage collection"
+
   @debug "Collecting basis list"
   reduced_basis_list = BR[]
   sizehint!(reduced_basis_list, sum(length(x) for x in local_reduced_basis_list))
@@ -227,8 +231,16 @@ function symmetry_reduce_parallel(
     lbl = pop!(local_reduced_basis_list)
     append!(reduced_basis_list, lbl)
   end
+  @debug "Starting garbage collection"
+  GC.gc()
+  @debug "Finished garbage collection"
+
   @debug "Sorting basis list"
   sort!(reduced_basis_list)
+
+  @debug "Starting garbage collection"
+  GC.gc()
+  @debug "Finished garbage collection"
 
   ItemType = NamedTuple{(:index, :amplitude), Tuple{Int, ComplexType}}
   basis_mapping = ItemType[(index=-1, amplitude=zero(ComplexType)) for i in hsr.basis_list]
@@ -240,6 +252,10 @@ function symmetry_reduce_parallel(
     basis_mapping[ivec_p] = (index=ivec_r, amplitude=amplitude)
   end
 
+  @debug "Starting garbage collection"
+  GC.gc()
+  @debug "Finished garbage collection"
+
   @debug "Collecting basis lookup (offdiagonal)"
   Threads.@threads for ivec_p_prime in eachindex(representative_amplitude_list)
     ivec_p, amplitude = representative_amplitude_list[ivec_p_prime]
@@ -250,6 +266,11 @@ function symmetry_reduce_parallel(
     @assert ivec_r > 0 "ivec_r $ivec_r <= 0"
     basis_mapping[ivec_p_prime] = (index=ivec_r, amplitude=amplitude)
   end
+
+  @debug "Starting garbage collection"
+  GC.gc()
+  @debug "Finished garbage collection"
+
   @debug "END symmetry_reduce_parallel"
   return ReducedHilbertSpaceRepresentation{HSR, BR, ComplexType}(hsr, trans_group, reduced_basis_list, basis_mapping)
 end
