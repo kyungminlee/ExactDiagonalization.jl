@@ -4,16 +4,6 @@ using ExactDiagonalization
 using LinearAlgebra
 using StaticArrays
 
-# if VERSION >= v"1.1" # local type definition
-#   @testset "AbstractOperator" begin
-#     struct Foo <:AbstractOperator
-#     end
-#     x = Foo()
-#     @test_throws ErrorException get_row_iterator(x, 0x1)
-#     @test_throws ErrorException get_column_iterator(x, 0x1)
-#   end
-# end
-
 @testset "NullOperator" begin
   nop = NullOperator()
   @test isa(nop, NullOperator)
@@ -500,45 +490,6 @@ end
 
     @test collect(get_column_iterator(sop, 0b1000)) == []
     @test collect(get_column_iterator(sop, 0b0101)) == [0b0111 => 2.0, 0b0100 => 3.0]
-
-
-    # @test collect(get_column_iterator(pop, 0b0000)) == [0b0010 => 2.0]
-    # @test collect(get_column_iterator(pop, 0b1111)) == []
   end
 
 end
-
-  # popA00 = PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0000, 2.0)
-  # popA01 = PureOperator{ComplexF64, UInt}(0b0010, 0b0000, 0b0010, 3.0+im)
-  # popA10 = PureOperator{ComplexF64, UInt}(0b0010, 0b0010, 0b0000, 4.0+2im)
-  # popA11 = PureOperator{ComplexF64, UInt}(0b0010, 0b0010, 0b0010, 5.0+0im)
-
-  # popB00 = PureOperator{ComplexF64, UInt}(0b1000, 0b0000, 0b0000, 2.0+im)
-  # popB01 = PureOperator{ComplexF64, UInt}(0b1000, 0b0000, 0b1000, 3.0+im)
-  # popB10 = PureOperator{ComplexF64, UInt}(0b1000, 0b1000, 0b0000, 4.0+2im)
-  # popB11 = PureOperator{ComplexF64, UInt}(0b1000, 0b1000, 0b1000, 5.0+0im)
-
-  # -popA00
-  # +popA00
-  # real(popA00)
-  # imag(popA00)
-
-  # pop = popA00
-  # sop = pop + pop
-
-  # +sop
-  # -sop
-  # real(sop)
-  # imag(sop)
-
-  # nop + nop
-  # nop + pop
-  # nop + sop
-
-  # pop + nop
-  # pop + pop
-  # pop + sop
-
-  # sop + nop
-  # sop + pop
-  # sop + sop
