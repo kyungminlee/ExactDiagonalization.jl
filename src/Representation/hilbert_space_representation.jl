@@ -77,6 +77,27 @@ function hs_get_basis_list(hs ::HilbertSpace{QN}; BR ::DataType=UInt) ::Vector{B
   return basis_list
 end
 
+# TODO: parallelizable version of hs_get_basis_list
+function hs_get_basis_list2(hss::HilbertSpaceSector{QN}; BR::DataType=UInt) ::Vector{BR} where {QN}
+  hs = hss.parent
+  if sizeof(BR) * 8 <= bitwidth(hs)
+    throw(ArgumentError("type $(BR) not enough to represent the hilbert space (need $(bitwidth(hs)) bits)"))
+  end
+  allowed = hss.allowed_quantum_numbers
+  sectors = Set(quantum_number_sectors(hs))
+  if isempty(intersect(allowed, sectors))
+    return BR[]
+  end
+  quantum_numbers = [[state.quantum_number for state in site.states] for site in hs.sites]
+  possible_quantum_numbers = [Set([zero(QN)])]  # PQN[i]: possible QN left of i
+
+  n_sites = length(hs.sites)
+  for i in 1:n_sites
+    pq = Set{QN}(q1 + q2 for q1 in possible_quantum_numbers[i], q2 in quantum_numbers[i])
+    push!(possible_quantum_numbers, pq)
+  end
+
+end
 
 function hs_get_basis_list(hss::HilbertSpaceSector{QN}; BR::DataType=UInt) ::Vector{BR} where {QN}
   hs = hss.parent
@@ -98,8 +119,9 @@ function hs_get_basis_list(hss::HilbertSpaceSector{QN}; BR::DataType=UInt) ::Vec
     push!(possible_quantum_numbers, pq)
   end
 
+  empty_dict = Dict{QN, Vector{BR}}()
   function generate(i ::Int, allowed ::AbstractSet{QN})
-    (i == 0) && return (zero(QN) in allowed) ? Dict(zero(QN) => [BR(0x0)]) : Dict()
+    (i == 0) && return (zero(QN) in allowed) ? Dict(zero(QN) => [BR(0x0)]) : empty_dict
     allowed_prev = Set{QN}()
     for q1 in quantum_numbers[i], q2 in allowed
       q = q2 - q1
@@ -115,20 +137,23 @@ function hs_get_basis_list(hss::HilbertSpaceSector{QN}; BR::DataType=UInt) ::Vec
             result[q] = BR[]
           end
           append!(result[q], (s | (BR(i_state-1) << hs.bitoffsets[i])) for s in states_prev)
-        end
-      end
-    end
+        end # if q in allowed
+      end # for (q_prev, states_prev) in result_prev
+    end # for (i_state, q_curr) in enumerate(quantum_numbers[i])
     return result
   end
   basis_list ::Vector{BR} = let
     basis_list = BR[]
     result = generate(n_sites, allowed)
-    for (q, states) in result
+    qs = collect(keys(result))
+    for q in qs
+      states = pop!(result, q)
       basis_list = merge_vec(basis_list, states)
+      GC.gc()
     end
     basis_list
   end
-  sort!(basis_list)
+  @assert issorted(basis_list)
   return basis_list
 end
 
