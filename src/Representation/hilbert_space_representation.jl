@@ -89,13 +89,37 @@ function hs_get_basis_list2(hss::HilbertSpaceSector{QN}; BR::DataType=UInt) ::Ve
     return BR[]
   end
   quantum_numbers = [[state.quantum_number for state in site.states] for site in hs.sites]
-  possible_quantum_numbers = [Set([zero(QN)])]  # PQN[i]: possible QN left of i
 
   n_sites = length(hs.sites)
-  for i in 1:n_sites
-    pq = Set{QN}(q1 + q2 for q1 in possible_quantum_numbers[i], q2 in quantum_numbers[i])
-    push!(possible_quantum_numbers, pq)
+  qn_possible = Vector{Vector{Int}}(undef, n_sites+1)
+  qn_possible[1] = [0]
+
+  for i in eachindex(hs.sites)
+    a = Set{QN}()
+    for qi in quantum_numbers[i]
+      for qa in qn_possible[i]
+        push!(a, qa + qi)
+      end
+    end
+    qn_possible[i+1] = sort(collect(a))
   end
+
+  qn_requested = Vector{Vector{Int}}(undef, n_sites+1)
+  qn_requested[n_sites+1] = allowed
+
+  for i in n_sites:-1:1
+    a = Set{Int}()
+    for qi in quantum_numbers[i]
+        for qa in qn_requested[i+1]
+            push!(a, qa - qi)
+        end
+    end
+    qn_requested[i] = sort(collect(a))
+  end
+
+  qn_schedule = [intersect(x,y) for (x,y) in zip(qn_requested[2:end], qn_possible[2:end])]
+
+  # WIP
 
 end
 
@@ -127,19 +151,22 @@ function hs_get_basis_list(hss::HilbertSpaceSector{QN}; BR::DataType=UInt) ::Vec
       q = q2 - q1
       (q in possible_quantum_numbers[i]) && push!(allowed_prev, q)
     end
-    result_prev = generate(i-1, allowed_prev)
     result = Dict{QN, Vector{BR}}()
-    for (i_state, q_curr) in enumerate(quantum_numbers[i])
-      for (q_prev, states_prev) in result_prev
-        q = q_prev + q_curr
-        if q in allowed
-          if !haskey(result, q)
-            result[q] = BR[]
-          end
-          append!(result[q], (s | (BR(i_state-1) << hs.bitoffsets[i])) for s in states_prev)
-        end # if q in allowed
-      end # for (q_prev, states_prev) in result_prev
-    end # for (i_state, q_curr) in enumerate(quantum_numbers[i])
+    let
+      result_prev = generate(i-1, allowed_prev)
+      for (i_state, q_curr) in enumerate(quantum_numbers[i])
+        for (q_prev, states_prev) in result_prev
+          q = q_prev + q_curr
+          if q in allowed
+            if !haskey(result, q)
+              result[q] = BR[]
+            end
+            append!(result[q], (s | (BR(i_state-1) << hs.bitoffsets[i])) for s in states_prev)
+          end # if q in allowed
+        end # for (q_prev, states_prev) in result_prev
+      end # for (i_state, q_curr) in enumerate(quantum_numbers[i])
+    end
+    GC.gc()
     return result
   end
   basis_list ::Vector{BR} = let
