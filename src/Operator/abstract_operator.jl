@@ -38,12 +38,12 @@ import Base.-, Base.+
 
 import LinearAlgebra.issymmetric
 function issymmetric(arg::AbstractOperator{S}) where S
-  return simplify(arg - transpose(arg)) == NullOperator()
+  return isa(simplify(arg - transpose(arg)), NullOperator)
 end
 
 import LinearAlgebra.ishermitian
 function ishermitian(arg::AbstractOperator{S}) where S
-  return simplify(arg - adjoint(arg)) == NullOperator()
+  return isa(simplify(arg - adjoint(arg)), NullOperator)
 end
 
 import Base.^
