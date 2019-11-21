@@ -41,6 +41,8 @@ using StaticArrays
     @test 2 * nop == nop
     @test 2.0 * nop == nop
     @test (2.0 + 1.0im) * nop == nop
+
+    @test nop^6 == nop
   end
 
   @testset "iterator" begin
@@ -262,6 +264,14 @@ end # testset NullOperator
         @test pop1 * pop2 == NullOperator()
       end
     end
+
+    @testset "power" begin
+      pop = PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0000, 3.0)
+      @test pop * pop * pop * pop * pop * pop == pop^6
+
+      pop2 = PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0010, 3.0)
+      @test isa(pop2^99999, NullOperator)
+    end
   end
 
   @testset "iterator" begin
@@ -474,6 +484,13 @@ end
                             ])
       @test length(nonzeroterms) == 5
       @test sop2 * sop2 == SumOperator{ComplexF64, UInt}(nonzeroterms)
+    end
+
+    @testset "power" begin
+      pop1 = PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0000, 2.0)
+      pop2 = PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0010, 3.0)
+      sop = pop1 + pop2
+      @test simplify(sop * sop * sop * sop * sop * sop) == simplify(sop^6)
     end
   end
 
