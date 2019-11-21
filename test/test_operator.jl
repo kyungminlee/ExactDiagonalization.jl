@@ -58,6 +58,11 @@ using StaticArrays
     @test isempty(collect(get_row_iterator(nop, 0x0)))
     @test isempty(collect(get_column_iterator(nop, 0x0)))
   end
+
+  @testset "sym" begin
+    @test issymmetric(nop)
+    @test ishermitian(nop)
+  end
 end # testset NullOperator
 
 @testset "PureOperator" begin
@@ -79,6 +84,18 @@ end # testset NullOperator
     @test pop.bitrow == 0x0
     @test pop.bitcol == 0x0
     @test pop.amplitude == 3.0
+  end
+
+  @testset "sym" begin
+    @test issymmetric(PureOperator{Float64, UInt}(0b0010, 0b0010, 0b0010, 1.0))
+    @test !issymmetric(PureOperator{Float64, UInt}(0b0010, 0b0010, 0b0000, 1.0))
+    @test issymmetric(PureOperator{ComplexF64, UInt}(0b0010, 0b0010, 0b0010, 1.0+2.0im))
+    @test !issymmetric(PureOperator{ComplexF64, UInt}(0b0010, 0b0010, 0b0000, 1.0+2.0im))
+
+    @test ishermitian(PureOperator{Float64, UInt}(0b0010, 0b0010, 0b0010, 1.0))
+    @test !ishermitian(PureOperator{Float64, UInt}(0b0010, 0b0010, 0b0000, 1.0))
+    @test !ishermitian(PureOperator{ComplexF64, UInt}(0b0010, 0b0010, 0b0010, 1.0+2.0im))
+    @test !ishermitian(PureOperator{ComplexF64, UInt}(0b0010, 0b0010, 0b0000, 1.0+2.0im))
   end
 
   @testset "type" begin
@@ -310,17 +327,37 @@ end
     @test sop1 == sop3
   end
 
-    @testset "type" begin
-      bintypes = [UInt8, UInt16, UInt32, UInt64, UInt128]
-      types = [Int32, Int64, Float32, Float64, ComplexF32, ComplexF64]
-      for t1 in types, bt in bintypes
-        for t2 in types
-          t3 = promote_type(t1, t2)
-          @test promote_type(SumOperator{t1, bt}, SumOperator{t2, bt}) === SumOperator{t3, bt}
-          @test promote_rule(SumOperator{t1, bt}, SumOperator{t2, bt}) === SumOperator{t3, bt}
-        end
+  @testset "sym" begin
+    pop1 = PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0000, 1.0)
+    pop2 = PureOperator{Float64, UInt}(0b0010, 0b0010, 0b0010, 2.0)
+    sop1 = SumOperator{Float64, UInt}([pop1, pop2])
+    @test issymmetric(sop1)
+    @test ishermitian(sop1)
+
+    pop3 = PureOperator{ComplexF64, UInt}(0b0010, 0b0000, 0b0010, 1.0+2.0im)
+    pop4 = PureOperator{ComplexF64, UInt}(0b0010, 0b0010, 0b0000, 1.0+2.0im)
+    pop5 = PureOperator{ComplexF64, UInt}(0b0010, 0b0010, 0b0000, 1.0-2.0im)
+    sop2 = SumOperator{ComplexF64, UInt}([pop3, pop4])
+    sop3 = SumOperator{ComplexF64, UInt}([pop3, pop5])
+
+    @test issymmetric(sop2)
+    @test !ishermitian(sop2)
+
+    @test !issymmetric(sop3)
+    @test ishermitian(sop3)
+  end
+
+  @testset "type" begin
+    bintypes = [UInt8, UInt16, UInt32, UInt64, UInt128]
+    types = [Int32, Int64, Float32, Float64, ComplexF32, ComplexF64]
+    for t1 in types, bt in bintypes
+      for t2 in types
+        t3 = promote_type(t1, t2)
+        @test promote_type(SumOperator{t1, bt}, SumOperator{t2, bt}) === SumOperator{t3, bt}
+        @test promote_rule(SumOperator{t1, bt}, SumOperator{t2, bt}) === SumOperator{t3, bt}
       end
     end
+  end
 
   @testset "convert" begin
     @test_throws InexactError convert(PureOperator{Float64, UInt}, PureOperator{ComplexF64, UInt}(0b0010, 0b0000, 0b0000, 2.0 + 1.0im))
