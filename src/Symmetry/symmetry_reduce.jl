@@ -40,7 +40,9 @@ function symmetry_reduce_serial(
 
   reduced_basis_list = BR[]
   RepresentativeAmplitudeType = NamedTuple{(:representative,:amplitude), Tuple{Int,ComplexType}}
-  representative_amplitude_list = RepresentativeAmplitudeType[(representative=-1,amplitude=zero(ComplexType)) for i in 1:n_basis]
+  #representative_amplitude_list = RepresentativeAmplitudeType[(representative=-1,amplitude=zero(ComplexType)) for i in 1:n_basis]
+  representative_amplitude_list = Vector{RepresentativeAmplitudeType}(undef, n_basis)
+  fill!(representative_amplitude_list, (representative=-1, amplitude=zero(ComplexType)))
 
   size_estimate = let
     denom = max(1, length(trans_group.fractional_momenta) - 1)
@@ -95,7 +97,9 @@ function symmetry_reduce_serial(
   sort!(reduced_basis_list)
 
   ItemType = NamedTuple{(:index, :amplitude), Tuple{Int, ComplexType}}
-  basis_mapping = ItemType[(index=-1, amplitude=zero(ComplexType)) for b in hsr.basis_list]
+  #basis_mapping = ItemType[(index=-1, amplitude=zero(ComplexType)) for b in hsr.basis_list]
+  basis_mapping = Vector{ItemType}(undef, length(hsr.basis_list))
+  fill!(basis_mapping, (index=-1, amplitude=zero(ComplexType)))
   for (ivec_r, bvec) in enumerate(reduced_basis_list)
     ivec_p = hsr.basis_lookup[bvec]
     amplitude = representative_amplitude_list[ivec_p].amplitude
@@ -139,8 +143,10 @@ function symmetry_reduce_parallel(
   nthreads = Threads.nthreads()
   local_progress = zeros(Int, nthreads)
   local_reduced_basis_list = [BR[] for i in 1:nthreads]
-  RepresentativeAmplitudeList = NamedTuple{(:representative,:amplitude), Tuple{Int,ComplexType}}
-  representative_amplitude_list = RepresentativeAmplitudeList[(representative=-1,amplitude=zero(ComplexType)) for i in 1:n_basis]
+  RepresentativeAmplitudeType = NamedTuple{(:representative,:amplitude), Tuple{Int,ComplexType}}
+  #representative_amplitude_list = RepresentativeAmplitudeType[(representative=-1,amplitude=zero(ComplexType)) for i in 1:n_basis]
+  representative_amplitude_list = Vector{RepresentativeAmplitudeType}(undef, n_basis)
+  fill!(representative_amplitude_list, (representative=-1, amplitude=zero(ComplexType)))
 
   size_estimate = let
     denom = max(1, length(trans_group.fractional_momenta) - 1)
@@ -176,7 +182,7 @@ function symmetry_reduce_parallel(
     compatible = true
     ψ = Dict{BR, ComplexType}()
 
-    for i in 1:length(trans_group.elements)
+    for i in eachindex(trans_group.elements)
       t = trans_group.translations[i]
       g = trans_group.elements[i]
 
@@ -243,7 +249,9 @@ function symmetry_reduce_parallel(
   @debug "Finished garbage collection"
 
   ItemType = NamedTuple{(:index, :amplitude), Tuple{Int, ComplexType}}
-  basis_mapping = ItemType[(index=-1, amplitude=zero(ComplexType)) for i in hsr.basis_list]
+  #basis_mapping = ItemType[(index=-1, amplitude=zero(ComplexType)) for i in hsr.basis_list]
+  basis_mapping = Vector{ItemType}(undef, length(hsr.basis_list))
+  fill!(basis_mapping, (index=-1, amplitude=zero(ComplexType)))
   @debug "Collecting basis lookup (diagonal)"
   Threads.@threads for ivec_r in eachindex(reduced_basis_list)
     bvec = reduced_basis_list[ivec_r]

@@ -4,16 +4,6 @@ using ExactDiagonalization
 using LinearAlgebra
 using StaticArrays
 
-# if VERSION >= v"1.1" # local type definition
-#   @testset "AbstractOperator" begin
-#     struct Foo <:AbstractOperator
-#     end
-#     x = Foo()
-#     @test_throws ErrorException get_row_iterator(x, 0x1)
-#     @test_throws ErrorException get_column_iterator(x, 0x1)
-#   end
-# end
-
 @testset "NullOperator" begin
   nop = NullOperator()
   @test isa(nop, NullOperator)
@@ -51,12 +41,19 @@ using StaticArrays
     @test 2 * nop == nop
     @test 2.0 * nop == nop
     @test (2.0 + 1.0im) * nop == nop
+
+    @test nop^6 == nop
   end
 
   @testset "iterator" begin
     nop = NullOperator()
     @test isempty(collect(get_row_iterator(nop, 0x0)))
     @test isempty(collect(get_column_iterator(nop, 0x0)))
+  end
+
+  @testset "sym" begin
+    @test issymmetric(nop)
+    @test ishermitian(nop)
   end
 end # testset NullOperator
 
@@ -79,6 +76,18 @@ end # testset NullOperator
     @test pop.bitrow == 0x0
     @test pop.bitcol == 0x0
     @test pop.amplitude == 3.0
+  end
+
+  @testset "sym" begin
+    @test issymmetric(PureOperator{Float64, UInt}(0b0010, 0b0010, 0b0010, 1.0))
+    @test !issymmetric(PureOperator{Float64, UInt}(0b0010, 0b0010, 0b0000, 1.0))
+    @test issymmetric(PureOperator{ComplexF64, UInt}(0b0010, 0b0010, 0b0010, 1.0+2.0im))
+    @test !issymmetric(PureOperator{ComplexF64, UInt}(0b0010, 0b0010, 0b0000, 1.0+2.0im))
+
+    @test ishermitian(PureOperator{Float64, UInt}(0b0010, 0b0010, 0b0010, 1.0))
+    @test !ishermitian(PureOperator{Float64, UInt}(0b0010, 0b0010, 0b0000, 1.0))
+    @test !ishermitian(PureOperator{ComplexF64, UInt}(0b0010, 0b0010, 0b0010, 1.0+2.0im))
+    @test !ishermitian(PureOperator{ComplexF64, UInt}(0b0010, 0b0010, 0b0000, 1.0+2.0im))
   end
 
   @testset "type" begin
@@ -255,6 +264,14 @@ end # testset NullOperator
         @test pop1 * pop2 == NullOperator()
       end
     end
+
+    @testset "power" begin
+      pop = PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0000, 3.0)
+      @test pop * pop * pop * pop * pop * pop == pop^6
+
+      pop2 = PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0010, 3.0)
+      @test isa(pop2^99999, NullOperator)
+    end
   end
 
   @testset "iterator" begin
@@ -310,17 +327,37 @@ end
     @test sop1 == sop3
   end
 
-    @testset "type" begin
-      bintypes = [UInt8, UInt16, UInt32, UInt64, UInt128]
-      types = [Int32, Int64, Float32, Float64, ComplexF32, ComplexF64]
-      for t1 in types, bt in bintypes
-        for t2 in types
-          t3 = promote_type(t1, t2)
-          @test promote_type(SumOperator{t1, bt}, SumOperator{t2, bt}) === SumOperator{t3, bt}
-          @test promote_rule(SumOperator{t1, bt}, SumOperator{t2, bt}) === SumOperator{t3, bt}
-        end
+  @testset "sym" begin
+    pop1 = PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0000, 1.0)
+    pop2 = PureOperator{Float64, UInt}(0b0010, 0b0010, 0b0010, 2.0)
+    sop1 = SumOperator{Float64, UInt}([pop1, pop2])
+    @test issymmetric(sop1)
+    @test ishermitian(sop1)
+
+    pop3 = PureOperator{ComplexF64, UInt}(0b0010, 0b0000, 0b0010, 1.0+2.0im)
+    pop4 = PureOperator{ComplexF64, UInt}(0b0010, 0b0010, 0b0000, 1.0+2.0im)
+    pop5 = PureOperator{ComplexF64, UInt}(0b0010, 0b0010, 0b0000, 1.0-2.0im)
+    sop2 = SumOperator{ComplexF64, UInt}([pop3, pop4])
+    sop3 = SumOperator{ComplexF64, UInt}([pop3, pop5])
+
+    @test issymmetric(sop2)
+    @test !ishermitian(sop2)
+
+    @test !issymmetric(sop3)
+    @test ishermitian(sop3)
+  end
+
+  @testset "type" begin
+    bintypes = [UInt8, UInt16, UInt32, UInt64, UInt128]
+    types = [Int32, Int64, Float32, Float64, ComplexF32, ComplexF64]
+    for t1 in types, bt in bintypes
+      for t2 in types
+        t3 = promote_type(t1, t2)
+        @test promote_type(SumOperator{t1, bt}, SumOperator{t2, bt}) === SumOperator{t3, bt}
+        @test promote_rule(SumOperator{t1, bt}, SumOperator{t2, bt}) === SumOperator{t3, bt}
       end
     end
+  end
 
   @testset "convert" begin
     @test_throws InexactError convert(PureOperator{Float64, UInt}, PureOperator{ComplexF64, UInt}(0b0010, 0b0000, 0b0000, 2.0 + 1.0im))
@@ -448,6 +485,13 @@ end
       @test length(nonzeroterms) == 5
       @test sop2 * sop2 == SumOperator{ComplexF64, UInt}(nonzeroterms)
     end
+
+    @testset "power" begin
+      pop1 = PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0000, 2.0)
+      pop2 = PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0010, 3.0)
+      sop = pop1 + pop2
+      @test simplify(sop * sop * sop * sop * sop * sop) == simplify(sop^6)
+    end
   end
 
   @testset "iterator" begin
@@ -463,45 +507,6 @@ end
 
     @test collect(get_column_iterator(sop, 0b1000)) == []
     @test collect(get_column_iterator(sop, 0b0101)) == [0b0111 => 2.0, 0b0100 => 3.0]
-
-
-    # @test collect(get_column_iterator(pop, 0b0000)) == [0b0010 => 2.0]
-    # @test collect(get_column_iterator(pop, 0b1111)) == []
   end
 
 end
-
-  # popA00 = PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0000, 2.0)
-  # popA01 = PureOperator{ComplexF64, UInt}(0b0010, 0b0000, 0b0010, 3.0+im)
-  # popA10 = PureOperator{ComplexF64, UInt}(0b0010, 0b0010, 0b0000, 4.0+2im)
-  # popA11 = PureOperator{ComplexF64, UInt}(0b0010, 0b0010, 0b0010, 5.0+0im)
-
-  # popB00 = PureOperator{ComplexF64, UInt}(0b1000, 0b0000, 0b0000, 2.0+im)
-  # popB01 = PureOperator{ComplexF64, UInt}(0b1000, 0b0000, 0b1000, 3.0+im)
-  # popB10 = PureOperator{ComplexF64, UInt}(0b1000, 0b1000, 0b0000, 4.0+2im)
-  # popB11 = PureOperator{ComplexF64, UInt}(0b1000, 0b1000, 0b1000, 5.0+0im)
-
-  # -popA00
-  # +popA00
-  # real(popA00)
-  # imag(popA00)
-
-  # pop = popA00
-  # sop = pop + pop
-
-  # +sop
-  # -sop
-  # real(sop)
-  # imag(sop)
-
-  # nop + nop
-  # nop + pop
-  # nop + sop
-
-  # pop + nop
-  # pop + pop
-  # pop + sop
-
-  # sop + nop
-  # sop + pop
-  # sop + sop
