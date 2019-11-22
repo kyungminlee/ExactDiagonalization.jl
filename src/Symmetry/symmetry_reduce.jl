@@ -167,9 +167,9 @@ function symmetry_reduce_parallel(
       push!(reorder, k)
     end
   end
-  @assert sort(reorder) == 1:n_basis
+  #@assert sort(reorder) == 1:n_basis
 
-  prev_progress_time = Dates.now()
+  #prev_progress_time = Dates.now()
 
   visited = falses(n_basis)
   @debug "Starting reduction (parallel)"
@@ -202,7 +202,7 @@ function symmetry_reduce_parallel(
     (!compatible) && continue
 
     choptol!(ψ, tol)
-    @assert !isempty(ψ)
+    #@assert !isempty(ψ)
 
     ivec_p_primes = Int[hsr.basis_lookup[bvec_prime] for bvec_prime in keys(ψ)]
 
@@ -252,6 +252,7 @@ function symmetry_reduce_parallel(
   #basis_mapping = ItemType[(index=-1, amplitude=zero(ComplexType)) for i in hsr.basis_list]
   basis_mapping = Vector{ItemType}(undef, length(hsr.basis_list))
   fill!(basis_mapping, (index=-1, amplitude=zero(ComplexType)))
+
   @debug "Collecting basis lookup (diagonal)"
   Threads.@threads for ivec_r in eachindex(reduced_basis_list)
     bvec = reduced_basis_list[ivec_r]
