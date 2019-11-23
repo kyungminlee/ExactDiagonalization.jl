@@ -40,8 +40,6 @@ function get_row_iterator(opr ::ReducedOperatorRepresentation{RHSR, O, S, BR},
   irow_r2, ampl_row = rhsr.basis_mapping[irow_p]
   inv_ampl_row = one(S) / ampl_row
 
-  zero_val = zero(S)
-
   full_iter = let
     basis_lookup = rhsr.parent.basis_lookup
     basis_mapping ::Vector{NamedTuple{(:index, :amplitude), Tuple{Int, S}}} = rhsr.basis_mapping
@@ -67,9 +65,7 @@ function get_column_iterator(opr ::ReducedOperatorRepresentation{RHSR, O, S, BR}
   icol_p = hsr.basis_lookup[bcol]
   icol_r2, ampl_col = rhsr.basis_mapping[icol_p]
   #@assert icol_r == icol_r2 "$icol_r != $icol_r2"
-
   inv_ampl_col = one(S) / ampl_col
-  zero_val = zero(S)
 
   full_iter = let
     basis_lookup = rhsr.parent.basis_lookup

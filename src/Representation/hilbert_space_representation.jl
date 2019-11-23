@@ -64,8 +64,7 @@ Dimension of the Concrete Hilbert space, i.e. number of basis vectors.
 dimension(hsr ::HilbertSpaceRepresentation) = length(hsr.basis_list)
 
 
-
-function hs_get_basis_list(hs ::HilbertSpace{QN}; BR ::DataType=UInt) ::Vector{BR} where {QN}
+function hs_get_basis_list(hs ::HilbertSpace{QN}, binary_type::Type{BR}=UInt)::Vector{BR} where {QN, BR<:Unsigned}
   if sizeof(BR) * 8 <= bitwidth(hs)
     throw(ArgumentError("type $(BR) not enough to represent the hilbert space (need $(bitwidth(hs)) bits)"))
   end
@@ -78,7 +77,7 @@ function hs_get_basis_list(hs ::HilbertSpace{QN}; BR ::DataType=UInt) ::Vector{B
 end
 
 
-function hs_get_basis_list(hss::HilbertSpaceSector{QN}; BR::DataType=UInt) ::Vector{BR} where {QN}
+function hs_get_basis_list_old(hss::HilbertSpaceSector{QN}, binary_type::Type{BR}=UInt)::Vector{BR} where {QN, BR<:Unsigned}
   hs = hss.parent
   if sizeof(BR) * 8 <= bitwidth(hs)
     throw(ArgumentError("type $(BR) not enough to represent the hilbert space (need $(bitwidth(hs)) bits)"))
@@ -98,39 +97,129 @@ function hs_get_basis_list(hss::HilbertSpaceSector{QN}; BR::DataType=UInt) ::Vec
     push!(possible_quantum_numbers, pq)
   end
 
+  empty_dict = Dict{QN, Vector{BR}}()
   function generate(i ::Int, allowed ::AbstractSet{QN})
-    (i == 0) && return (zero(QN) in allowed) ? Dict(zero(QN) => [BR(0x0)]) : Dict()
+    (i == 0) && return (zero(QN) in allowed) ? Dict(zero(QN) => [BR(0x0)]) : empty_dict
     allowed_prev = Set{QN}()
     for q1 in quantum_numbers[i], q2 in allowed
       q = q2 - q1
       (q in possible_quantum_numbers[i]) && push!(allowed_prev, q)
     end
-    result_prev = generate(i-1, allowed_prev)
     result = Dict{QN, Vector{BR}}()
-    for (i_state, q_curr) in enumerate(quantum_numbers[i])
-      for (q_prev, states_prev) in result_prev
-        q = q_prev + q_curr
-        if q in allowed
-          if !haskey(result, q)
-            result[q] = BR[]
-          end
-          append!(result[q], (s | (BR(i_state-1) << hs.bitoffsets[i])) for s in states_prev)
-        end
-      end
+    let
+      result_prev = generate(i-1, allowed_prev)
+      for (i_state, q_curr) in enumerate(quantum_numbers[i])
+        for (q_prev, states_prev) in result_prev
+          q = q_prev + q_curr
+          if q in allowed
+            if !haskey(result, q)
+              result[q] = BR[]
+            end
+            append!(result[q], (s | (BR(i_state-1) << hs.bitoffsets[i])) for s in states_prev)
+          end # if q in allowed
+        end # for (q_prev, states_prev) in result_prev
+      end # for (i_state, q_curr) in enumerate(quantum_numbers[i])
     end
+    GC.gc()
     return result
   end
   basis_list ::Vector{BR} = let
     basis_list = BR[]
     result = generate(n_sites, allowed)
-    for (q, states) in result
+    qs = collect(keys(result))
+    for q in qs
+      states = pop!(result, q)
       basis_list = merge_vec(basis_list, states)
+      GC.gc()
     end
     basis_list
   end
-  sort!(basis_list)
+  @assert issorted(basis_list)
   return basis_list
 end
+
+
+function hs_get_basis_list(hss::HilbertSpaceSector{QN}, binary_type::Type{BR}=UInt) ::Vector{BR} where {QN, BR<:Unsigned}
+  hs = hss.parent
+  if sizeof(BR) * 8 <= bitwidth(hs)
+    throw(ArgumentError("type $(BR) not enough to represent the hilbert space (need $(bitwidth(hs)) bits)"))
+  end
+  if isempty(intersect(hss.allowed_quantum_numbers, quantum_number_sectors(hs)))
+    return BR[]
+  end
+
+  quantum_numbers = [[state.quantum_number for state in site.states] for site in hs.sites]
+
+  n_sites = length(hs.sites)
+
+  qn_possible ::Vector{Vector{QN}} = let
+    qn_possible = Vector{Vector{QN}}(undef, n_sites+1)
+    qn_possible[1] = [zero(QN)]
+    for i in eachindex(hs.sites)
+      a = Set{QN}()
+      for qi in quantum_numbers[i], qa in qn_possible[i]
+        push!(a, qa + qi)
+      end
+      qn_possible[i+1] = sort(collect(a))
+    end
+    qn_possible
+  end
+
+  qn_requested ::Vector{Vector{QN}} = let
+    qn_requested = Vector{Vector{QN}}(undef, n_sites+1)
+    qn_requested[n_sites+1] = sort(collect(hss.allowed_quantum_numbers))
+    for i in n_sites:-1:1
+      a = Set{QN}()
+      for qi in quantum_numbers[i], qa in qn_requested[i+1]
+        push!(a, qa - qi)
+      end
+      qn_requested[i] = sort(collect(a))
+    end
+    qn_requested
+  end
+
+  qn_schedule = [intersect(x,y) for (x, y) in zip(qn_requested, qn_possible)]
+
+  sector_basis_list = Dict{QN, Vector{BR}}(zero(QN) => BR[BR(0x0)])
+  new_sector_basis_list = Dict{QN, Vector{BR}}()
+
+  sl = Threads.SpinLock()
+  for i in 1:n_sites
+    empty!(new_sector_basis_list)
+    for q in qn_schedule[i+1]
+      new_sector_basis_list_q = BR[]
+      for (i_state, q_curr) in enumerate(quantum_numbers[i])
+        q_prev ::QN = q - q_curr
+        if haskey(sector_basis_list, q_prev)
+          append!(new_sector_basis_list_q, (s | (BR(i_state-1) << hs.bitoffsets[i])) for s in sector_basis_list[q_prev])
+        end
+      end
+      lock(sl)
+      new_sector_basis_list[q] = new_sector_basis_list_q
+      unlock(sl)
+    end
+    sector_basis_list, new_sector_basis_list = new_sector_basis_list, sector_basis_list
+  end
+
+  basis_list ::Vector{BR} = let
+    basis_list = BR[]
+    sector_basis_list ::Dict{QN, Vector{BR}} = sector_basis_list
+
+    qs = collect(keys(sector_basis_list))
+    for q in qs
+      states = pop!(sector_basis_list, q)
+      basis_list = merge_vec(basis_list, states)
+      GC.gc()
+    end
+    basis_list
+  end
+  @assert issorted(basis_list)
+  return basis_list
+end
+
+
+
+
 
 
 """
@@ -142,8 +231,8 @@ Make a HilbertSpaceRepresentation with all the basis vectors of the specified Hi
 - `hs ::AbstractHilbertSpace`
 - `BR ::DataType=UInt`: Binary representation type
 """
-function represent(hs::AbstractHilbertSpace; BR::DataType=UInt)
-  basis_list = hs_get_basis_list(hs; BR=BR)
+function represent(hs::AbstractHilbertSpace, binary_type::Type{BR}=UInt) where {BR <:Unsigned}
+  basis_list = hs_get_basis_list(hs, BR)
   basis_lookup = FrozenSortedArrayIndex{BR}(basis_list)
   return HilbertSpaceRepresentation(basespace(hs), basis_list, basis_lookup)
 end
@@ -176,8 +265,8 @@ Make a HilbertSpaceRepresentation with all the basis vectors of the specified Hi
 - `hs ::AbstractHilbertSpace`
 - `BR ::DataType=UInt`: Binary representation type
 """
-function represent_dict(hs::AbstractHilbertSpace; BR::DataType=UInt)
-  basis_list = hs_get_basis_list(hs; BR=BR)
+function represent_dict(hs::AbstractHilbertSpace, binary_type::Type{BR}=UInt) where {BR<:Unsigned}
+  basis_list = hs_get_basis_list(hs, BR)
   basis_lookup = Dict{BR, Int}(basis => ibasis for (ibasis, basis) in enumerate(basis_list))
   return HilbertSpaceRepresentation(basespace(hs), basis_list, basis_lookup)
 end
