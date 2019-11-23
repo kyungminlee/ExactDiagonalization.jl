@@ -27,14 +27,14 @@ using StaticArrays
       hilbert_space = HilbertSpace([spinsite for i in 1:9])
       basis_list = UInt8[0b0101]
       @test_throws ArgumentError HilbertSpaceRepresentation(hilbert_space, basis_list, FrozenSortedArrayIndex(basis_list))
-      @test_throws ArgumentError represent(hilbert_space; BR=UInt8)
+      @test_throws ArgumentError represent(hilbert_space, UInt8)
       @test_throws ArgumentError HilbertSpaceRepresentation(HilbertSpaceSector(hilbert_space, 0), basis_list, FrozenSortedArrayIndex(basis_list))
-      @test_throws ArgumentError represent(HilbertSpaceSector(hilbert_space, 0); BR=UInt8)
+      @test_throws ArgumentError represent(HilbertSpaceSector(hilbert_space, 0), UInt8)
     end
 
     @testset "typetraits" begin
       hilbert_space = HilbertSpace([spinsite for i in 1:4])
-      hsr = represent(hilbert_space; BR=UInt32)
+      hsr = represent(hilbert_space, UInt32)
       @test scalartype(hsr) === Bool
       @test bintype(hsr) === UInt32
       @test scalartype(typeof(hsr)) === Bool
