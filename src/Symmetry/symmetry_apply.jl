@@ -8,21 +8,15 @@ import TightBindingLattice.AbstractSymmetryGroup
 ## AbstractSymmetryOperation
 
 ### HilbertSpaceSector
-function symmetry_apply(hss::HilbertSpaceSector{QN},
-                                symop ::AbstractSymmetryOperation,
-                                args...; kwargs...) where {QN}
+function symmetry_apply(hss ::HilbertSpaceSector{QN}, symop ::AbstractSymmetryOperation, args...; kwargs...) where {QN}
   return symmetry_apply(hss.parent, symop, args...; kwargs...)
 end
 
-function is_invariant(hss::HilbertSpaceSector{QN},
-                              symop ::AbstractSymmetryOperation,
-                              args...; kwargs...) where {QN}
+function is_invariant(hss ::HilbertSpaceSector{QN}, symop ::AbstractSymmetryOperation, args...; kwargs...) where {QN}
   return is_invariant(hss.parent, symop, args...; kwargs...)
 end
 
-function is_invariant(hss::HilbertSpaceSector{QN},
-                              symgroup ::AbstractSymmetryGroup,
-                              args...; kwargs...) where {QN}
+function is_invariant(hss::HilbertSpaceSector{QN}, symgroup ::AbstractSymmetryGroup, args...; kwargs...) where {QN}
   return is_invariant(hss.parent, symgroup, args...; kwargs...)
 end
 

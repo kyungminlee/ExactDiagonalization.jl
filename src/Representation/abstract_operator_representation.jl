@@ -287,18 +287,14 @@ function apply_serial!(out ::AbstractVector{S1},
   nrows, ncols = size(opr)
   length(out) != nrows && throw(DimensionMismatch("out has length $(length(out)) != dimension $(nrows)"))
   length(state) != ncols && throw(DimensionMismatch("state has length $(length(state)) != dimension $(ncols)"))
-  err, err_sq = zero(S1), zero(real(S1))
   for irow in 1:nrows
-    for (icol, amplitude) in get_row_iterator(opr, irow)
+    for (icol::Int, amplitude::S) in get_row_iterator(opr, irow)
       if 1 <= icol <= ncols
         @inbounds out[irow] += amplitude * state[icol]
-      else
-        @fastmath err += amplitude
-        @fastmath err_sq += abs2(amplitude)
       end
     end
   end
-  return (err, err_sq)
+  out
 end
 
 """
@@ -323,18 +319,14 @@ function apply_serial!(out ::AbstractVector{S1},
   nrows, ncols = size(opr)
   length(out) != ncols && throw(DimensionMismatch("out has length $(length(out)) != dimension $(ncols)"))
   length(state) != nrows && throw(DimensionMismatch("state has length $(length(state)) != dimension $(nrows)"))
-  err, err_sq = zero(S1), zero(real(S1))
   for icol in 1:ncols
-    for (irow, amplitude) in get_column_iterator(opr, icol)
+    for (irow::Int, amplitude::S) in get_column_iterator(opr, icol)
       if 1 <= irow <= nrows
         @inbounds out[icol] += state[irow] * amplitude
-      else
-        @fastmath err += amplitude
-        @fastmath err_sq += abs2(amplitude)
       end
     end
   end
-  return (err, err_sq)
+  out
 end
 
 
@@ -361,29 +353,15 @@ function apply_parallel!(out ::AbstractVector{S1},
   length(out) != nrows && throw(DimensionMismatch("out has length $(length(out)) != dimension $(nrows)"))
   length(state) != ncols && throw(DimensionMismatch("state has length $(length(state)) != dimension $(ncols)"))
 
-  R1 = real(S1)
-
-  nthreads = Threads.nthreads()
-  local_err = zeros(S1, nthreads)
-  local_err_sq = zeros(R1, nthreads)
-
+  R = real(S)
   Threads.@threads for irow in 1:nrows
-    id = Threads.threadid()
-    l_err, l_err_sq = zero(S1), zero(R1)
-    for (icol, amplitude) in get_row_iterator(opr, irow)
+    for (icol::Int, amplitude::S) in get_row_iterator(opr, irow)
       if 1 <= icol <= ncols
         @inbounds out[irow] += amplitude * state[icol]
-      else
-        @fastmath l_err += amplitude
-        @fastmath l_err_sq += abs2(amplitude)
       end
     end
-    @fastmath local_err[id] += l_err
-    @fastmath local_err_sq[id] += l_err_sq
   end
-  @fastmath err = sum(local_err)
-  @fastmath err_sq = sum(local_err_sq)
-  return (err, err_sq)
+  out
 end
 
 
@@ -410,26 +388,13 @@ function apply_parallel!(out ::AbstractVector{S1},
   length(out) != ncols && throw(DimensionMismatch("out has length $(length(out)) != dimension $(ncols)"))
   length(state) != nrows && throw(DimensionMismatch("state has length $(length(state)) != dimension $(nrows)"))
 
-  R1 = real(S1)
-  nthreads = Threads.nthreads()
-  local_err = zeros(S1, nthreads)
-  local_err_sq = zeros(R1, nthreads)
-
+  R = real(S)
   Threads.@threads for icol in 1:ncols
-    id = Threads.threadid()
-    l_err, l_err_sq = zero(S1), zero(R1)
-    for (irow, amplitude) in get_column_iterator(opr, icol)
+    for (irow::Int, amplitude::S) in get_column_iterator(opr, icol)
       if 1 <= irow <= nrows
         @inbounds out[icol] += state[irow] * amplitude
-      else
-        @fastmath l_err += amplitude
-        @fastmath l_err_sq += abs2(amplitude)
       end
     end
-    @fastmath local_err[id] += l_err
-    @fastmath local_err_sq[id] += l_err_sq
   end
-  @fastmath err = sum(local_err)
-  @fastmath err_sq = sum(local_err_sq)
-  return (err, err_sq)
+  out
 end

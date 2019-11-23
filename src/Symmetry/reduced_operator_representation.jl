@@ -30,7 +30,7 @@ function show(io::IO, ::MIME"text/plain", arg::ReducedOperatorRepresentation{RHS
 end
 
 function get_row_iterator(opr ::ReducedOperatorRepresentation{RHSR, O, S, BR},
-                                  irow_r ::Integer) where {RHSR, O, S, BR}
+                          irow_r ::Integer) where {RHSR, O, S, BR}
   rhsr = opr.reduced_hilbert_space_representation
   hsr = rhsr.parent
   dim = dimension(opr.reduced_hilbert_space_representation)
@@ -39,8 +39,6 @@ function get_row_iterator(opr ::ReducedOperatorRepresentation{RHSR, O, S, BR},
   irow_p = hsr.basis_lookup[brow]
   irow_r2, ampl_row = rhsr.basis_mapping[irow_p]
   inv_ampl_row = one(S) / ampl_row
-
-  zero_val = zero(S)
 
   full_iter = let
     basis_lookup = rhsr.parent.basis_lookup
@@ -59,7 +57,7 @@ function get_row_iterator(opr ::ReducedOperatorRepresentation{RHSR, O, S, BR},
 end
 
 function get_column_iterator(opr ::ReducedOperatorRepresentation{RHSR, O, S, BR},
-                                     icol_r ::Integer) where {RHSR, O, S, BR}
+                             icol_r ::Integer) where {RHSR, O, S, BR}
   rhsr = opr.reduced_hilbert_space_representation
   hsr = rhsr.parent
   dim = dimension(opr.reduced_hilbert_space_representation)
@@ -67,9 +65,7 @@ function get_column_iterator(opr ::ReducedOperatorRepresentation{RHSR, O, S, BR}
   icol_p = hsr.basis_lookup[bcol]
   icol_r2, ampl_col = rhsr.basis_mapping[icol_p]
   #@assert icol_r == icol_r2 "$icol_r != $icol_r2"
-
   inv_ampl_col = one(S) / ampl_col
-  zero_val = zero(S)
 
   full_iter = let
     basis_lookup = rhsr.parent.basis_lookup
@@ -89,7 +85,7 @@ end
 
 # TODO: better implementation
 function get_element(opr ::ReducedOperatorRepresentation{RHSR, O, S, BR},
-                             irow_r ::Integer, icol_r ::Integer) where {RHSR, O, S, BR}
+                     irow_r ::Integer, icol_r ::Integer) where {RHSR, O, S, BR}
   rhsr = opr.reduced_hilbert_space_representation
   @boundscheck let
    dim = length(rhsr.basis_list)
