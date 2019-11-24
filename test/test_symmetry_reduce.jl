@@ -42,12 +42,12 @@ using ExactDiagonalization.Toolkit: pauli_matrix
       rhsr = symred(hsr, translation_group, k)
       for (i_p, b) in enumerate(hsr.basis_list)
         if b in rhsr.basis_list
-          @test 1 <= rhsr.basis_mapping[i_p].index <= dimension(rhsr)
-          @test rhsr.basis_list[rhsr.basis_mapping[i_p].index] == b
-          @test isapprox(imag(rhsr.basis_mapping[i_p].amplitude), 0; atol=tol)
+          @test 1 <= rhsr.basis_mapping_index[i_p] <= dimension(rhsr)
+          @test rhsr.basis_list[rhsr.basis_mapping_index[i_p]] == b
+          @test isapprox(imag(rhsr.basis_mapping_amplitude[i_p]), 0; atol=tol)
         end
       end
-      for (i_p, (i_r, amplitude)) in enumerate(rhsr.basis_mapping)
+      for (i_p, i_r) in enumerate(rhsr.basis_mapping_index)
         if i_r == -1
           @test ! (rhsr.parent.basis_list[i_p] in rhsr.basis_list)
         end
