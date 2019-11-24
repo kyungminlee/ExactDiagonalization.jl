@@ -37,20 +37,17 @@ function get_row_iterator(opr ::ReducedOperatorRepresentation{RHSR, O, S, BR},
 
   brow = rhsr.basis_list[irow_r]
   irow_p = hsr.basis_lookup[brow]
-  #irow_r2, ampl_row = rhsr.basis_mapping[irow_p]
   ampl_row = rhsr.basis_mapping_amplitude[irow_p]
   inv_ampl_row = one(S) / ampl_row
 
   full_iter = let
     basis_lookup = rhsr.parent.basis_lookup
-    #basis_mapping ::Vector{NamedTuple{(:index, :amplitude), Tuple{Int, S}}} = rhsr.basis_mapping
     basis_mapping_index ::Vector{Int} = rhsr.basis_mapping_index
     basis_mapping_amplitude ::Vector{S} = rhsr.basis_mapping_amplitude
     operator = opr.operator
     function element(bcol::BR, ampl::S) ::Pair{Int, S}
       icol_p = get(basis_lookup, bcol, -1)
       (icol_p > 0) || return (-1 => ampl)
-      #(icol_r, ampl_col) = basis_mapping[icol_p]
       icol_r = basis_mapping_index[icol_p]
       (icol_r > 0) || return (-1 => ampl)
       ampl_col = basis_mapping_amplitude[icol_p]
@@ -68,21 +65,17 @@ function get_column_iterator(opr ::ReducedOperatorRepresentation{RHSR, O, S, BR}
   dim = dimension(opr.reduced_hilbert_space_representation)
   bcol = rhsr.basis_list[icol_r]
   icol_p = hsr.basis_lookup[bcol]
-  #icol_r2, ampl_col = rhsr.basis_mapping[icol_p]
   ampl_col = rhsr.basis_mapping_amplitude[icol_p]
-  #@assert icol_r == icol_r2 "$icol_r != $icol_r2"
   inv_ampl_col = one(S) / ampl_col
 
   full_iter = let
     basis_lookup = rhsr.parent.basis_lookup
-    #basis_mapping ::Vector{NamedTuple{(:index, :amplitude), Tuple{Int, S}}} = rhsr.basis_mapping
     basis_mapping_index ::Vector{Int} = rhsr.basis_mapping_index
     basis_mapping_amplitude ::Vector{S} = rhsr.basis_mapping_amplitude
     operator = opr.operator
     function element(brow::BR, ampl::S) ::Pair{Int, S}
       irow_p = get(basis_lookup, brow, -1)
       (irow_p > 0) || return (-1 => ampl)
-      #(irow_r, ampl_row) = basis_mapping[irow_p]
       irow_r = basis_mapping_index[irow_p]
       (irow_r > 0) || return (-1 => ampl)
       ampl_row = basis_mapping_amplitude[irow_p]

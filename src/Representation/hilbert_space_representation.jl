@@ -267,7 +267,12 @@ Make a HilbertSpaceRepresentation with all the basis vectors of the specified Hi
 """
 function represent_dict(hs::AbstractHilbertSpace, binary_type::Type{BR}=UInt) where {BR<:Unsigned}
   basis_list = hs_get_basis_list(hs, BR)
-  basis_lookup = Dict{BR, Int}(basis => ibasis for (ibasis, basis) in enumerate(basis_list))
+  #basis_lookup = Dict{BR, Int}(basis => ibasis for (ibasis::Int, basis::BR) in enumerate(basis_list))
+  basis_lookup = Dict{BR, Int}()
+  sizehint!(basis_lookup, length(basis_list) + length(basis_list) ÷ 4)
+  for (ibasis, basis) in enumerate(basis_list)
+    basis_lookup[basis] = ibasis
+  end
   return HilbertSpaceRepresentation(basespace(hs), basis_list, basis_lookup)
 end
 
@@ -286,6 +291,11 @@ function represent_dict(hs ::AbstractHilbertSpace,
   if !issorted(basis_list)
     basis_list = sort(basis_list)
   end
-  basis_lookup = Dict{BR, Int}(basis => ibasis for (ibasis, basis) in enumerate(basis_list))
+  #basis_lookup = Dict{BR, Int}(basis => ibasis for (ibasis, basis) in enumerate(basis_list))
+  basis_lookup = Dict{BR, Int}()
+  sizehint!(basis_lookup, length(basis_list) + length(basis_list) ÷ 4)
+  for (ibasis, basis) in enumerate(basis_list)
+    basis_lookup[basis] = ibasis
+  end
   return HilbertSpaceRepresentation(basespace(hs), basis_list, basis_lookup)
 end
