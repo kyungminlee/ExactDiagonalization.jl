@@ -69,6 +69,8 @@ function symmetry_reduce_serial(
   basis_amplitudes = Dict{BR, ComplexType}()
   sizehint!(basis_amplitudes, group_size + group_size ÷ 2)
 
+  is_identity = [is_compatible(fractional_momentum, t) for t in trans_group.translations]
+
   for ivec_p in 1:n_basis
     visited[ivec_p] && continue
     bvec = hsr.basis_list[ivec_p]
@@ -80,12 +82,9 @@ function symmetry_reduce_serial(
       if bvec_prime < bvec
         compatible = false
         break
-      elseif bvec_prime == bvec
-        t = trans_group.translations[i]
-        if !is_compatible(fractional_momentum, t)
-          compatible = false
-          break
-        end
+      elseif bvec_prime == bvec && !is_identity[i]
+        compatible = false
+        break
       end
       basis_states[i] = bvec_prime
     end
@@ -199,6 +198,8 @@ function symmetry_reduce_parallel(
     end
   end
 
+  is_identity = [is_compatible(fractional_momentum, t) for t in trans_group.translations]
+
   @debug "Starting reduction (parallel)"
   Threads.@threads for itemp in 1:n_basis
     ivec_p = reorder[itemp]
@@ -214,12 +215,9 @@ function symmetry_reduce_parallel(
       if bvec_prime < bvec
         compatible = false
         break
-      elseif bvec_prime == bvec
-        t = trans_group.translations[i]
-        if !is_compatible(fractional_momentum, t)
-          compatible = false
-          break
-        end
+      elseif bvec_prime == bvec && !is_identity[i]
+        compatible = false
+        break
       end
       local_basis_states[id, i] = bvec_prime
     end
