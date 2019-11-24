@@ -8,11 +8,11 @@ import Dates
 function symmetry_reduce(
     hsr ::HilbertSpaceRepresentation{QN, BR, DT},
     trans_group ::TranslationGroup,
-    fractional_momentum ::AbstractVector{<:Rational};
-    ComplexType::DataType=ComplexF64,
-    tol::Real=sqrt(eps(Float64))) where {QN, BR, DT}
+    fractional_momentum ::AbstractVector{<:Rational},
+    complex_type::Type{ComplexType}=ComplexF64;
+    tol::Real=sqrt(eps(Float64))) where {QN, BR, DT, ComplexType<:Complex}
   symred = Threads.nthreads() == 1 ? symmetry_reduce_serial : symmetry_reduce_parallel
-  return symred(hsr, trans_group, fractional_momentum; ComplexType=ComplexType, tol=tol)
+  return symred(hsr, trans_group, fractional_momentum, ComplexType; tol=tol)
 end
 
 """
@@ -24,9 +24,9 @@ Symmetry-reduce the HilbertSpaceRepresentation using translation group.
 function symmetry_reduce_serial(
     hsr ::HilbertSpaceRepresentation{QN, BR, DT},
     trans_group ::TranslationGroup,
-    fractional_momentum ::AbstractVector{<:Rational};
-    ComplexType::DataType=ComplexF64,
-    tol::Real=sqrt(eps(Float64))) where {QN, BR, DT}
+    fractional_momentum ::AbstractVector{<:Rational},
+    complex_type::Type{ComplexType}=ComplexF64;
+    tol::Real=sqrt(eps(Float64))) where {QN, BR, DT, ComplexType<:Complex}
 
   ik = let
     match(k ::Vector{Rational{Int}}) ::Bool = k == fractional_momentum
@@ -120,9 +120,9 @@ end
 function symmetry_reduce_parallel(
     hsr ::HilbertSpaceRepresentation{QN, BR, DT},
     trans_group ::TranslationGroup,
-    fractional_momentum ::AbstractVector{<:Rational};
-    ComplexType::DataType=ComplexF64,
-    tol::Real=sqrt(eps(Float64))) where {QN, BR, DT}
+    fractional_momentum ::AbstractVector{<:Rational},
+    complex_type::Type{ComplexType}=ComplexF64;
+    tol::Real=sqrt(eps(Float64))) where {QN, BR, DT, ComplexType<:Complex}
 
   HSR = HilbertSpaceRepresentation{QN, BR, DT}
   @debug "BEGIN symmetry_reduce_parallel"
