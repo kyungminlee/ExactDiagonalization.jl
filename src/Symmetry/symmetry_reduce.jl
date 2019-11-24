@@ -5,6 +5,12 @@ import TightBindingLattice.TranslationGroup
 
 import Dates
 
+"""
+    symmetry_reduce(hsr, trans_group, frac_momentum, complex_type=ComplexF64, tol=sqrt(eps(Float64)))
+
+Symmetry-reduce the HilbertSpaceRepresentation using translation group.
+
+"""
 function symmetry_reduce(
     hsr ::HilbertSpaceRepresentation{QN, BR, DT},
     trans_group ::TranslationGroup,
@@ -16,9 +22,9 @@ function symmetry_reduce(
 end
 
 """
-    symmetry_reduce_serial(hsr, trans_group, frac_momentum; ComplexType=ComplexF64, tol=sqrt(eps(Float64)))
+    symmetry_reduce_serial(hsr, trans_group, frac_momentum, complex_type=ComplexF64, tol=sqrt(eps(Float64)))
 
-Symmetry-reduce the HilbertSpaceRepresentation using translation group.
+Symmetry-reduce the HilbertSpaceRepresentation using translation group (single threaded).
 
 """
 function symmetry_reduce_serial(
@@ -29,16 +35,17 @@ function symmetry_reduce_serial(
     tol::FloatType=sqrt(eps(Float64))
     ) where {QN, BR, DT, ComplexType<:Complex, FloatType<:Real}
 
+  HSR = HilbertSpaceRepresentation{QN, BR, DT}
+
   ik = let
     match(k ::Vector{Rational{Int}}) ::Bool = k == fractional_momentum
     findfirst(match, trans_group.fractional_momenta)
   end
-  HSR = HilbertSpaceRepresentation{QN, BR, DT}
-  ik === nothing && throw(ArgumentError("fractional momentum $(fractional_momentum) not an irrep of the translation group"))
 
-  phases = conj.(trans_group.character_table[ik, :])
-  group_size = length(trans_group.elements)
-
+  if ik === nothing
+    throw(ArgumentError("fractional momentum $(fractional_momentum)" *
+                        " not an irrep of the translation group"))
+  end
   n_basis = length(hsr.basis_list)
 
   basis_mapping_representative = Vector{Int}(undef, n_basis)
@@ -52,6 +59,9 @@ function symmetry_reduce_serial(
 
   reduced_basis_list = BR[]
   sizehint!(reduced_basis_list, size_estimate)
+
+  phases = conj.(trans_group.character_table[ik, :])
+  group_size = length(trans_group.elements)
 
   visited = falses(n_basis)
 
@@ -81,6 +91,7 @@ function symmetry_reduce_serial(
     end
     (!compatible) && continue
     basis_states[1] = bvec
+
     push!(reduced_basis_list, bvec)
 
     empty!(basis_amplitudes)
@@ -89,7 +100,7 @@ function symmetry_reduce_serial(
       bvec_prime = basis_states[i]
       basis_amplitudes[bvec_prime] = p # They're all the same.
     end
-    inv_norm = 1 / sqrt(length(basis_amplitudes))
+    inv_norm = 1.0 / sqrt(float(length(basis_amplitudes)))
 
     for (bvec_prime, amplitude) in basis_amplitudes
       ivec_p_prime = hsr.basis_lookup[bvec_prime]
@@ -119,7 +130,12 @@ function symmetry_reduce_serial(
 end
 
 
+"""
+    symmetry_reduce_parallel(hsr, trans_group, frac_momentum, complex_type=ComplexF64, tol=sqrt(eps(Float64)))
 
+Symmetry-reduce the HilbertSpaceRepresentation using translation group (multi-threaded).
+
+"""
 function symmetry_reduce_parallel(
     hsr ::HilbertSpaceRepresentation{QN, BR, DT},
     trans_group ::TranslationGroup,
@@ -127,7 +143,9 @@ function symmetry_reduce_parallel(
     complex_type::Type{ComplexType}=ComplexF64;
     tol::Real=sqrt(eps(Float64))
     ) where {QN, BR, DT, ComplexType<:Complex}
+
   HSR = HilbertSpaceRepresentation{QN, BR, DT}
+
   @debug "BEGIN symmetry_reduce_parallel"
   ik = let
     match(k ::Vector{Rational{Int}}) ::Bool  = k == fractional_momentum
@@ -138,9 +156,12 @@ function symmetry_reduce_parallel(
     throw(ArgumentError("fractional momentum $(fractional_momentum)" *
                         " not an irrep of the translation group"))
   end
-  phases = conj.(trans_group.character_table[ik, :])
   n_basis = length(hsr.basis_list)
   @debug "Original Hilbert space dimension: $n_basis"
+
+  basis_mapping_representative = Vector{Int}(undef, n_basis)
+  fill!(basis_mapping_representative, -1)
+  basis_mapping_amplitude = zeros(ComplexType, n_basis)
 
   nthreads = Threads.nthreads()
   size_estimate = let
@@ -155,9 +176,17 @@ function symmetry_reduce_parallel(
     sizehint!(local_reduced_basis_list[i], size_estimate ÷ nthreads + 1)
   end
 
-  basis_mapping_representative = Vector{Int}(undef, n_basis)
-  fill!(basis_mapping_representative, -1)
-  basis_mapping_amplitude = zeros(ComplexType, n_basis)
+  phases = conj.(trans_group.character_table[ik, :])
+  group_size = length(trans_group.elements)
+
+  visited = zeros(UInt8, n_basis) # use UInt8 for thread safety
+
+  local_basis_states = Matrix{BR}(undef, (nthreads, group_size))
+  local_basis_amplitudes = Vector{Dict{BR, ComplexType}}(undef, nthreads)
+  for id in 1:nthreads
+    local_basis_amplitudes[id] = Dict{BR, ComplexType}()
+    sizehint!(local_basis_amplitudes[id], group_size)
+  end
 
   # Load balancing (the representatives are the smaller binary numbers)
   reorder = Int[]
@@ -170,22 +199,10 @@ function symmetry_reduce_parallel(
     end
   end
 
-  #visited = falses(n_basis)
-  visited = zeros(UInt8, n_basis) # use UInt8 for thread safety
-
-  group_size = length(trans_group.elements)
-  local_basis_amplitudes = Vector{Dict{BR, ComplexType}}(undef, nthreads)
-  local_basis_states = Matrix{BR}(undef, (nthreads, group_size))
-
-  for id in 1:nthreads
-    local_basis_amplitudes[id] = Dict{BR, ComplexType}()
-    sizehint!(local_basis_amplitudes[id], group_size)
-  end
-
   @debug "Starting reduction (parallel)"
   Threads.@threads for itemp in 1:n_basis
     ivec_p = reorder[itemp]
-    (visited[ivec_p] != 0) && continue
+    (visited[ivec_p] != 0x0) && continue
 
     id = Threads.threadid()
     bvec = hsr.basis_list[ivec_p]
@@ -209,15 +226,16 @@ function symmetry_reduce_parallel(
     (!compatible) && continue
     local_basis_states[id, 1] = bvec
 
+    push!(local_reduced_basis_list[id], bvec)
+
     empty!(local_basis_amplitudes[id])
     for i in 1:group_size
       p = phases[i]
       bvec_prime = local_basis_states[id, i]
       local_basis_amplitudes[id][bvec_prime] = p # Same bvec_prime, same p.
     end
+    inv_norm = 1.0 / sqrt(float(length(local_basis_amplitudes[id])))
 
-    push!(local_reduced_basis_list[id], bvec)
-    inv_norm = 1 / sqrt(length(local_basis_amplitudes[id]))
     for (bvec_prime, amplitude) in local_basis_amplitudes[id]
       ivec_p_prime = hsr.basis_lookup[bvec_prime]
       visited[ivec_p_prime] = 0x1
