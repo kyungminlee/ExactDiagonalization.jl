@@ -149,8 +149,7 @@ end
 """
 Convert an array of indices (of states) to binary representation
 """
-#function compress(hs ::HilbertSpace{QN}, indexarray ::AbstractVector{I}; BR::DataType=UInt) where {QN, I<:Integer}
-function compress(hs ::HilbertSpace{QN}, indexarray ::CartesianIndex; BR::DataType=UInt) where QN
+function compress(hs ::HilbertSpace{QN}, indexarray ::CartesianIndex, binary_type::Type{BR}=UInt) where {QN, BR<:Unsigned}
   if length(indexarray) != length(hs.sites)
     throw(ArgumentError("length of indexarray should be the number of sites"))
   end

@@ -70,7 +70,7 @@ function hs_get_basis_list(hs ::HilbertSpace{QN}, binary_type::Type{BR}=UInt)::V
   end
   basis_list = BR[]
   for indexarray in keys(hs)
-    push!(basis_list, compress(hs, indexarray))
+    push!(basis_list, compress(hs, indexarray, BR))
   end
   sort!(basis_list)
   return basis_list
