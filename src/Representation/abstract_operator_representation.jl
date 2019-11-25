@@ -30,11 +30,13 @@ bintype(lhs ::Type{<:AbstractOperatorRepresentation{T}}) where T = bintype(space
 scalartype(lhs::AbstractOperatorRepresentation{T}) where T = T
 scalartype(lhs::Type{<:AbstractOperatorRepresentation{T}}) where T = T
 
+
 import Base.size
 function size(arg::AbstractOperatorRepresentation{T}) ::Tuple{Int, Int} where T
   dim = dimension(get_space(arg))
   return (dim, dim)
 end
+
 
 size(arg::AbstractOperatorRepresentation{T}, i::Integer) where T = size(arg)[i]
 
@@ -45,7 +47,9 @@ function (==)(lhs ::AbstractOperatorRepresentation{T1},
   return ((get_space(lhs) == get_space(rhs)) && (lhs.operator == rhs.operator))
 end
 
+
 import Base.+, Base.-, Base.*
+
 
 for uniop in [:+, :-]
   @eval begin
@@ -55,10 +59,11 @@ for uniop in [:+, :-]
   end
 end
 
+
 for binop in [:+, :-, :*]
   @eval begin
     function ($binop)(lhs ::AbstractOperatorRepresentation{T1},
-                              rhs ::AbstractOperatorRepresentation{T2}) where {T1, T2}
+                      rhs ::AbstractOperatorRepresentation{T2}) where {T1, T2}
       @boundscheck if (get_space(lhs) != get_space(rhs))
         throw(ArgumentError("The two OperatorRepresentation s do not have the same HilbertSpaceRepresentation"))
       end
@@ -67,17 +72,21 @@ for binop in [:+, :-, :*]
   end
 end
 
+
 function (*)(lhs ::AbstractOperatorRepresentation{T}, rhs ::Number) where {T}
   return represent(get_space(lhs), simplify(lhs.operator * rhs))
 end
+
 
 function (*)(lhs ::Number, rhs ::AbstractOperatorRepresentation{T}) where {T}
   return represent(get_space(rhs), simplify(lhs * rhs.operator))
 end
 
+
 function simplify(arg::AbstractOperatorRepresentation{T}) where {T}
   return represent(get_space(arg), simplify(arg.operator))
 end
+
 
 import LinearAlgebra.ishermitian
 function ishermitian(arg::AbstractOperatorRepresentation{S}) where S
@@ -109,11 +118,13 @@ function LinearAlgebra.mul!(out ::AbstractVector{S1},
   out
 end
 
+
 import SparseArrays.sparse
 function SparseArrays.sparse(opr::AbstractOperatorRepresentation{S}; tol ::Real=sqrt(eps(Float64))) where S
   sp = Threads.nthreads() == 1 ? sparse_serial : sparse_parallel
   return sp(opr; tol=tol)
 end
+
 
 function sparse_serial(opr::AbstractOperatorRepresentation{S}; tol ::Real=sqrt(eps(Float64))) where S
   m, n = size(opr)
@@ -138,6 +149,7 @@ function sparse_serial(opr::AbstractOperatorRepresentation{S}; tol ::Real=sqrt(e
   return SparseMatrixCSC{S, Int}(m, n, colptr, rowval, nzval)
 end
 
+
 function sparse_parallel(opr::AbstractOperatorRepresentation{S}; tol ::Real=sqrt(eps(Float64))) where S
   m, n = size(opr)
 
@@ -145,7 +157,6 @@ function sparse_parallel(opr::AbstractOperatorRepresentation{S}; tol ::Real=sqrt
 
   nblocks = Threads.nthreads()
   block_ranges = splitrange(1:n, nblocks) # guaranteed to be ordered
-  spinlock = Threads.SpinLock()
 
   local_rowval = Vector{Int}[Int[] for i in 1:nblocks]
   local_nzval = Vector{S}[S[] for i in 1:nblocks]
@@ -174,7 +185,6 @@ function sparse_parallel(opr::AbstractOperatorRepresentation{S}; tol ::Real=sqrt
 end
 
 
-
 function get_row(opr ::AbstractOperatorRepresentation{S}, irow::Integer) where S
   Z = zero(S)
   dim = size(opr, 2)
@@ -188,6 +198,7 @@ function get_row(opr ::AbstractOperatorRepresentation{S}, irow::Integer) where S
   return sparsevec(items, dim)
 end
 
+
 function get_column(opr ::AbstractOperatorRepresentation{S}, icol::Integer) where S
   Z = zero(S)
   dim = size(opr, 1)
@@ -200,7 +211,6 @@ function get_column(opr ::AbstractOperatorRepresentation{S}, icol::Integer) wher
   choptol!(items, sqrt(eps(Float64)))
   return sparsevec(items, dim)
 end
-
 
 
 import Base.getindex

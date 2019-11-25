@@ -10,10 +10,6 @@ struct OperatorRepresentation{HSR <:HilbertSpaceRepresentation, S<:Number, O<:Ab
     S = scalartype(op)
     new{HSR, S, O}(hsr, op)
   end
-  # function OperatorRepresentation{HSR, O}(hsr ::HSR, op ::O) where {HSR<:HilbertSpaceRepresentation, O<:AbstractOperator}
-  #   S = scalartype(op)
-  #   new{HSR, S, O}(hsr, op)
-  # end
 end
 
 function represent(hsr ::HSR, op ::O) where {HSR<:HilbertSpaceRepresentation, O<:AbstractOperator}
@@ -24,7 +20,6 @@ end
 spacetype(lhs::Type{OperatorRepresentation{HSR, S, O}}) where {HSR, S, O} = HSR
 operatortype(lhs ::Type{OperatorRepresentation{HSR, S, O}}) where {HSR, S, O} = O
 get_space(lhs ::OperatorRepresentation{HSR, S, O}) where {HSR, S, O} = lhs.hilbert_space_representation ::HSR
-
 
 
 import LinearAlgebra.issymmetric
@@ -39,13 +34,10 @@ function ishermitian(arg::OperatorRepresentation{HSR, S, O}) where {HSR, S, O}
 end
 
 
-
 import Base.show
 function show(io::IO, ::MIME"text/plain", arg::OperatorRepresentation{HSR, S, O}) where {HSR, S, O}
   print(io, string(typeof(arg)), "(", arg.hilbert_space_representation, ", ", arg.operator, ")")
 end
-
-
 
 
 ## iterators
@@ -64,6 +56,7 @@ function get_row_iterator(opr ::OperatorRepresentation{HSR, S, O},
   return iter
 end
 
+
 function get_column_iterator(opr ::OperatorRepresentation{HSR, S, O}, icol ::Integer) where {HSR, S, O}
   hsr = opr.hilbert_space_representation
   bcol = hsr.basis_list[icol]
@@ -73,6 +66,7 @@ function get_column_iterator(opr ::OperatorRepresentation{HSR, S, O}, icol ::Int
             for (brow, amplitude) in get_column_iterator(operator, bcol))
   return iter
 end
+
 
 function get_element(opr ::OperatorRepresentation{HSR, S, O}, irow ::Integer, icol ::Integer) where {HSR, S, O}
   hsr = opr.hilbert_space_representation
@@ -86,6 +80,7 @@ function get_element(opr ::OperatorRepresentation{HSR, S, O}, irow ::Integer, ic
   @inbounds bcol = hsr.basis_list[icol]
   return get_element(opr.operator, brow, bcol)
 end
+
 
 import Base.*
 function (*)(opr ::OperatorRepresentation{HSR, SO, O}, state ::AbstractVector{SV}) where {HSR, O, SO, SV<:Number}

@@ -28,14 +28,12 @@ struct HilbertSpace{QN} <: AbstractHilbertSpace
 
   HilbertSpace{QN}() where {QN} = new{QN}([], [], [0])
   function HilbertSpace(sites ::AbstractArray{Site{QN}, 1}) where QN
-    #bitwidths = Int[bitwidth(site) for site in sites]
     bitwidths = map(bitwidth, sites)
     bitoffsets = Int[0, cumsum(bitwidths)...]
     new{QN}(sites, bitwidths, bitoffsets)
   end
 
   function HilbertSpace{QN}(sites ::AbstractArray{Site{QN}, 1}) where QN
-    #bitwidths = Int[bitwidth(site) for site in sites]
     bitwidths = map(bitwidth, sites)
     bitoffsets = Int[0, cumsum(bitwidths)...]
     new{QN}(sites, bitwidths, bitoffsets)
@@ -106,8 +104,7 @@ end
 """
 function get_quantum_number(hs ::HilbertSpace{QN}, binrep ::BR) where {QN, BR}
   sum(
-    let
-      i = get_state_index(hs, binrep, isite)
+    let i = get_state_index(hs, binrep, isite)
       site.states[i].quantum_number
     end
     for (isite, site) in enumerate(hs.sites)
