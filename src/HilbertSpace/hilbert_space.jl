@@ -43,6 +43,10 @@ end
 scalartype(arg ::HilbertSpace{QN}) where QN = Bool
 scalartype(arg ::Type{HilbertSpace{QN}}) where QN = Bool
 
+import Base.valtype
+valtype(arg ::HilbertSpace{QN}) where QN = Bool
+valtype(arg ::Type{HilbertSpace{QN}}) where QN = Bool
+
 """
     qntype
 
