@@ -3,10 +3,16 @@ export choptol!
 export merge_vec
 
 function make_bitmask(msb ::Integer,
-                      lsb ::Integer=0;
-                      dtype ::DataType=UInt)
-  mask = dtype(0x1) << msb - dtype(0x1)
-  submask = dtype(0x1) << lsb - dtype(0x1)
+                      binary_type::Type{BR}=UInt) where {BR <:Unsigned}
+  mask = BR(0x1) << msb - BR(0x1)
+  return mask
+end
+
+function make_bitmask(msb ::Integer,
+                      lsb ::Integer,
+                      binary_type::Type{BR}=UInt) where {BR <:Unsigned}
+  mask = BR(0x1) << msb - BR(0x1)
+  submask = BR(0x1) << lsb - BR(0x1)
   return mask ⊻ submask
 end
 

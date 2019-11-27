@@ -27,15 +27,15 @@ Return an Operator for Pauli Matrix at site `isite`.
 """
 function pauli_matrix(hs::HilbertSpace, isite ::Integer, j ::Symbol)
   if j == :x
-    return pure_operator(hs, isite, 1, 2, 1; dtype=UInt) + pure_operator(hs, isite, 2, 1, 1; dtype=UInt)
+    return pure_operator(hs, isite, 1, 2, 1, UInt) + pure_operator(hs, isite, 2, 1, 1, UInt)
   elseif j == :y
-    return pure_operator(hs, isite, 1, 2, -im; dtype=UInt) + pure_operator(hs, isite, 2, 1, im; dtype=UInt)
+    return pure_operator(hs, isite, 1, 2, -im, UInt) + pure_operator(hs, isite, 2, 1, im, UInt)
   elseif j == :z
-    return pure_operator(hs, isite, 1, 1, 1; dtype=UInt) + pure_operator(hs, isite, 2, 2, -1; dtype=UInt)
+    return pure_operator(hs, isite, 1, 1, 1, UInt) + pure_operator(hs, isite, 2, 2, -1, UInt)
   elseif j == :+
-    return pure_operator(hs, isite, 1, 2, 1; dtype=UInt)
+    return pure_operator(hs, isite, 1, 2, 1, UInt)
   elseif j == :-
-    return pure_operator(hs, isite, 2, 1, 1; dtype=UInt)
+    return pure_operator(hs, isite, 2, 1, 1, UInt)
   else
     throw(ArgumentError("pauli matrix of type $(j) not supported"))
   end

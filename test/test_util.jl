@@ -3,9 +3,9 @@ using ExactDiagonalization
 
 @testset "util" begin
   @testset "make_bitmask" begin
-    for dtype in [UInt8, UInt16, UInt32, UInt64, UInt128]
-      @test isa(make_bitmask(4; dtype=dtype), dtype)
-      @test isa(make_bitmask(4, 2; dtype=dtype), dtype)
+    for bintype in [UInt8, UInt16, UInt32, UInt64, UInt128]
+      @test isa(make_bitmask(4, bintype), bintype)
+      @test isa(make_bitmask(4, 2, bintype), bintype)
     end
     @test make_bitmask(5) == 0b11111
     @test make_bitmask(5, 3) == 0b11000
