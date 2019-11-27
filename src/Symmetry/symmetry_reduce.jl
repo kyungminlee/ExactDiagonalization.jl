@@ -46,11 +46,15 @@ function symmetry_reduce_serial(
     throw(ArgumentError("fractional momentum $(fractional_momentum)" *
                         " not an irrep of the translation group"))
   end
+
   n_basis = length(hsr.basis_list)
 
   basis_mapping_representative = Vector{Int}(undef, n_basis)
   fill!(basis_mapping_representative, -1)
   basis_mapping_amplitude = zeros(ComplexType, n_basis)
+
+  phases = conj.(trans_group.character_table[ik, :])
+  group_size = length(trans_group.elements)
 
   size_estimate = let
     denom = max(1, length(trans_group.fractional_momenta) - 1)
@@ -59,9 +63,6 @@ function symmetry_reduce_serial(
 
   reduced_basis_list = BR[]
   sizehint!(reduced_basis_list, size_estimate)
-
-  phases = conj.(trans_group.character_table[ik, :])
-  group_size = length(trans_group.elements)
 
   visited = falses(n_basis)
 
@@ -155,6 +156,7 @@ function symmetry_reduce_parallel(
     throw(ArgumentError("fractional momentum $(fractional_momentum)" *
                         " not an irrep of the translation group"))
   end
+
   n_basis = length(hsr.basis_list)
   @debug "Original Hilbert space dimension: $n_basis"
 

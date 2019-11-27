@@ -24,8 +24,8 @@ struct PureOperator{Scalar<:Number, BR<:Unsigned} <:AbstractOperator{Scalar}
   end
 end
 
-scalartype(lhs ::Type{PureOperator{S, BR}}) where {S, BR} = S ::DataType
-bintype(lhs ::Type{PureOperator{S, BR}}) where {S, BR} = BR ::DataType
+scalartype(lhs ::Type{PureOperator{S, BR}}) where {S, BR} = S
+bintype(lhs ::Type{PureOperator{S, BR}}) where {S, BR} = BR
 
 # === 1/6 (In)equality ===
 
@@ -139,15 +139,15 @@ function pure_operator(
     isite ::Integer,
     istate_row ::Integer,
     istate_col ::Integer,
-    amplitude::Number=1;
-    dtype ::DataType=UInt)
+    amplitude::S=1,
+    binary_type::Type{BR}=UInt) where {S<:Number, BR<:Unsigned}
   @boundscheck let
     site = hilbert_space.sites[isite]
     state_row = site.states[istate_row]
     state_col = site.states[istate_col]
   end
-  bm = get_bitmask(hilbert_space, isite; dtype=dtype)
-  br = dtype(istate_row - 1) << hilbert_space.bitoffsets[isite]
-  bc = dtype(istate_col - 1) << hilbert_space.bitoffsets[isite]
-  return PureOperator{typeof(amplitude), dtype}(bm, br, bc, amplitude)
+  bm = get_bitmask(hilbert_space, isite, BR)
+  br = BR(istate_row - 1) << hilbert_space.bitoffsets[isite]
+  bc = BR(istate_col - 1) << hilbert_space.bitoffsets[isite]
+  return PureOperator{S, BR}(bm, br, bc, amplitude)
 end

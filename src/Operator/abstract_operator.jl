@@ -6,9 +6,13 @@ abstract type AbstractOperator{S<:Number} end
 export scalartype
 export bintype
 scalartype(lhs::AbstractOperator{S}) where S = S
+scalartype(lhs::Type{<:AbstractOperator{S}}) where S = S
+
 bintype(lhs::AbstractOperator{S}) where S = bintype(typeof(lhs)) ::DataType
 
-scalartype(lhs::Type{<:AbstractOperator{S}}) where S = S
+import Base.valtype
+valtype(lhs::Type{<:AbstractOperator{S}}) where S = S
+
 
 #=
  UNARY OPERATORS

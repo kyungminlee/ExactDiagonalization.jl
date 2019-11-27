@@ -28,14 +28,12 @@ struct HilbertSpace{QN} <: AbstractHilbertSpace
 
   HilbertSpace{QN}() where {QN} = new{QN}([], [], [0])
   function HilbertSpace(sites ::AbstractArray{Site{QN}, 1}) where QN
-    #bitwidths = Int[bitwidth(site) for site in sites]
     bitwidths = map(bitwidth, sites)
     bitoffsets = Int[0, cumsum(bitwidths)...]
     new{QN}(sites, bitwidths, bitoffsets)
   end
 
   function HilbertSpace{QN}(sites ::AbstractArray{Site{QN}, 1}) where QN
-    #bitwidths = Int[bitwidth(site) for site in sites]
     bitwidths = map(bitwidth, sites)
     bitoffsets = Int[0, cumsum(bitwidths)...]
     new{QN}(sites, bitwidths, bitoffsets)
@@ -44,6 +42,10 @@ end
 
 scalartype(arg ::HilbertSpace{QN}) where QN = Bool
 scalartype(arg ::Type{HilbertSpace{QN}}) where QN = Bool
+
+import Base.valtype
+valtype(arg ::HilbertSpace{QN}) where QN = Bool
+valtype(arg ::Type{HilbertSpace{QN}}) where QN = Bool
 
 """
     qntype
@@ -80,8 +82,8 @@ function (==)(lhs ::HilbertSpace{Q1}, rhs ::HilbertSpace{Q2}) where {Q1, Q2}
   return lhs.sites == rhs.sites
 end
 
-function get_bitmask(hs ::HilbertSpace, isite ::Integer; dtype ::Type{T}=UInt) ::T where {T<:Unsigned}
-  return make_bitmask(hs.bitoffsets[isite+1], hs.bitoffsets[isite]; dtype=dtype)
+function get_bitmask(hs ::HilbertSpace, isite ::Integer, binary_type ::Type{BR}=UInt) ::BR where {BR<:Unsigned}
+  return make_bitmask(hs.bitoffsets[isite+1], hs.bitoffsets[isite], BR)
 end
 
 """
@@ -91,10 +93,8 @@ function quantum_number_sectors(hs ::HilbertSpace{QN})::Vector{QN} where QN
   qns = Set{QN}([zero(QN)])
   for site in hs.sites
     qns_next = Set{QN}()
-    for state in site.states
-      for q in qns
-        push!(qns_next, q .+ state.quantum_number)
-      end
+    for state in site.states, q in qns
+      push!(qns_next, q .+ state.quantum_number)
     end
     qns = qns_next
   end
@@ -106,8 +106,7 @@ end
 """
 function get_quantum_number(hs ::HilbertSpace{QN}, binrep ::BR) where {QN, BR}
   sum(
-    let
-      i = get_state_index(hs, binrep, isite)
+    let i = get_state_index(hs, binrep, isite)
       site.states[i].quantum_number
     end
     for (isite, site) in enumerate(hs.sites)
@@ -116,8 +115,8 @@ end
 
 function get_quantum_number(hs ::HilbertSpace{QN}, indexarray ::AbstractArray{I, 1}) where {QN, I <:Integer}
     sum(
-        site.states[indexarray[isite]].quantum_number
-        for (isite, site) in enumerate(hs.sites)
+      site.states[indexarray[isite]].quantum_number
+      for (isite, site) in enumerate(hs.sites)
     )
 end
 
@@ -131,10 +130,10 @@ Examples
 ```
 ```
 """
-function extract(hs ::HilbertSpace{QN}, binrep ::U) ::CartesianIndex where {QN, U <:Unsigned}
+function extract(hs ::HilbertSpace{QN}, binrep ::BR) ::CartesianIndex where {QN, BR<:Unsigned}
   out = Int[]
   for (isite, site) in enumerate(hs.sites)
-    @inbounds mask = make_bitmask(hs.bitwidths[isite]; dtype=U)
+    @inbounds mask = make_bitmask(hs.bitwidths[isite], BR)
     index = Int(binrep & mask) + 1
     @boundscheck if !(1 <= index <= length(site.states))
       throw(BoundsError(1:length(site.states), index))
@@ -149,8 +148,7 @@ end
 """
 Convert an array of indices (of states) to binary representation
 """
-#function compress(hs ::HilbertSpace{QN}, indexarray ::AbstractVector{I}; BR::DataType=UInt) where {QN, I<:Integer}
-function compress(hs ::HilbertSpace{QN}, indexarray ::CartesianIndex; BR::DataType=UInt) where QN
+function compress(hs ::HilbertSpace{QN}, indexarray ::CartesianIndex, binary_type ::Type{BR}=UInt) where {QN, BR<:Unsigned}
   if length(indexarray) != length(hs.sites)
     throw(ArgumentError("length of indexarray should be the number of sites"))
   end
@@ -166,19 +164,19 @@ function compress(hs ::HilbertSpace{QN}, indexarray ::CartesianIndex; BR::DataTy
 end
 
 
-@inline function update(hs ::HilbertSpace, binrep ::U, isite ::Integer, new_state_index ::Integer) where {U<:Unsigned}
+@inline function update(hs ::HilbertSpace, binrep ::BR, isite ::Integer, new_state_index ::Integer) where {BR<:Unsigned}
   @boundscheck if !(1 <= new_state_index <= dimension(hs.sites[isite]))
     throw(BoundsError(1:dimension(hs.sites[isite]), new_state_index))
   end
-  mask = make_bitmask(hs.bitoffsets[isite+1], hs.bitoffsets[isite]; dtype=U)
-  return (binrep & (~mask)) | (U(new_state_index-1) << hs.bitoffsets[isite])
+  mask = make_bitmask(hs.bitoffsets[isite+1], hs.bitoffsets[isite], BR)
+  return (binrep & (~mask)) | (BR(new_state_index-1) << hs.bitoffsets[isite])
 end
 
-function get_state_index(hs ::HilbertSpace, binrep ::U, isite ::Integer) where {U<:Unsigned}
-  return Int( ( binrep >> hs.bitoffsets[isite] ) & make_bitmask(hs.bitwidths[isite]; dtype=U) ) + 1
+function get_state_index(hs ::HilbertSpace, binrep ::BR, isite ::Integer) where {BR<:Unsigned}
+  return Int( ( binrep >> hs.bitoffsets[isite] ) & make_bitmask(hs.bitwidths[isite], BR) ) + 1
 end
 
-function get_state(hs ::HilbertSpace, binrep ::U, isite ::Integer) where {U<:Unsigned}
+function get_state(hs ::HilbertSpace, binrep ::BR, isite ::Integer) where {BR<:Unsigned}
   return hs.sites[isite].states[get_state_index(hs, binrep, isite)]
 end
 

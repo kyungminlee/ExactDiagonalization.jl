@@ -101,7 +101,7 @@ function get_state(site::Site, binrep::U) where {U<:Unsigned}
   return site.states[Int(binrep+1)]
 end
 
-@inline function compress(site ::Site, i ::Integer; BR::DataType=UInt)
+@inline function compress(site ::Site, i ::Integer, binary_type::Type{BR}=UInt) where {BR<:Unsigned}
   @boundscheck 1 <= i <= dimension(site) || throw(BoundsError("attempt to access a $(dimension(site))-state site at index $i"))
   return BR(i-1)
 end

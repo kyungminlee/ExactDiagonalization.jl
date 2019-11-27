@@ -49,6 +49,11 @@ end
 
 scalartype(::SparseState{Scalar, BR}) where {Scalar, BR} = Scalar
 scalartype(::Type{SparseState{Scalar, BR}}) where {Scalar, BR} = Scalar
+
+import Base.valtype
+valtype(::SparseState{Scalar, BR}) where {Scalar, BR} = Scalar
+valtype(::Type{SparseState{Scalar, BR}}) where {Scalar, BR} = Scalar
+
 bintype(::SparseState{Scalar, BR}) where {Scalar, BR} = BR
 bintype(::Type{SparseState{Scalar, BR}}) where {Scalar, BR} = BR
 

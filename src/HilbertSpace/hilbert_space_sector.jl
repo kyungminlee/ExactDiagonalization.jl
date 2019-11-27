@@ -27,6 +27,10 @@ end
 scalartype(arg ::HilbertSpaceSector{QN}) where QN = Bool
 scalartype(arg ::Type{HilbertSpaceSector{QN}}) where QN = Bool
 
+import Base.valtype
+valtype(arg ::HilbertSpaceSector{QN}) where QN = Bool
+valtype(arg ::Type{HilbertSpaceSector{QN}}) where QN = Bool
+
 qntype(arg ::HilbertSpaceSector{QN}) where QN = QN
 qntype(arg ::Type{HilbertSpaceSector{QN}}) where QN = QN
 
