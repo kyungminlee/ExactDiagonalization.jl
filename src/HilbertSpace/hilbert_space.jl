@@ -93,10 +93,8 @@ function quantum_number_sectors(hs ::HilbertSpace{QN})::Vector{QN} where QN
   qns = Set{QN}([zero(QN)])
   for site in hs.sites
     qns_next = Set{QN}()
-    for state in site.states
-      for q in qns
-        push!(qns_next, q .+ state.quantum_number)
-      end
+    for state in site.states, q in qns
+      push!(qns_next, q .+ state.quantum_number)
     end
     qns = qns_next
   end
@@ -117,8 +115,8 @@ end
 
 function get_quantum_number(hs ::HilbertSpace{QN}, indexarray ::AbstractArray{I, 1}) where {QN, I <:Integer}
     sum(
-        site.states[indexarray[isite]].quantum_number
-        for (isite, site) in enumerate(hs.sites)
+      site.states[indexarray[isite]].quantum_number
+      for (isite, site) in enumerate(hs.sites)
     )
 end
 
