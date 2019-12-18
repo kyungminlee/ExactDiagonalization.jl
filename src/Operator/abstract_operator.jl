@@ -23,6 +23,7 @@ import Base.valtype
 Returns the `valtype` (scalar type) of the given AbstractOperator.
 """
 valtype(lhs::Type{<:AbstractOperator{S}}) where S = S
+valtype(lhs::AbstractOperator{S}) where S = S
 
 
 #=

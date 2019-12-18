@@ -26,8 +26,12 @@ struct ReducedHilbertSpaceRepresentation{HSR <:HilbertSpaceRepresentation, BR, C
   basis_mapping_amplitude ::Vector{C}
 end
 
-scalartype(arg ::Type{ReducedHilbertSpaceRepresentation{HSR, BR, C}}) where {HSR, BR, C} = C ::DataType
-bintype(arg ::Type{ReducedHilbertSpaceRepresentation{HSR, BR, C}}) where {HSR, BR, C} = BR ::DataType
+
+import Base.valtype
+
+scalartype(arg ::Type{ReducedHilbertSpaceRepresentation{HSR, BR, C}}) where {HSR, BR, C} = C
+valtype(arg ::Type{ReducedHilbertSpaceRepresentation{HSR, BR, C}}) where {HSR, BR, C} = C
+bintype(arg ::Type{ReducedHilbertSpaceRepresentation{HSR, BR, C}}) where {HSR, BR, C} = BR
 
 """
     dimension(arg ::ReducedHilbertSpaceRepresentation{HSR, BR, C}) -> Int
