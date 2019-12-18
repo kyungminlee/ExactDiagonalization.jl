@@ -170,6 +170,7 @@ end # testset NullOperator
     @test pop1 < pop3
     @test pop1 < pop4
     @test pop1 < pop5
+    @test !(pop1 < pop1)
     @test !(pop2 < pop1)
     @test !(pop3 < pop1)
     @test !(pop4 < pop1)
