@@ -22,7 +22,7 @@ function prettyprintln(io::IO, op::SumOperator{S, BR}; prefix::AbstractString=""
 end
 
 function prettyprintln(io ::IO, hsr::HilbertSpaceRepresentation; prefix::AbstractString="")
-  n = hsr.hilbert_space.bitoffsets[end]
+  n = bitwidth(hsr)
   println(io, prefix, "HilbertSpaceRepresentation")
   for bvec in hsr.basis_list
     println(io, prefix, "| ", string(bvec, base=2, pad=n))
@@ -30,14 +30,14 @@ function prettyprintln(io ::IO, hsr::HilbertSpaceRepresentation; prefix::Abstrac
 end
 
 function prettyprintln(io ::IO, rhsr::ReducedHilbertSpaceRepresentation; prefix::AbstractString="")
-  n = rhsr.hilbert_space.bitoffsets[end]
+  n = bitwidth(rhsr)
   println(io, prefix, "ReducedHilbertSpaceRepresentation")
   println(io, prefix, "| basis_list")
   for bvec in rhsr.basis_list
     println(io, prefix, "| | ", string(bvec, base=2, pad=n))
   end
   println(io, prefix, "| basis_mapping")
-  for (i_r, (i_p, ampl)) in enumerate(rhsr.basis_mapping)
+  for (i_r, (i_p, ampl)) in enumerate(zip(rhsr.basis_mapping_index, rhsr.basis_mapping_amplitude))
     println(io, prefix, "| | ", i_r, ": ", i_p, ", ", ampl)
   end
 end

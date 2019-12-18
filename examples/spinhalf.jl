@@ -10,34 +10,18 @@ dn = State{QN}("Dn",-1);
 spin_site = Site{QN}([up, dn]);
 
 n_sites = 16;
-hs = HilbertSpace([spin_site for i in 1:n_sites]);
+(hs, σ) = ExactDiagonalization.Toolkit.spin_half_system(n_sites)
+#hs = HilbertSpace([spin_site for i in 1:n_sites]);
 hss = HilbertSpaceSector(hs, 0)
 
 hsr = represent_dict(hss);
 
-function pauli_matrix(hs::HilbertSpace, isite ::Integer, j ::Symbol)
-  if j == :x
-    return pure_operator(hs, isite, 1, 2, 1, UInt) + pure_operator(hs, isite, 2, 1, 1, UInt)
-  elseif j == :y
-    return pure_operator(hs, isite, 1, 2, -im, UInt) + pure_operator(hs, isite, 2, 1, im, UInt)
-  elseif j == :z
-    return pure_operator(hs, isite, 1, 1, 1, UInt) + pure_operator(hs, isite, 2, 2, -1, UInt)
-  elseif j == :+
-    return pure_operator(hs, isite, 1, 2, 1, UInt)
-  elseif j == :-
-    return pure_operator(hs, isite, 2, 1, 1, UInt)
-  else
-    throw(ArgumentError("pauli matrix of type $(j) not supported"))
-  end
-end;
-
-σ = Dict( (isite, j) => pauli_matrix(hs, isite, j) for isite in 1:n_sites, j in [:x, :y, :z, :+, :-]);
-Sx = sum(σ[i,:x] for i in 1:n_sites)
-Sy = sum(σ[i,:y] for i in 1:n_sites)
-Sz = sum(σ[i,:z] for i in 1:n_sites)
+Sx = sum(σ(i,:x) for i in 1:n_sites)
+Sy = sum(σ(i,:y) for i in 1:n_sites)
+Sz = sum(σ(i,:z) for i in 1:n_sites)
 
 spin_squared = simplify( Sx^2 + Sy^2 + Sz^2 )
-j1 = sum(σ[(i, j)] * σ[( mod(i, n_sites) + 1 , j)] for i in 1:n_sites, j in [:x, :y, :z]);
+j1 = sum(σ(i, j) * σ(mod(i, n_sites)+1 , j) for i in 1:n_sites for j in [:x, :y, :z]);
 
 translation_group = TranslationGroup([Permutation([ mod(i, n_sites)+1 for i in 1:n_sites])])
 ks = translation_group.fractional_momenta

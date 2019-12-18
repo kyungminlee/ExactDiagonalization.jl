@@ -37,6 +37,8 @@ using StaticArrays
     ψ1 = SparseState{ComplexF64, UInt32}(UInt32(0b0010001))
     @test scalartype(ψ1) === ComplexF64
     @test scalartype(typeof(ψ1)) === ComplexF64
+    @test valtype(ψ1) === ComplexF64
+    @test valtype(typeof(ψ1)) === ComplexF64
     @test bintype(ψ1) === UInt32
     @test bintype(typeof(ψ1)) === UInt32
     @test eltype(ψ1) === Pair{UInt32, ComplexF64}

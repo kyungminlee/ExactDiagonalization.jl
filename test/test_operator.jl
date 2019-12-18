@@ -15,6 +15,8 @@ using StaticArrays
   @testset "typetraits" begin
     @test scalartype(nop) === Bool
     @test scalartype(typeof(nop)) === Bool
+    @test valtype(nop) === Bool
+    @test valtype(typeof(nop)) === Bool
     @test bintype(nop) <: Unsigned
     @test bintype(typeof(nop)) <: Unsigned
   end
@@ -45,16 +47,18 @@ using StaticArrays
     @test nop^6 == nop
   end
 
-  @testset "iterator" begin
-    nop = NullOperator()
-    @test isempty(collect(get_row_iterator(nop, 0x0)))
-    @test isempty(collect(get_column_iterator(nop, 0x0)))
-  end
-
   @testset "sym" begin
     @test issymmetric(nop)
     @test ishermitian(nop)
   end
+
+  @testset "get" begin
+    nop = NullOperator()
+    @test isempty(collect(get_row_iterator(nop, 0x0)))
+    @test isempty(collect(get_column_iterator(nop, 0x0)))
+    @test get_element(nop, 0x0, 0x1) == false
+  end
+
 end # testset NullOperator
 
 @testset "PureOperator" begin
@@ -68,9 +72,11 @@ end # testset NullOperator
   nop = NullOperator()
 
   @testset "constructor" begin
-    PureOperator{Float64, UInt}(0b0010, 0b0010, 0b0010, 1.0)
+    @test PureOperator{Float64, UInt}(0b0010, 0b0010, 0b0010, 1.0) == PureOperator(UInt(0b0010), UInt(0b0010), UInt(0b0010), 1.0)
     @test_throws ArgumentError PureOperator{Float64, UInt}(0b0010, 0b0011, 0b0010, 1.0)
     @test_throws ArgumentError PureOperator{Float64, UInt}(0b0010, 0b0010, 0b0011, 1.0)
+    @test_throws ArgumentError PureOperator(0b0010, 0b0011, 0b0010, 1.0)
+    @test_throws ArgumentError PureOperator(0b0010, 0b0010, 0b0011, 1.0)
     pop = PureOperator{Float64, UInt}(LinearAlgebra.UniformScaling{Float64}(3.0))
     @test pop.bitmask == 0x0
     @test pop.bitrow == 0x0
@@ -98,6 +104,8 @@ end # testset NullOperator
       @test pop.amplitude == t1(2)
       @test scalartype(pop) === t1
       @test scalartype(typeof(pop)) === t1
+      @test valtype(pop) === t1
+      @test valtype(typeof(pop)) === t1
       @test bintype(pop) === bt
       @test bintype(typeof(pop)) === bt
       for t2 in types
@@ -164,6 +172,7 @@ end # testset NullOperator
     @test pop1 < pop3
     @test pop1 < pop4
     @test pop1 < pop5
+    @test !(pop1 < pop1)
     @test !(pop2 < pop1)
     @test !(pop3 < pop1)
     @test !(pop4 < pop1)
@@ -270,16 +279,18 @@ end # testset NullOperator
       @test pop * pop * pop * pop * pop * pop == pop^6
 
       pop2 = PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0010, 3.0)
-      @test isa(pop2^99999, NullOperator)
+      @test isa(pop2^9999, NullOperator)
+      @test isa(pop2^16, NullOperator)
     end
   end
 
-  @testset "iterator" begin
+  @testset "get" begin
     pop = PureOperator{Float64, UInt}(0b1010, 0b0010, 0b0000, 2.0)
     @test collect(get_row_iterator(pop, 0b0000)) == []
     @test collect(get_row_iterator(pop, 0b0010)) == [0b0000 => 2.0]
     @test collect(get_column_iterator(pop, 0b0000)) == [0b0010 => 2.0]
     @test collect(get_column_iterator(pop, 0b1111)) == []
+    @test get_element(pop, 0b0010, 0b0000) == 2.0
   end
 end
 
@@ -308,6 +319,8 @@ end
 
     @test scalartype(sop) === Float64
     @test scalartype(typeof(sop)) === Float64
+    @test valtype(sop) === Float64
+    @test valtype(typeof(sop)) === Float64
     @test bintype(sop) === UInt
     @test bintype(typeof(sop)) === UInt
   end
@@ -494,7 +507,7 @@ end
     end
   end
 
-  @testset "iterator" begin
+  @testset "get" begin
     pop1 = PureOperator{Float64, UInt}(0b1010, 0b0010, 0b0000, 2.0)
     pop2 = PureOperator{Float64, UInt}(0b0001, 0b0000, 0b0001, 3.0)
     sop = pop1 + pop2
@@ -507,6 +520,10 @@ end
 
     @test collect(get_column_iterator(sop, 0b1000)) == []
     @test collect(get_column_iterator(sop, 0b0101)) == [0b0111 => 2.0, 0b0100 => 3.0]
+
+    @test isapprox(get_element(sop, 0b1000, 0b1001), 3; atol=1E-6)
+    @test isapprox(get_element(sop, 0b0010, 0b0000), 2; atol=1E-6)
+    @test isapprox(get_element(sop, 0b0000, 0b0000), 0; atol=1E-6)
   end
 
 end

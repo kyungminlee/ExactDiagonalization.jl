@@ -18,6 +18,7 @@ using ExactDiagonalization.Toolkit: pauli_matrix
   hs = HilbertSpace(repeat([spin_site], n))
   σ = Dict( (isite, j) => pauli_matrix(hs, isite, j) for isite in 1:n, j in [:x, :y, :z, :+, :-])
   j1 = sum(σ[i, j] * σ[mod(i, n) + 1 , j] for i in 1:n, j in [:x, :y, :z])
+  j2 = sum(σ[i, j] * σ[mod(i+1, n) + 1 , j] for i in 1:n, j in [:x, :y, :z])
 
   hsr = represent(HilbertSpaceSector(hs, 0))
   translation_group = TranslationGroup([Permutation([2,3,4,1])])
@@ -28,8 +29,12 @@ using ExactDiagonalization.Toolkit: pauli_matrix
     rhsr = symmetry_reduce(hsr, translation_group, [0//1])
     @test scalartype(rhsr) === ComplexF64
     @test scalartype(typeof(rhsr)) === ComplexF64
+    @test valtype(rhsr) === ComplexF64
+    @test valtype(typeof(rhsr)) === ComplexF64
     @test bintype(rhsr) === UInt
     @test bintype(typeof(rhsr)) === UInt
+    @test dimension(rhsr) <= 2^n
+    @test bitwidth(rhsr) == n
   end
 
   j1_rep = represent(hsr, j1)
@@ -40,13 +45,19 @@ using ExactDiagonalization.Toolkit: pauli_matrix
     rhsr = symmetry_reduce(hsr, translation_group, [0//1])
     @test dimension(rhsr) == 2
     @test rhsr.basis_list == UInt[0b0011, 0b0101]
+    dim = dimension(rhsr)
 
     j1_redrep = represent(rhsr, j1)
+    j2_redrep = represent(rhsr, j2)
+
     @testset "typetraits" begin
       @test scalartype(j1) === Complex{Int}
+      @test valtype(j1) === Complex{Int}
 
       @test scalartype(j1_redrep) === ComplexF64
       @test scalartype(typeof(j1_redrep)) === ComplexF64
+      @test valtype(j1_redrep) === ComplexF64
+      @test valtype(typeof(j1_redrep)) === ComplexF64
 
       @test bintype(j1_redrep) === UInt
       @test bintype(typeof(j1_redrep)) === UInt
@@ -58,6 +69,36 @@ using ExactDiagonalization.Toolkit: pauli_matrix
       @test get_space(j1_redrep) === rhsr
     end
 
+    @testset "property" begin
+      @test bitwidth(j1_redrep) == bitwidth(rhsr)
+      @test bitwidth(j2_redrep) == bitwidth(rhsr)
+      @test dimension(j1_redrep) == dimension(rhsr)
+      @test dimension(j2_redrep) == dimension(rhsr)
+    end
+
+    @testset "sym" begin
+      @test ishermitian(represent(hsr, σ[2, :x]))
+      @test !ishermitian(represent(hsr, σ[2, :+]))
+    end
+
+    @testset "unary operator" begin
+      @test +j1_redrep == j1_redrep
+      @test -j1_redrep == represent(rhsr, -j1)
+    end
+
+    @testset "binary operator" begin
+      @test simplify(j1_redrep + j2_redrep) == represent(rhsr, simplify(j1 + j2))
+      @test simplify(j1_redrep - j2_redrep) == represent(rhsr, simplify(j1 - j2))
+      @test simplify(j1_redrep * j2_redrep) == represent(rhsr, simplify(j1 * j2))
+
+      @test simplify(j1_redrep * 0) == represent(rhsr, NullOperator())
+      @test simplify(0 * j1_redrep) == represent(rhsr, NullOperator())
+      @test simplify(j1_redrep * 2) == represent(rhsr, simplify(j1 * 2))
+      @test simplify(2 * j1_redrep) == represent(rhsr, simplify(2 * j1))
+      @test simplify(j1_redrep / 2) == represent(rhsr, simplify(j1 / 2))
+      @test simplify(2 \ j1_redrep) == represent(rhsr, simplify(2 \ j1))
+    end
+
     let
       psis = [normalize([1.0, 0.0, 1.0, 1.0, 0.0, 1.0]), normalize([0.0, 1.0, 0.0, 0.0, 1.0, 0.0])]
       H = zeros(ComplexF64, (2,2))
@@ -67,9 +108,9 @@ using ExactDiagonalization.Toolkit: pauli_matrix
       @test isapprox(Matrix(j1_redrep), H; atol=tol)
 
       @testset "get_row_iterator" begin
-        rowvec = zeros(ComplexF64, dimension(rhsr))
+        rowvec = Vector{ComplexF64}(undef, dimension(rhsr))
         for irow_r in 1:dimension(rhsr)
-          rowvec[:] .= zero(ComplexF64)
+          fill!(rowvec, zero(ComplexF64))
           err = zero(ComplexF64)
           for (icol_r, ampl) in get_row_iterator(j1_redrep, irow_r)
             if 1 <= icol_r <= dimension(rhsr)
@@ -101,6 +142,36 @@ using ExactDiagonalization.Toolkit: pauli_matrix
           @test isapprox(colvec, H[:, icol_r]; atol=tol)
         end
       end # testset get_column_iterator
+
+      @testset "get_element" begin
+        for irow_r in 1:dimension(rhsr)
+          for icol_r in 1:dimension(rhsr)
+            @test isapprox(get_element(j1_redrep, irow_r, icol_r), H[irow_r, icol_r]; atol=tol)
+            @test isapprox(j1_redrep[irow_r, icol_r], H[irow_r, icol_r]; atol=tol)
+          end
+        end
+      end
+
+      @testset "get exceptions" begin
+        dim = dimension(rhsr)
+        opr = j1_redrep
+        @test_throws BoundsError get_row_iterator(opr, 0)
+        @test_throws BoundsError get_row_iterator(opr, dim+1)
+        @test_throws BoundsError get_column_iterator(opr, 0)
+        @test_throws BoundsError get_column_iterator(opr, dim+1)
+        @test_throws BoundsError get_row(opr, 0)
+        @test_throws BoundsError get_row(opr, dim+1)
+        @test_throws BoundsError get_column(opr, 0)
+        @test_throws BoundsError get_column(opr, dim+1)
+        @test_throws BoundsError get_element(opr, 0, 1)
+        @test_throws BoundsError get_element(opr, dim+1, 1)
+        @test_throws BoundsError get_element(opr, 1, 0)
+        @test_throws BoundsError get_element(opr, 1, dim+1)
+        @test_throws BoundsError opr[0, 1]
+        @test_throws BoundsError opr[dim+1, 1]
+        @test_throws BoundsError opr[1, 0]
+        @test_throws BoundsError opr[1, dim+1]
+      end
     end
   end # testset ROR
 

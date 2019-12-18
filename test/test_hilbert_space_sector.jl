@@ -22,6 +22,8 @@ using StaticArrays
       hss = HilbertSpaceSector(hs, 0)
       @test scalartype(hss) === Bool
       @test scalartype(typeof(hss)) === Bool
+      @test valtype(hss) === Bool
+      @test valtype(typeof(hss)) === Bool
       @test qntype(typeof(hss)) === Int
 
       @test basespace(hss) != hss
@@ -29,9 +31,13 @@ using StaticArrays
       hss
     end
     @test qntype(hs) === Int
-    @test scalartype(hs) === Bool
     @test qntype(typeof(hs)) === Int
+    @test scalartype(hs) === Bool
     @test scalartype(typeof(hs)) === Bool
+    @test valtype(hs) === Bool
+    @test valtype(typeof(hs)) === Bool
+
+    @test bitwidth(hs) == 4
 
     @test get_bitmask(hs, 1) == 0b0001
     @test get_bitmask(hs, 2) == 0b0010
@@ -71,8 +77,12 @@ using StaticArrays
 
     @test qntype(hs) === QN
     @test scalartype(hs) === Bool
+    @test valtype(hs) === Bool
+
     @test qntype(typeof(hs)) === QN
     @test scalartype(typeof(hs)) === Bool
+    @test valtype(typeof(hs)) === Bool
+
     @test basespace(hs) === hs
 
 

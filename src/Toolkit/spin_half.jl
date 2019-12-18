@@ -4,6 +4,12 @@ using ExactDiagonalization
     spin_half_system(n_sites)
 
 Create a Hilbert space of spin 1/2 system of `n_sites`
+
+# Arguments
+- `n_sites ::Integer`: number of sites
+
+# Returns
+- `(hilbert_space, pauli)`
 """
 function spin_half_system(n_sites ::Integer)
   QN = Int

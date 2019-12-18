@@ -3,12 +3,14 @@ export AbstractOperatorRepresentation
 export spacetype, operatortype
 export bintype
 export get_space
+export dimension, bitwidth
 export get_row, get_column
 export sparse_serial, sparse_parallel
 
-# AbstractOperatorRepresentation
-
-abstract type AbstractOperatorRepresentation{T} <: AbstractMatrix{T} end
+"""
+    AbstractOperatorRepresentation{S}
+"""
+abstract type AbstractOperatorRepresentation{S} <: AbstractMatrix{S} end
 
 ## typetraits
 
@@ -30,6 +32,8 @@ bintype(lhs ::Type{<:AbstractOperatorRepresentation{T}}) where T = bintype(space
 scalartype(lhs::AbstractOperatorRepresentation{T}) where T = T
 scalartype(lhs::Type{<:AbstractOperatorRepresentation{T}}) where T = T
 
+dimension(lhs::AbstractOperatorRepresentation{S}) where S = dimension(get_space(lhs))
+bitwidth(lhs::AbstractOperatorRepresentation{S}) where S = bitwidth(get_space(lhs))
 
 import Base.size
 function size(arg::AbstractOperatorRepresentation{T}) ::Tuple{Int, Int} where T
@@ -48,13 +52,13 @@ function (==)(lhs ::AbstractOperatorRepresentation{T1},
 end
 
 
-import Base.+, Base.-, Base.*
+import Base.+, Base.-, Base.*, Base./, Base.\
 
 
 for uniop in [:+, :-]
   @eval begin
     function ($uniop)(lhs ::AbstractOperatorRepresentation{T}) where T
-      return represent(lhs.hilbert_space_representation, ($uniop)(lhs.operator))
+      return represent(get_space(lhs), ($uniop)(lhs.operator))
     end
   end
 end
@@ -80,6 +84,16 @@ end
 
 function (*)(lhs ::Number, rhs ::AbstractOperatorRepresentation{T}) where {T}
   return represent(get_space(rhs), simplify(lhs * rhs.operator))
+end
+
+
+function (/)(lhs ::AbstractOperatorRepresentation{T}, rhs ::Number) where {T}
+  return represent(get_space(lhs), simplify(lhs.operator / rhs))
+end
+
+
+function (\)(lhs ::Number, rhs ::AbstractOperatorRepresentation{T}) where {T}
+  return represent(get_space(rhs), simplify(lhs \ rhs.operator))
 end
 
 
