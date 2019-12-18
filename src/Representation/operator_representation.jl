@@ -33,10 +33,10 @@ function issymmetric(arg::OperatorRepresentation{HSR, S, O}) where {HSR, S, O}
 end
 
 
-import LinearAlgebra.ishermitian
-function ishermitian(arg::OperatorRepresentation{HSR, S, O}) where {HSR, S, O}
-  return ishermitian(arg.operator)
-end
+# import LinearAlgebra.ishermitian
+# function ishermitian(arg::OperatorRepresentation{HSR, S, O}) where {HSR, S, O}
+#   return ishermitian(arg.operator)
+# end
 
 
 import Base.show
