@@ -31,6 +31,7 @@ function represent(rhsr ::RHSR, op ::O) where {RHSR <:ReducedHilbertSpaceReprese
   return ReducedOperatorRepresentation(rhsr, op)
 end
 
+
 import Base.show
 function show(io::IO, ::MIME"text/plain", arg::ReducedOperatorRepresentation{RHSR, O, S, BR})  where {RHSR, O, S, BR}
   print(io, string(typeof(arg)), "(", arg.reduced_hilbert_space_representation, ", ", arg.operator, ")")

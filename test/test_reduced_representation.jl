@@ -143,6 +143,15 @@ using ExactDiagonalization.Toolkit: pauli_matrix
         end
       end # testset get_column_iterator
 
+      @testset "get_element" begin
+        for irow_r in 1:dimension(rhsr)
+          for icol_r in 1:dimension(rhsr)
+            @test isapprox(get_element(j1_redrep, irow_r, icol_r), H[irow_r, icol_r]; atol=tol)
+            @test isapprox(j1_redrep[irow_r, icol_r], H[irow_r, icol_r]; atol=tol)
+          end
+        end
+      end
+
       @testset "get exceptions" begin
         dim = dimension(rhsr)
         opr = j1_redrep
