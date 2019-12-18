@@ -33,6 +33,8 @@ scalartype(arg ::Type{ReducedHilbertSpaceRepresentation{HSR, BR, C}}) where {HSR
 valtype(arg ::Type{ReducedHilbertSpaceRepresentation{HSR, BR, C}}) where {HSR, BR, C} = C
 bintype(arg ::Type{ReducedHilbertSpaceRepresentation{HSR, BR, C}}) where {HSR, BR, C} = BR
 
+bitwidth(arg ::ReducedHilbertSpaceRepresentation{HSR, BR, C}) where {HSR, BR, C} = bitwidth(arg.parent)
+
 """
     dimension(arg ::ReducedHilbertSpaceRepresentation{HSR, BR, C}) -> Int
 

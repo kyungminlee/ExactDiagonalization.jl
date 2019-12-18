@@ -31,6 +31,7 @@ bintype(lhs ::Type{<:AbstractOperatorRepresentation{T}}) where T = bintype(space
 scalartype(lhs::AbstractOperatorRepresentation{T}) where T = T
 scalartype(lhs::Type{<:AbstractOperatorRepresentation{T}}) where T = T
 
+bitwidth(lhs::AbstractOperatorRepresentation{S}) where S = bitwidth(get_space(lhs))
 
 import Base.size
 function size(arg::AbstractOperatorRepresentation{T}) ::Tuple{Int, Int} where T

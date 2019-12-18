@@ -50,8 +50,6 @@ bintype(lhs ::Type{HilbertSpaceRepresentation{HS, BR, DT}}) where {HS, BR, DT} =
 
 basespace(lhs::HilbertSpaceRepresentation{HS, BR, DT}) where {HS, BR, DT} = lhs.hilbert_space ::HS
 
-bitwidth(hss::HilbertSpaceSector{QN}) where QN = bitwidth(hss.parent) ::Int
-
 
 import Base.==
 function (==)(lhs ::HilbertSpaceRepresentation{H1, B1, D1},

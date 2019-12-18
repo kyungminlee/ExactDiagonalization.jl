@@ -2,6 +2,7 @@ export HilbertSpaceSector
 export scalartype
 export qntype
 export basespace
+export bitwidth
 
 
 """
@@ -60,8 +61,9 @@ Returns the quantum number type of the given hilbert space sector type.
 qntype(arg ::Type{HilbertSpaceSector{QN}}) where QN = QN
 qntype(arg ::HilbertSpaceSector{QN}) where QN = QN
 
-
 basespace(hs::HilbertSpaceSector{QN}) where QN = basespace(hs.parent) ::HilbertSpace{QN}
+
+bitwidth(hss::HilbertSpaceSector{QN}) where QN = bitwidth(basespace(hss))
 
 import Base.==
 function ==(lhs ::HilbertSpaceSector{Q1}, rhs ::HilbertSpaceSector{Q2}) where {Q1, Q2}

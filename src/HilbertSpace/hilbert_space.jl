@@ -75,6 +75,9 @@ Returns the quantum number type of the given hilbert space type.
 qntype(arg ::Type{HilbertSpace{QN}}) where QN = QN
 
 
+basespace(hs::HilbertSpace) = hs
+
+
 """
 Total number of bits
 
@@ -93,8 +96,6 @@ julia> bitwidth(hs)
 """
 bitwidth(hs::HilbertSpace) = hs.bitoffsets[end]
 
-
-basespace(hs::HilbertSpace) = hs
 
 import Base.==
 function (==)(lhs ::HilbertSpace{Q1}, rhs ::HilbertSpace{Q2}) where {Q1, Q2}
