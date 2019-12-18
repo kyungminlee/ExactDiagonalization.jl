@@ -47,16 +47,18 @@ using StaticArrays
     @test nop^6 == nop
   end
 
-  @testset "iterator" begin
-    nop = NullOperator()
-    @test isempty(collect(get_row_iterator(nop, 0x0)))
-    @test isempty(collect(get_column_iterator(nop, 0x0)))
-  end
-
   @testset "sym" begin
     @test issymmetric(nop)
     @test ishermitian(nop)
   end
+
+  @testset "get" begin
+    nop = NullOperator()
+    @test isempty(collect(get_row_iterator(nop, 0x0)))
+    @test isempty(collect(get_column_iterator(nop, 0x0)))
+    @test get_element(nop, 0x0, 0x1) == false
+  end
+
 end # testset NullOperator
 
 @testset "PureOperator" begin
@@ -278,7 +280,7 @@ end # testset NullOperator
     end
   end
 
-  @testset "iterator" begin
+  @testset "get" begin
     pop = PureOperator{Float64, UInt}(0b1010, 0b0010, 0b0000, 2.0)
     @test collect(get_row_iterator(pop, 0b0000)) == []
     @test collect(get_row_iterator(pop, 0b0010)) == [0b0000 => 2.0]
@@ -501,7 +503,7 @@ end
     end
   end
 
-  @testset "iterator" begin
+  @testset "get" begin
     pop1 = PureOperator{Float64, UInt}(0b1010, 0b0010, 0b0000, 2.0)
     pop2 = PureOperator{Float64, UInt}(0b0001, 0b0000, 0b0001, 3.0)
     sop = pop1 + pop2
@@ -514,6 +516,10 @@ end
 
     @test collect(get_column_iterator(sop, 0b1000)) == []
     @test collect(get_column_iterator(sop, 0b0101)) == [0b0111 => 2.0, 0b0100 => 3.0]
+
+    @test isapprox(get_element(sop, 0b1000, 0b1001), 3; atol=1E-6)
+    @test isapprox(get_element(sop, 0b0010, 0b0000), 2; atol=1E-6)
+    @test isapprox(get_element(sop, 0b0000, 0b0000), 0; atol=1E-6)
   end
 
 end

@@ -81,10 +81,10 @@ using ExactDiagonalization.Toolkit: pauli_matrix
       @test simplify(j1_redrep - j2_redrep) == represent(rhsr, simplify(j1 - j2))
       @test simplify(j1_redrep * j2_redrep) == represent(rhsr, simplify(j1 * j2))
 
-      @test simplify(j1_redrep * 2) == represent(rhsr, simplify(j1 * 2))
-      @test simplify(2 * j1_redrep) == represent(rhsr, simplify(2 * j1))
       @test simplify(j1_redrep * 0) == represent(rhsr, NullOperator())
       @test simplify(0 * j1_redrep) == represent(rhsr, NullOperator())
+      @test simplify(j1_redrep * 2) == represent(rhsr, simplify(j1 * 2))
+      @test simplify(2 * j1_redrep) == represent(rhsr, simplify(2 * j1))
       @test simplify(j1_redrep / 2) == represent(rhsr, simplify(j1 / 2))
       @test simplify(2 \ j1_redrep) == represent(rhsr, simplify(2 \ j1))
     end
@@ -98,9 +98,9 @@ using ExactDiagonalization.Toolkit: pauli_matrix
       @test isapprox(Matrix(j1_redrep), H; atol=tol)
 
       @testset "get_row_iterator" begin
-        rowvec = zeros(ComplexF64, dimension(rhsr))
+        rowvec = Vector{ComplexF64}(undef, dimension(rhsr))
         for irow_r in 1:dimension(rhsr)
-          rowvec[:] .= zero(ComplexF64)
+          fill!(rowvec, zero(ComplexF64))
           err = zero(ComplexF64)
           for (icol_r, ampl) in get_row_iterator(j1_redrep, irow_r)
             if 1 <= icol_r <= dimension(rhsr)
