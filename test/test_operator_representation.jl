@@ -74,6 +74,18 @@ using ExactDiagonalization.Toolkit: pauli_matrix
       @test opr1 - opr2 == represent(hsr, op1 - op2)
       @test opr1 * opr2 == represent(hsr, op1 * op2)
 
+      opr1 / 10
+      @test opr1 * 2 == represent(hsr, op1 * 2)
+      @test 2 * opr1 == represent(hsr, 2 * op1)
+
+      opr1 / 10
+      10 \ opr1
+      op1 / 10
+      10 \ op1
+
+      @test opr1 / 2 == represent(hsr, op1 / 2)
+      @test 2 \ opr1 == represent(hsr, 2 \ op1)
+
       hs3 = HilbertSpace([spinsite, spinsite])
       op3 = pure_operator(hs3, 1, 1, 1)
       hsr3 = represent(hs3)
@@ -127,6 +139,7 @@ using ExactDiagonalization.Toolkit: pauli_matrix
         @test get_column(opr, i) == H0[:, i]
         for j in 1:dim
           @test get_element(opr, i, j) == H0[i,j]
+          @test opr[i, j] == H0[i,j]
         end
 
         @test get_row(opr, i) != get_column(opr, i) # all rows and columns are different
@@ -145,6 +158,10 @@ using ExactDiagonalization.Toolkit: pauli_matrix
       @test_throws BoundsError get_element(opr, dim+1, 1)
       @test_throws BoundsError get_element(opr, 1, 0)
       @test_throws BoundsError get_element(opr, 1, dim+1)
+      @test_throws BoundsError opr[0, 1]
+      @test_throws BoundsError opr[dim+1, 1]
+      @test_throws BoundsError opr[1, 0]
+      @test_throws BoundsError opr[1, dim+1]
     end # testset iterator
 
     @testset "apply" begin # complete space
@@ -200,6 +217,32 @@ using ExactDiagonalization.Toolkit: pauli_matrix
           APP!(out1, state, opr)
           @test !isapprox(out0, out1, atol=1E-6)
         end
+      end
+
+      @testset "mul!" begin
+        opr = represent(hsr_0, σ[2, :x])
+        vec_in = collect(1:dim) * 0.1
+
+        let vec_out0, vec_out1
+          vec_out0 = zeros(Float64, dim)
+          vec_out1 = collect(1:dim) * 10.0
+
+          apply!(vec_out0, opr, vec_in)
+          apply!(vec_out1, opr, vec_in)
+
+          @test !isapprox(vec_out0, vec_out1, atol=1E-6)
+        end
+
+        let vec_out0, vec_out1
+          vec_out0 = zeros(Float64, dim)
+          vec_out1 = collect(1:dim) * 10.0
+
+          mul!(vec_out0, opr, vec_in)
+          mul!(vec_out1, opr, vec_in)
+
+          @test isapprox(vec_out0, vec_out1, atol=1E-6)
+        end
+
       end
       # TODO(kyungminlee): Check for bounds error with range.
 
