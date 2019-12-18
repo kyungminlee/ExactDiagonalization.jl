@@ -18,6 +18,7 @@ using ExactDiagonalization.Toolkit: pauli_matrix
   hs = HilbertSpace(repeat([spin_site], n))
   σ = Dict( (isite, j) => pauli_matrix(hs, isite, j) for isite in 1:n, j in [:x, :y, :z, :+, :-])
   j1 = sum(σ[i, j] * σ[mod(i, n) + 1 , j] for i in 1:n, j in [:x, :y, :z])
+  j2 = sum(σ[i, j] * σ[mod(i+1, n) + 1 , j] for i in 1:n, j in [:x, :y, :z])
 
   hsr = represent(HilbertSpaceSector(hs, 0))
   translation_group = TranslationGroup([Permutation([2,3,4,1])])
@@ -42,6 +43,8 @@ using ExactDiagonalization.Toolkit: pauli_matrix
     @test rhsr.basis_list == UInt[0b0011, 0b0101]
 
     j1_redrep = represent(rhsr, j1)
+    j2_redrep = represent(rhsr, j2)
+
     @testset "typetraits" begin
       @test scalartype(j1) === Complex{Int}
 
@@ -56,6 +59,24 @@ using ExactDiagonalization.Toolkit: pauli_matrix
       @test spacetype(typeof(j1_redrep)) === typeof(rhsr)
       @test operatortype(typeof(j1_redrep)) === typeof(j1)
       @test get_space(j1_redrep) === rhsr
+    end
+
+    @testset "unary operator" begin
+      @test +j1_redrep == j1_redrep
+      @test -j1_redrep == represent(rhsr, -j1)
+    end
+
+    @testset "binary operator" begin
+      @test simplify(j1_redrep + j2_redrep) == represent(rhsr, simplify(j1 + j2))
+      @test simplify(j1_redrep - j2_redrep) == represent(rhsr, simplify(j1 - j2))
+      @test simplify(j1_redrep * j2_redrep) == represent(rhsr, simplify(j1 * j2))
+      
+      @test simplify(j1_redrep * 2) == represent(rhsr, simplify(j1 * 2))
+      @test simplify(2 * j1_redrep) == represent(rhsr, simplify(2 * j1))
+      @test simplify(j1_redrep * 0) == represent(rhsr, NullOperator())
+      @test simplify(0 * j1_redrep) == represent(rhsr, NullOperator())
+      @test simplify(j1_redrep / 2) == represent(rhsr, simplify(j1 / 2))
+      @test simplify(2 \ j1_redrep) == represent(rhsr, simplify(2 \ j1))
     end
 
     let
@@ -117,6 +138,10 @@ using ExactDiagonalization.Toolkit: pauli_matrix
         @test_throws BoundsError get_element(opr, dim+1, 1)
         @test_throws BoundsError get_element(opr, 1, 0)
         @test_throws BoundsError get_element(opr, 1, dim+1)
+        @test_throws BoundsError opr[0, 1]
+        @test_throws BoundsError opr[dim+1, 1]
+        @test_throws BoundsError opr[1, 0]
+        @test_throws BoundsError opr[1, dim+1]
       end
     end
   end # testset ROR
