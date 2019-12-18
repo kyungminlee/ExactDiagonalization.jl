@@ -3,6 +3,7 @@ export AbstractOperatorRepresentation
 export spacetype, operatortype
 export bintype
 export get_space
+export dimension, bitwidth
 export get_row, get_column
 export sparse_serial, sparse_parallel
 
@@ -31,6 +32,7 @@ bintype(lhs ::Type{<:AbstractOperatorRepresentation{T}}) where T = bintype(space
 scalartype(lhs::AbstractOperatorRepresentation{T}) where T = T
 scalartype(lhs::Type{<:AbstractOperatorRepresentation{T}}) where T = T
 
+dimension(lhs::AbstractOperatorRepresentation{S}) where S = dimension(get_space(lhs))
 bitwidth(lhs::AbstractOperatorRepresentation{S}) where S = bitwidth(get_space(lhs))
 
 import Base.size
