@@ -119,11 +119,26 @@ using ExactDiagonalization.Toolkit: pauli_matrix
       for i in 1:dim
         @test get_row(opr, i) == H0[i, :]
         @test get_column(opr, i) == H0[:, i]
-        @test get_row(opr, i) != get_column(opr, i) # all rows and columns are different
+        for j in 1:dim
+          @test get_element(opr, i, j) == H0[i,j]
+        end
 
+        @test get_row(opr, i) != get_column(opr, i) # all rows and columns are different
         @test get_row(opr, i) == opr[i, :]
         @test get_column(opr, i) == opr[:, i]
       end
+      @test_throws BoundsError get_row_iterator(opr, 0)
+      @test_throws BoundsError get_row_iterator(opr, dim+1)
+      @test_throws BoundsError get_column_iterator(opr, 0)
+      @test_throws BoundsError get_column_iterator(opr, dim+1)
+      @test_throws BoundsError get_row(opr, 0)
+      @test_throws BoundsError get_row(opr, dim+1)
+      @test_throws BoundsError get_column(opr, 0)
+      @test_throws BoundsError get_column(opr, dim+1)
+      @test_throws BoundsError get_element(opr, 0, 1)
+      @test_throws BoundsError get_element(opr, dim+1, 1)
+      @test_throws BoundsError get_element(opr, 1, 0)
+      @test_throws BoundsError get_element(opr, 1, dim+1)
     end # testset iterator
 
     @testset "apply" begin # complete space

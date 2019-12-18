@@ -280,6 +280,7 @@ end # testset NullOperator
     @test collect(get_row_iterator(pop, 0b0010)) == [0b0000 => 2.0]
     @test collect(get_column_iterator(pop, 0b0000)) == [0b0010 => 2.0]
     @test collect(get_column_iterator(pop, 0b1111)) == []
+    @test get_element(pop, 0b0010, 0b0000) == 2.0
   end
 end
 

@@ -101,6 +101,23 @@ using ExactDiagonalization.Toolkit: pauli_matrix
           @test isapprox(colvec, H[:, icol_r]; atol=tol)
         end
       end # testset get_column_iterator
+
+      @testset "get exceptions" begin
+        dim = dimension(rhsr)
+        opr = j1_redrep
+        @test_throws BoundsError get_row_iterator(opr, 0)
+        @test_throws BoundsError get_row_iterator(opr, dim+1)
+        @test_throws BoundsError get_column_iterator(opr, 0)
+        @test_throws BoundsError get_column_iterator(opr, dim+1)
+        @test_throws BoundsError get_row(opr, 0)
+        @test_throws BoundsError get_row(opr, dim+1)
+        @test_throws BoundsError get_column(opr, 0)
+        @test_throws BoundsError get_column(opr, dim+1)
+        @test_throws BoundsError get_element(opr, 0, 1)
+        @test_throws BoundsError get_element(opr, dim+1, 1)
+        @test_throws BoundsError get_element(opr, 1, 0)
+        @test_throws BoundsError get_element(opr, 1, dim+1)
+      end
     end
   end # testset ROR
 
