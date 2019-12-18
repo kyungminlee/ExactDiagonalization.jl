@@ -50,6 +50,13 @@ bintype(lhs ::Type{HilbertSpaceRepresentation{HS, BR, DT}}) where {HS, BR, DT} =
 
 basespace(lhs::HilbertSpaceRepresentation{HS, BR, DT}) where {HS, BR, DT} = lhs.hilbert_space ::HS
 
+"""
+    dimension
+
+Dimension of the Concrete Hilbert space, i.e. number of basis vectors.
+"""
+dimension(hsr ::HilbertSpaceRepresentation) = length(hsr.basis_list)
+
 
 import Base.==
 function (==)(lhs ::HilbertSpaceRepresentation{H1, B1, D1},
@@ -64,14 +71,6 @@ function checkvalidbasis(hsr::HilbertSpaceRepresentation{HS, BR, DT}) where {HS,
     @assert ivec == ivec2
   end
 end
-
-
-"""
-    dimension
-
-Dimension of the Concrete Hilbert space, i.e. number of basis vectors.
-"""
-dimension(hsr ::HilbertSpaceRepresentation) = length(hsr.basis_list)
 
 
 function hs_get_basis_list(hs ::HilbertSpace{QN}, binary_type::Type{BR}=UInt)::Vector{BR} where {QN, BR<:Unsigned}

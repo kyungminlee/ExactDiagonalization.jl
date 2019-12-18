@@ -25,7 +25,7 @@ end
 spacetype(lhs::Type{ReducedOperatorRepresentation{RHSR, O, S, BR}}) where {RHSR, O, S, BR} = RHSR
 operatortype(lhs ::Type{ReducedOperatorRepresentation{RHSR, O, S, BR}}) where {RHSR, O, S, BR} = O
 get_space(lhs ::ReducedOperatorRepresentation{RHSR, O, S, BR}) where {RHSR, O, S, BR} = lhs.reduced_hilbert_space_representation ::RHSR
-bitwidth(lhs ::ReducedOperatorRepresentation{RHSR, O, S, BR}) where {RHSR, O, S, BR} = bitwidth(get_space(lhs))
+
 
 function represent(rhsr ::RHSR, op ::O) where {RHSR <:ReducedHilbertSpaceRepresentation, O <:AbstractOperator}
   return ReducedOperatorRepresentation(rhsr, op)
