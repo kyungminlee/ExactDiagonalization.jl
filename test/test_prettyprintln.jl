@@ -11,6 +11,7 @@ using ExactDiagonalization.Toolkit: pauli_matrix
     dn = State("Dn", QN(-1))
     spin_site = Site([up, dn])
     hs = HilbertSpace([spin_site, spin_site, spin_site, spin_site])
+    n_sites = 4
     σ(i::Integer, j::Symbol) = pauli_matrix(hs, i, j)
 
     buf = IOBuffer()
@@ -49,6 +50,58 @@ using ExactDiagonalization.Toolkit: pauli_matrix
                            "| | C: 0000000000000000000000000000000000000000000000000000000000000000",
                            "| | A: 1",
                            ""], "\n")
+
+    hsr = represent(hs)
+    result = @capture_out prettyprintln(hsr)
+    @test result == join(["HilbertSpaceRepresentation",
+                          "| 0000",
+                          "| 0001",
+                          "| 0010",
+                          "| 0011",
+                          "| 0100",
+                          "| 0101",
+                          "| 0110",
+                          "| 0111",
+                          "| 1000",
+                          "| 1001",
+                          "| 1010",
+                          "| 1011",
+                          "| 1100",
+                          "| 1101",
+                          "| 1110",
+                          "| 1111",
+                          ""], "\n")
+
+    translation_group = TranslationGroup([Permutation([ mod(i, n_sites)+1 for i in 1:n_sites])])
+    ks = translation_group.fractional_momenta
+    rhsr = symmetry_reduce(hsr, translation_group, ks[1])
+    result = @capture_out prettyprintln(rhsr)
+    @test result == join(["ReducedHilbertSpaceRepresentation",
+                          "| basis_list",
+                          "| | 0000",
+                          "| | 0001",
+                          "| | 0011",
+                          "| | 0101",
+                          "| | 0111",
+                          "| | 1111",
+                          "| basis_mapping",
+                          "| | 1: 1, 1.0 - 0.0im",
+                          "| | 2: 2, 0.5 - 0.0im",
+                          "| | 3: 2, 0.5 - 0.0im",
+                          "| | 4: 3, 0.5 - 0.0im",
+                          "| | 5: 2, 0.5 - 0.0im",
+                          "| | 6: 4, 0.7071067811865475 - 0.0im",
+                          "| | 7: 3, 0.5 - 0.0im",
+                          "| | 8: 5, 0.5 - 0.0im",
+                          "| | 9: 2, 0.5 - 0.0im",
+                          "| | 10: 3, 0.5 - 0.0im",
+                          "| | 11: 4, 0.7071067811865475 - 0.0im",
+                          "| | 12: 5, 0.5 - 0.0im",
+                          "| | 13: 3, 0.5 - 0.0im",
+                          "| | 14: 5, 0.5 - 0.0im",
+                          "| | 15: 5, 0.5 - 0.0im",
+                          "| | 16: 6, 1.0 - 0.0im",
+                          ""], "\n")
 
     # val = SparseState{Float64, UInt}(hs, UInt(0b0010)=>0.2, UInt(0b100) => 0.3 )
     # result1 = @capture_out prettyprintln(val)
