@@ -78,51 +78,51 @@ function simplify(so ::SumOperator{S, BR}; tol ::Real=Base.rtoldefault(real(S)))
 end
 
 
-function simplify_combine(so ::SumOperator{S, BR}; tol::Real=sqrt(eps(Float64))) where {S, BR}
-  bw = sizeof(BR)*8
-  diagonal_terms = [t for t in so.terms if t.bitrow == t.bitcol]
-  offdiagonal_terms = [t for t in so.terms if t.bitrow != t.bitcol]
-
-  @label simplify_combine_loop_start
-
-  for ib in 0:(bw-1)
-    mask = make_bitmask(ib+1, ib)
-
-    for (i1, t1) in enumerate(diagonal_terms)
-      (t1.bitmask & mask) == 0x0 && continue
-      t1.bitrow != t1.bitcol && continue
-
-      for i2 in (i1+1):length(diagonal_terms)
-        t2 = diagonal_terms[i2]
-        (t2.bitmask & mask) == 0x0 && continue
-        t2.bitrow != t2.bitcol && continue
-
-        if ( ((t1.bitmask & ~mask) == (t2.bitmask & ~mask)) &&
-             ((t1.bitrow  & ~mask) == (t2.bitrow  & ~mask)) &&
-             ((t1.bitrow  &  mask) != (t2.bitrow  &  mask)) )
-
-          if isapprox(t1.amplitude, t2.amplitude; atol=tol)
-            i_small, i_large = i1, i2
-            new_bitmask = t1.bitmask & (~mask)
-            new_bitrow  = t1.bitrow  & (~mask)
-            new_bitcol  = t1.bitcol  & (~mask)
-            new_amplitude = t1.amplitude
-
-            diagonal_terms[i_small] = PureOperator{S, BR}(new_bitmask, new_bitrow, new_bitcol, new_amplitude)
-            deleteat!(diagonal_terms, i_large)
-
-            @goto simplify_combine_loop_start
-            #dirty = true
-            #break
-          else
-            # different amplitude. do nothing
-          end # if amplitude
-        end # if bits
-
-      end # for i2
-    end # for i1
-  end # for ib
-
-  #end # while dirty
-  SumOperator{S, BR}([diagonal_terms..., offdiagonal_terms])
-end
+# function simplify_combine(so ::SumOperator{S, BR}; tol::Real=sqrt(eps(Float64))) where {S, BR}
+#   bw = sizeof(BR)*8
+#   diagonal_terms = [t for t in so.terms if t.bitrow == t.bitcol]
+#   offdiagonal_terms = [t for t in so.terms if t.bitrow != t.bitcol]
+#
+#   @label simplify_combine_loop_start
+#
+#   for ib in 0:(bw-1)
+#     mask = make_bitmask(ib+1, ib)
+#
+#     for (i1, t1) in enumerate(diagonal_terms)
+#       (t1.bitmask & mask) == 0x0 && continue
+#       t1.bitrow != t1.bitcol && continue
+#
+#       for i2 in (i1+1):length(diagonal_terms)
+#         t2 = diagonal_terms[i2]
+#         (t2.bitmask & mask) == 0x0 && continue
+#         t2.bitrow != t2.bitcol && continue
+#
+#         if ( ((t1.bitmask & ~mask) == (t2.bitmask & ~mask)) &&
+#              ((t1.bitrow  & ~mask) == (t2.bitrow  & ~mask)) &&
+#              ((t1.bitrow  &  mask) != (t2.bitrow  &  mask)) )
+#
+#           if isapprox(t1.amplitude, t2.amplitude; atol=tol)
+#             i_small, i_large = i1, i2
+#             new_bitmask = t1.bitmask & (~mask)
+#             new_bitrow  = t1.bitrow  & (~mask)
+#             new_bitcol  = t1.bitcol  & (~mask)
+#             new_amplitude = t1.amplitude
+#
+#             diagonal_terms[i_small] = PureOperator{S, BR}(new_bitmask, new_bitrow, new_bitcol, new_amplitude)
+#             deleteat!(diagonal_terms, i_large)
+#
+#             @goto simplify_combine_loop_start
+#             #dirty = true
+#             #break
+#           else
+#             # different amplitude. do nothing
+#           end # if amplitude
+#         end # if bits
+#
+#       end # for i2
+#     end # for i1
+#   end # for ib
+#
+#   #end # while dirty
+#   SumOperator{S, BR}([diagonal_terms..., offdiagonal_terms])
+# end
