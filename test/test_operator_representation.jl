@@ -83,6 +83,12 @@ using ExactDiagonalization.Toolkit: pauli_matrix
       @test_throws ArgumentError opr1 * opr3
     end
 
+    @testset "symmetric" begin
+      @test issymmetric(σ[1, :x])
+      @test !issymmetric(σ[1, :y])
+      @test ishermitian(σ[1, :x])
+      @test ishermitian(σ[1, :y])
+    end
 
     @testset "iterator" begin
       hs2 = HilbertSpace([spinsite, spinsite])
