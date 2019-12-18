@@ -2,7 +2,6 @@ using Test
 using ExactDiagonalization
 
 include("test_util.jl")
-
 include("test_frozensortedarray.jl")
 
 include("test_hilbert_space.jl")
