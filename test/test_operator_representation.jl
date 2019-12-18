@@ -53,15 +53,16 @@ using ExactDiagonalization.Toolkit: pauli_matrix
       @test valtype(typeof(opr2)) === Complex{Int}
     end
 
-    @testset "size" begin
+    @testset "properties" begin
       opr = OperatorRepresentation(hsr, σ[1, :x])
       dim = dimension(hsr)
       @test size(opr) == (dim, dim)
       @test size(opr, 1) == dim
       @test size(opr, 2) == dim
       @test_throws BoundsError size(opr, 3)
-    end
 
+      @test bitwidth(opr) == n_sites
+    end
 
     @testset "unary operator" begin
       op = σ[1, :x]

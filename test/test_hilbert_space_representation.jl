@@ -43,6 +43,13 @@ using StaticArrays
       @test bintype(typeof(hsr)) === UInt32
     end
 
+    @testset "properties" begin
+      hilbert_space = HilbertSpace([spinsite for i in 1:4])
+      hsr = represent(hilbert_space, UInt32)
+      @test dimension(hsr) == 16
+      @test bitwidth(hsr) == 4
+    end
+
     @testset "validity" begin
       up = State("Up", 0)
       dn = State("Dn", 0)

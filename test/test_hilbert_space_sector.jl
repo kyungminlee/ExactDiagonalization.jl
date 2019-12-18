@@ -37,6 +37,8 @@ using StaticArrays
     @test valtype(hs) === Bool
     @test valtype(typeof(hs)) === Bool
 
+    @test bitwidth(hs) == 4
+
     @test get_bitmask(hs, 1) == 0b0001
     @test get_bitmask(hs, 2) == 0b0010
     @test get_bitmask(hs, 3) == 0b0100

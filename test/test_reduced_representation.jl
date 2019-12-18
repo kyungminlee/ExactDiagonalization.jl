@@ -33,6 +33,8 @@ using ExactDiagonalization.Toolkit: pauli_matrix
     @test valtype(typeof(rhsr)) === ComplexF64
     @test bintype(rhsr) === UInt
     @test bintype(typeof(rhsr)) === UInt
+    @test dimension(rhsr) <= 2^n
+    @test bitwidth(rhsr) == n
   end
 
   j1_rep = represent(hsr, j1)
@@ -43,6 +45,7 @@ using ExactDiagonalization.Toolkit: pauli_matrix
     rhsr = symmetry_reduce(hsr, translation_group, [0//1])
     @test dimension(rhsr) == 2
     @test rhsr.basis_list == UInt[0b0011, 0b0101]
+    dim = dimension(rhsr)
 
     j1_redrep = represent(rhsr, j1)
     j2_redrep = represent(rhsr, j2)
@@ -64,6 +67,13 @@ using ExactDiagonalization.Toolkit: pauli_matrix
       @test spacetype(typeof(j1_redrep)) === typeof(rhsr)
       @test operatortype(typeof(j1_redrep)) === typeof(j1)
       @test get_space(j1_redrep) === rhsr
+    end
+
+    @testset "property" begin
+      @test bitwidth(j1_redrep) == bitwidth(rhsr)
+      @test bitwidth(j2_redrep) == bitwidth(rhsr)
+      @test dimension(j1_redrep) == dimension(rhsr)
+      @test dimension(j2_redrep) == dimension(rhsr)
     end
 
     @testset "sym" begin
