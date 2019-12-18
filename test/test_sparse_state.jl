@@ -73,6 +73,11 @@ using StaticArrays
       @test isapprox(ψ1, ψ2)
       @test ψ1 != ψ2
     end
+    let
+      ψ2 = copy(ψ1)
+      ψ2[UInt(0b0010001)] += 1000.0
+      @test !isapprox(ψ1, ψ2)
+    end
   end
 
   @testset "iterate" begin
