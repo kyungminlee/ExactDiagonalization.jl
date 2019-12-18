@@ -6,6 +6,12 @@ export get_column_iterator
 export get_row
 export get_column
 
+
+"""
+    ReducedOperatorRepresentation{RHSR, O, S, BR}
+
+Representation of an operator of type `O` in the symmetry-reduced hilbert space representation of type `RHSR`.
+"""
 struct ReducedOperatorRepresentation{RHSR <:ReducedHilbertSpaceRepresentation, O <:AbstractOperator, S<:Number, BR<:Unsigned} <:AbstractOperatorRepresentation{S}
   reduced_hilbert_space_representation ::RHSR
   operator ::O
@@ -28,6 +34,7 @@ import Base.show
 function show(io::IO, ::MIME"text/plain", arg::ReducedOperatorRepresentation{RHSR, O, S, BR})  where {RHSR, O, S, BR}
   print(io, string(typeof(arg)), "(", arg.reduced_hilbert_space_representation, ", ", arg.operator, ")")
 end
+
 
 function get_row_iterator(opr ::ReducedOperatorRepresentation{RHSR, O, S, BR},
                           irow_r ::Integer) where {RHSR, O, S, BR}
@@ -56,6 +63,7 @@ function get_row_iterator(opr ::ReducedOperatorRepresentation{RHSR, O, S, BR},
   return full_iter
 end
 
+
 function get_column_iterator(opr ::ReducedOperatorRepresentation{RHSR, O, S, BR},
                              icol_r ::Integer) where {RHSR, O, S, BR}
   rhsr = opr.reduced_hilbert_space_representation
@@ -82,6 +90,7 @@ function get_column_iterator(opr ::ReducedOperatorRepresentation{RHSR, O, S, BR}
   end
   return full_iter
 end
+
 
 # TODO: better implementation
 function get_element(opr ::ReducedOperatorRepresentation{RHSR, O, S, BR},

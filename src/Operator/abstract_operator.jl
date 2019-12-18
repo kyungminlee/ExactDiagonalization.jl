@@ -1,16 +1,27 @@
 export AbstractOperator
 export get_row_iterator, get_column_iterator, get_iterator
+export scalartype
+export bintype
 
 abstract type AbstractOperator{S<:Number} end
 
-export scalartype
-export bintype
-scalartype(lhs::AbstractOperator{S}) where S = S
+"""
+    scalartype(lhs::Type{<:AbstractOperator{S}})
+
+Returns the scalar type of the given AbstractOperator.
+"""
 scalartype(lhs::Type{<:AbstractOperator{S}}) where S = S
+scalartype(lhs::AbstractOperator{S}) where S = S
+
 
 bintype(lhs::AbstractOperator{S}) where S = bintype(typeof(lhs)) ::DataType
 
 import Base.valtype
+"""
+    valtype(lhs::Type{<:AbstractOperator{S}})
+
+Returns the `valtype` (scalar type) of the given AbstractOperator.
+"""
 valtype(lhs::Type{<:AbstractOperator{S}}) where S = S
 
 

@@ -2,6 +2,7 @@ export HilbertSpace
 export quantum_number_sectors, get_quantum_number, extract, compress, update, get_state, get_state_index
 export get_bitmask
 export bitwidth
+export scalartype
 export qntype
 export basespace
 
@@ -27,6 +28,7 @@ struct HilbertSpace{QN} <: AbstractHilbertSpace
   bitoffsets ::Vector{Int}
 
   HilbertSpace{QN}() where {QN} = new{QN}([], [], [0])
+
   function HilbertSpace(sites ::AbstractArray{Site{QN}, 1}) where QN
     bitwidths = map(bitwidth, sites)
     bitoffsets = Int[0, cumsum(bitwidths)...]
@@ -41,18 +43,35 @@ struct HilbertSpace{QN} <: AbstractHilbertSpace
 end
 
 scalartype(arg ::HilbertSpace{QN}) where QN = Bool
+
+
+"""
+    scalartype(arg ::Type{HilbertSpace{QN}})
+
+Returns the scalar type of the given hilbert space type.
+For HilbertSpace{QN}, it is always `Bool`.
+"""
 scalartype(arg ::Type{HilbertSpace{QN}}) where QN = Bool
 
 import Base.valtype
 valtype(arg ::HilbertSpace{QN}) where QN = Bool
+
+
+"""
+    valtype(arg ::Type{HilbertSpace{QN}})
+
+Returns the `valtype` (scalar type) of the given hilbert space type.
+"""
 valtype(arg ::Type{HilbertSpace{QN}}) where QN = Bool
 
-"""
-    qntype
 
-
-"""
 qntype(arg ::HilbertSpace{QN}) where QN = QN
+
+"""
+    qntype(arg ::Type{HilbertSpace{QN}})
+
+Returns the quantum number type of the given hilbert space type.
+"""
 qntype(arg ::Type{HilbertSpace{QN}}) where QN = QN
 
 

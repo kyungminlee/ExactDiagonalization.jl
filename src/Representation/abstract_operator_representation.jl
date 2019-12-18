@@ -6,9 +6,10 @@ export get_space
 export get_row, get_column
 export sparse_serial, sparse_parallel
 
-# AbstractOperatorRepresentation
-
-abstract type AbstractOperatorRepresentation{T} <: AbstractMatrix{T} end
+"""
+    AbstractOperatorRepresentation{S}
+"""
+abstract type AbstractOperatorRepresentation{S} <: AbstractMatrix{S} end
 
 ## typetraits
 

@@ -1,5 +1,10 @@
 export simplify
 
+"""
+    simplify
+
+Simplify the given operator.
+"""
 simplify(op ::NullOperator; tol::Real=0.0) = op
 
 function simplify(op ::PureOperator{S, BR}; tol ::Real=Base.rtoldefault(S)) where {S<:Real, BR}
@@ -70,7 +75,6 @@ function simplify(so ::SumOperator{S, BR}; tol ::Real=Base.rtoldefault(real(S)))
       return SumOperator{S, BR}(new_terms)
     end
   end
-
 end
 
 

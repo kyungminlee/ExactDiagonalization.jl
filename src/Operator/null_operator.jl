@@ -1,5 +1,11 @@
 export NullOperator
 
+
+"""
+    NullOperator
+
+A null operator, i.e. 0.
+"""
 struct NullOperator <:AbstractOperator{Bool} end
 
 import Base.-, Base.+, Base.*, Base.==

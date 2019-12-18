@@ -11,11 +11,13 @@ function apply!(out::SparseState{S1, BR},
   return out
 end
 
+
 function apply!(out::SparseState{S1, BR},
                 psi::SparseState{S2, BR},
                 nullop ::NullOperator) where {S1, S2, BR}
   return out
 end
+
 
 function apply!(out::SparseState{S1, BR},
                 pureop ::PureOperator{S2, BR},
@@ -29,6 +31,7 @@ function apply!(out::SparseState{S1, BR},
   out
 end
 
+
 function apply!(out::SparseState{S1, BR},
                 psi::SparseState{S3, BR},
                 pureop ::PureOperator{S2, BR}) where {S1, S2, S3, BR}
@@ -41,6 +44,7 @@ function apply!(out::SparseState{S1, BR},
   out
 end
 
+
 function apply!(out::SparseState{S1, BR},
                 sumop ::SumOperator{S2, BR},
                 psi::SparseState{S3, BR}) where {S1, S2, S3, BR}
@@ -49,6 +53,7 @@ function apply!(out::SparseState{S1, BR},
   end
   out
 end
+
 
 function apply!(out::SparseState{S1, BR},
                 psi::SparseState{S3, BR},
@@ -64,6 +69,7 @@ function apply(pureop ::NullOperator, psi::SparseState{S2, BR}) where {S2, BR}
   return SparseState{S2, BR}()
 end
 
+
 function apply(psi::SparseState{S2, BR}, pureop ::NullOperator) where {S2, BR}
   return SparseState{S2, BR}()
 end
@@ -75,6 +81,7 @@ function apply(pureop ::PureOperator{S1, BR}, psi::SparseState{S2, BR}) where {S
   apply!(out, pureop, psi)
   return out
 end
+
 
 function apply(psi::SparseState{S2, BR}, pureop ::PureOperator{S1, BR}) where {S1, S2, BR}
   S3 = promote_type(S1, S2)

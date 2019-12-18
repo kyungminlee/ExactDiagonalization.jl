@@ -3,6 +3,12 @@ export scalartype
 export qntype
 export basespace
 
+
+"""
+    HilbertSpaceSector{QN}
+
+Hilbert space sector.
+"""
 struct HilbertSpaceSector{QN} <: AbstractHilbertSpace
   parent ::HilbertSpace{QN}
   allowed_quantum_numbers ::Set{QN}
@@ -24,15 +30,36 @@ struct HilbertSpaceSector{QN} <: AbstractHilbertSpace
   end
 end
 
-scalartype(arg ::HilbertSpaceSector{QN}) where QN = Bool
+
+"""
+    scalartype(arg ::Type{HilbertSpaceSector{QN}})
+
+Returns the scalar type of the given hilbert space sector type.
+For HilbertSpaceSector{QN}, it is always `Bool`.
+"""
 scalartype(arg ::Type{HilbertSpaceSector{QN}}) where QN = Bool
+scalartype(arg ::HilbertSpaceSector{QN}) where QN = Bool
+
 
 import Base.valtype
-valtype(arg ::HilbertSpaceSector{QN}) where QN = Bool
-valtype(arg ::Type{HilbertSpaceSector{QN}}) where QN = Bool
+"""
+    valtype(arg ::Type{HilbertSpaceSector{QN}})
 
-qntype(arg ::HilbertSpaceSector{QN}) where QN = QN
+Returns the `valtype` (scalar type) of the given hilbert space sector type.
+For HilbertSpaceSector{QN}, it is always `Bool`.
+"""
+valtype(arg ::Type{HilbertSpaceSector{QN}}) where QN = Bool
+valtype(arg ::HilbertSpaceSector{QN}) where QN = Bool
+
+
+"""
+    qntype(arg ::Type{HilbertSpaceSector{QN}})
+
+Returns the quantum number type of the given hilbert space sector type.
+"""
 qntype(arg ::Type{HilbertSpaceSector{QN}}) where QN = QN
+qntype(arg ::HilbertSpaceSector{QN}) where QN = QN
+
 
 basespace(hs::HilbertSpaceSector{QN}) where QN = basespace(hs.parent) ::HilbertSpace{QN}
 

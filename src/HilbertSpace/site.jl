@@ -46,6 +46,11 @@ function ==(lhs ::State{Q1}, rhs ::State{Q2}) where {Q1, Q2}
   return (Q1 == Q2) && (lhs.name == rhs.name) && (lhs.quantum_number == rhs.quantum_number)
 end
 
+"""
+    qntype(::Type{State{QN}})
+
+Returns the quantum number type of the given state type.
+"""
 qntype(::Type{State{QN}}) where QN = QN
 
 """
@@ -70,6 +75,11 @@ struct Site{QN<:AbstractQuantumNumber} <: AbstractHilbertSpace
   Site{QN}(states ::AbstractArray{State{QN}, 1}) where QN = new{QN}(states)
 end
 
+"""
+    qntype(::Type{Site{QN}})
+
+Returns the quantum number type of the given site type.
+"""
 qntype(::Type{Site{QN}}) where QN = QN
 
 import Base.==
@@ -101,23 +111,49 @@ function get_state(site::Site, binrep::U) where {U<:Unsigned}
   return site.states[Int(binrep+1)]
 end
 
-@inline function compress(site ::Site, i ::Integer, binary_type::Type{BR}=UInt) where {BR<:Unsigned}
-  @boundscheck 1 <= i <= dimension(site) || throw(BoundsError("attempt to access a $(dimension(site))-state site at index $i"))
-  return BR(i-1)
+"""
+    compress(site, state_index, binary_type=UInt) -> binary_type
+
+Get binary representation of the state specified by `state_index`.
+Check bounds `1 <= state_index <= dimension(site)`, and returns binary representation of `state_index-1`.
+
+# Arguments
+- `site::Site`
+- `state_index::Integer`
+- `binary_type`
+"""
+@inline function compress(site ::Site, state_index ::Integer, binary_type::Type{BR}=UInt) where {BR<:Unsigned}
+  @boundscheck 1 <= state_index <= dimension(site) || throw(BoundsError("attempt to access a $(dimension(site))-state site at index $state_index"))
+  return BR(state_index-1)
 end
 
+"""
+    get_state_index(site, binrep)
+
+Gets the state index of the binary representation. Returns `Int(binrep+1)`.
+"""
 @inline function get_state_index(site::Site, binrep::U) where {U<:Unsigned}
   i = Int(binrep+1)
   @boundscheck 1 <= i <= dimension(site) || throw(BoundsError("attempt to access a $(dimension(site))-state site at index $i"))
   return i
 end
 
+"""
+    quantum_number_sectors(site ::Site{QN})::Vector{QN}
+
+Gets a list of possible quantum numbers as a sorted vector of QN.
+"""
 function quantum_number_sectors(site ::Site{QN})::Vector{QN} where QN
   return sort(collect(Set([state.quantum_number for state in site.states])))
 end
 
-function get_quantum_number(site ::Site{QN}, i ::Integer)::QN where QN
-  return site.states[i].quantum_number
+"""
+    get_quantum_number(site, state_index)
+
+Gets the quantum number of state specified by state_index.
+"""
+function get_quantum_number(site ::Site{QN}, state_index ::Integer)::QN where QN
+  return site.states[state_index].quantum_number
 end
 
 

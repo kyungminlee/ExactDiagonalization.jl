@@ -2,6 +2,14 @@
 export SumOperator
 export bintype
 
+"""
+    SumOperator{Scalar, BR}
+
+Represents a sum of pure operators.
+
+# Members
+- `terms::Vector{PureOperator{Scalar,BR}}`
+"""
 struct SumOperator{Scalar<:Number, BR <:Unsigned} <:AbstractOperator{Scalar}
   terms ::Vector{PureOperator{Scalar, BR}}
 
@@ -9,6 +17,7 @@ struct SumOperator{Scalar<:Number, BR <:Unsigned} <:AbstractOperator{Scalar}
     return new{S, BR}(terms)
   end
 end
+
 
 scalartype(lhs ::Type{SumOperator{S, BR}}) where {S, BR} = S
 bintype(lhs ::Type{SumOperator{S, BR}}) where {S, BR} = BR

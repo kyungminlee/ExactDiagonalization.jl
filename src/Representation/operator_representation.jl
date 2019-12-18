@@ -2,6 +2,11 @@ export OperatorRepresentation
 export represent
 export apply!, apply_serial!, apply_parallel!
 
+"""
+    OperatorRepresentation{HSR, S, O}
+
+Operator representation of given operator of type `O`.
+"""
 struct OperatorRepresentation{HSR <:HilbertSpaceRepresentation, S<:Number, O<:AbstractOperator} <: AbstractOperatorRepresentation{S}
   hilbert_space_representation ::HSR
   operator ::O
@@ -43,7 +48,12 @@ end
 ## iterators
 
 """
-May contain duplicates
+    get_row_iterator(opr, irow)
+
+Returns an iterator which generates a list of elements of the row `irow`.
+Each element is represented as (icol, amplitude).
+**May contain duplicates and invalid elements.**
+Invalid elements are represented as (-1, amplitude).
 """
 function get_row_iterator(opr ::OperatorRepresentation{HSR, S, O},
                           irow ::Integer) where {HSR, S, O}
@@ -57,7 +67,16 @@ function get_row_iterator(opr ::OperatorRepresentation{HSR, S, O},
 end
 
 
-function get_column_iterator(opr ::OperatorRepresentation{HSR, S, O}, icol ::Integer) where {HSR, S, O}
+"""
+    get_column_iterator(opr, icol)
+
+Returns an iterator which generates a list of elements of the column `icol`.
+Each element is represented as (irow, amplitude).
+**May contain duplicates and invalid elements.**
+Invalid elements are represented as (-1, amplitude).
+"""
+function get_column_iterator(opr ::OperatorRepresentation{HSR, S, O},
+                             icol ::Integer) where {HSR, S, O}
   hsr = opr.hilbert_space_representation
   bcol = hsr.basis_list[icol]
   basis_lookup = hsr.basis_lookup
@@ -68,6 +87,9 @@ function get_column_iterator(opr ::OperatorRepresentation{HSR, S, O}, icol ::Int
 end
 
 
+"""
+    get_element(opr, irow, icol)
+"""
 function get_element(opr ::OperatorRepresentation{HSR, S, O}, irow ::Integer, icol ::Integer) where {HSR, S, O}
   hsr = opr.hilbert_space_representation
   @boundscheck let

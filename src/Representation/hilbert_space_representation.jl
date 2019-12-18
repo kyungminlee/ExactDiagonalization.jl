@@ -2,6 +2,14 @@ export HilbertSpaceRepresentation
 export dimension
 export represent, represent_dict
 
+"""
+    HilbertSpaceRepresentation{HS, BR, DictType}
+
+# Members
+- `hilbert_space ::HS`
+- `basis_list ::Vector{BR}`
+- `basis_lookup ::DictType`
+"""
 struct HilbertSpaceRepresentation{HS <:AbstractHilbertSpace,
                                   BR <:Unsigned,
                                   DictType <:AbstractDict{BR, <:Int}
@@ -47,12 +55,14 @@ function (==)(lhs ::HilbertSpaceRepresentation{H1, B1, D1},
   return basespace(lhs) == basespace(rhs) && (lhs.basis_list == rhs.basis_list)
 end
 
+
 function checkvalidbasis(hsr::HilbertSpaceRepresentation{HS, BR, DT}) where {HS, BR, DT}
   for (ivec, bvec) in enumerate(hsr.basis_list)
     ivec2 = hsr.basis_lookup[bvec]
     @assert ivec == ivec2
   end
 end
+
 
 """
     dimension

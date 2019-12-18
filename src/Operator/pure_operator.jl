@@ -4,6 +4,18 @@ export bintype
 
 using LinearAlgebra
 
+"""
+    PureOperator{Scalar, BR}
+
+Represents an operator ``A_1 \\otimes A_2 \\otimes \\ldots \\otimes A_n`` where
+``A_i`` is either identity, or projection ``\\vert r_i \\rangle \\langle c_i \\vert``.
+
+# Members
+- `bitmask::BR`
+- `bitrow::BR`
+- `bitcol::BR`
+- `amplitude::Scalar`
+"""
 struct PureOperator{Scalar<:Number, BR<:Unsigned} <:AbstractOperator{Scalar}
   bitmask ::BR
   bitrow ::BR
