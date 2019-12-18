@@ -85,67 +85,6 @@ function hs_get_basis_list(hs ::HilbertSpace{QN}, binary_type::Type{BR}=UInt)::V
 end
 
 
-function hs_get_basis_list_old(hss::HilbertSpaceSector{QN}, binary_type::Type{BR}=UInt)::Vector{BR} where {QN, BR<:Unsigned}
-  hs = hss.parent
-  if sizeof(BR) * 8 <= bitwidth(hs)
-    throw(ArgumentError("type $(BR) not enough to represent the hilbert space (need $(bitwidth(hs)) bits)"))
-  end
-  allowed = hss.allowed_quantum_numbers
-  sectors = Set(quantum_number_sectors(hs))
-  if isempty(intersect(allowed, sectors))
-    return BR[]
-  end
-
-  quantum_numbers = [[state.quantum_number for state in site.states] for site in hs.sites]
-  possible_quantum_numbers = [Set([zero(QN)])]  # PQN[i]: possible QN left of i
-
-  n_sites = length(hs.sites)
-  for i in 1:n_sites
-    pq = Set{QN}(q1 + q2 for q1 in possible_quantum_numbers[i], q2 in quantum_numbers[i])
-    push!(possible_quantum_numbers, pq)
-  end
-
-  empty_dict = Dict{QN, Vector{BR}}()
-  function generate(i ::Int, allowed ::AbstractSet{QN})
-    (i == 0) && return (zero(QN) in allowed) ? Dict(zero(QN) => [BR(0x0)]) : empty_dict
-    allowed_prev = Set{QN}()
-    for q1 in quantum_numbers[i], q2 in allowed
-      q = q2 - q1
-      (q in possible_quantum_numbers[i]) && push!(allowed_prev, q)
-    end
-    result = Dict{QN, Vector{BR}}()
-    let result_prev = generate(i-1, allowed_prev)
-      for (i_state, q_curr) in enumerate(quantum_numbers[i])
-        for (q_prev, states_prev) in result_prev
-          q = q_prev + q_curr
-          if q in allowed
-            if !haskey(result, q)
-              result[q] = BR[]
-            end
-            append!(result[q], (s | (BR(i_state-1) << hs.bitoffsets[i])) for s in states_prev)
-          end # if q in allowed
-        end # for (q_prev, states_prev) in result_prev
-      end # for (i_state, q_curr) in enumerate(quantum_numbers[i])
-    end
-    GC.gc()
-    return result
-  end
-  basis_list ::Vector{BR} = let
-    basis_list = BR[]
-    result = generate(n_sites, allowed)
-    qs = collect(keys(result))
-    for q in qs
-      states = pop!(result, q)
-      basis_list = merge_vec(basis_list, states)
-      GC.gc()
-    end
-    basis_list
-  end
-  @assert issorted(basis_list)
-  return basis_list
-end
-
-
 function hs_get_basis_list(hss::HilbertSpaceSector{QN}, binary_type::Type{BR}=UInt) ::Vector{BR} where {QN, BR<:Unsigned}
   hs = hss.parent
   if sizeof(BR) * 8 <= bitwidth(hs)
