@@ -277,7 +277,8 @@ end # testset NullOperator
       @test pop * pop * pop * pop * pop * pop == pop^6
 
       pop2 = PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0010, 3.0)
-      @test isa(pop2^99999, NullOperator)
+      @test isa(pop2^9999, NullOperator)
+      @test isa(pop2^16, NullOperator)
     end
   end
 
