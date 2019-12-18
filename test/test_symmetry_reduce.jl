@@ -53,6 +53,9 @@ using ExactDiagonalization.Toolkit: pauli_matrix
         end
       end
 
+      @test_throws DimensionMismatch symmetry_unreduce(rhsr, zeros(ComplexF64, dimension(rhsr)+1))
+      @test_throws DimensionMismatch symmetry_reduce(rhsr, zeros(ComplexF64, dimension(hsr)+1))
+
       sv = rand(ComplexF64, dimension(rhsr))
       lv = symmetry_unreduce(rhsr, sv)
       sv2 = symmetry_reduce(rhsr, lv)
