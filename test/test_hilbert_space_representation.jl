@@ -36,8 +36,10 @@ using StaticArrays
       hilbert_space = HilbertSpace([spinsite for i in 1:4])
       hsr = represent(hilbert_space, UInt32)
       @test scalartype(hsr) === Bool
+      @test valtype(hsr) === Bool
       @test bintype(hsr) === UInt32
       @test scalartype(typeof(hsr)) === Bool
+      @test valtype(typeof(hsr)) === Bool
       @test bintype(typeof(hsr)) === UInt32
     end
 

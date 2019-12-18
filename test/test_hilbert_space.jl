@@ -100,8 +100,10 @@ end
 
     @test qntype(hs) === Int
     @test scalartype(hs) === Bool
+    @test valtype(hs) === Bool
     @test qntype(typeof(hs)) === Int
     @test scalartype(typeof(hs)) === Bool
+    @test valtype(typeof(hs)) === Bool
     @test basespace(hs) === hs
 
     @test get_bitmask(hs, 1) == 0b0001
@@ -142,8 +144,10 @@ end
 
     @test qntype(hs) === QN
     @test scalartype(hs) === Bool
+    @test valtype(hs) === Bool
     @test qntype(typeof(hs)) === QN
     @test scalartype(typeof(hs)) === Bool
+    @test valtype(typeof(hs)) === Bool
     @test basespace(hs) === hs
 
 

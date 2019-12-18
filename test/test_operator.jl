@@ -15,6 +15,8 @@ using StaticArrays
   @testset "typetraits" begin
     @test scalartype(nop) === Bool
     @test scalartype(typeof(nop)) === Bool
+    @test valtype(nop) === Bool
+    @test valtype(typeof(nop)) === Bool
     @test bintype(nop) <: Unsigned
     @test bintype(typeof(nop)) <: Unsigned
   end
@@ -98,6 +100,8 @@ end # testset NullOperator
       @test pop.amplitude == t1(2)
       @test scalartype(pop) === t1
       @test scalartype(typeof(pop)) === t1
+      @test valtype(pop) === t1
+      @test valtype(typeof(pop)) === t1
       @test bintype(pop) === bt
       @test bintype(typeof(pop)) === bt
       for t2 in types
@@ -309,6 +313,8 @@ end
 
     @test scalartype(sop) === Float64
     @test scalartype(typeof(sop)) === Float64
+    @test valtype(sop) === Float64
+    @test valtype(typeof(sop)) === Float64
     @test bintype(sop) === UInt
     @test bintype(typeof(sop)) === UInt
   end

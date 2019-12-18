@@ -29,6 +29,8 @@ using ExactDiagonalization.Toolkit: pauli_matrix
     rhsr = symmetry_reduce(hsr, translation_group, [0//1])
     @test scalartype(rhsr) === ComplexF64
     @test scalartype(typeof(rhsr)) === ComplexF64
+    @test valtype(rhsr) === ComplexF64
+    @test valtype(typeof(rhsr)) === ComplexF64
     @test bintype(rhsr) === UInt
     @test bintype(typeof(rhsr)) === UInt
   end
@@ -47,9 +49,12 @@ using ExactDiagonalization.Toolkit: pauli_matrix
 
     @testset "typetraits" begin
       @test scalartype(j1) === Complex{Int}
+      @test valtype(j1) === Complex{Int}
 
       @test scalartype(j1_redrep) === ComplexF64
       @test scalartype(typeof(j1_redrep)) === ComplexF64
+      @test valtype(j1_redrep) === ComplexF64
+      @test valtype(typeof(j1_redrep)) === ComplexF64
 
       @test bintype(j1_redrep) === UInt
       @test bintype(typeof(j1_redrep)) === UInt

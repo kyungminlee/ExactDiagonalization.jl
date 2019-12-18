@@ -46,6 +46,11 @@ using ExactDiagonalization.Toolkit: pauli_matrix
       @test scalartype(opr2) === Complex{Int}
       @test scalartype(typeof(opr1)) === Int
       @test scalartype(typeof(opr2)) === Complex{Int}
+
+      @test valtype(opr1) === Int
+      @test valtype(opr2) === Complex{Int}
+      @test valtype(typeof(opr1)) === Int
+      @test valtype(typeof(opr2)) === Complex{Int}
     end
 
     @testset "size" begin
