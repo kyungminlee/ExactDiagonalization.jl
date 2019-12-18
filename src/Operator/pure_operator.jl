@@ -31,6 +31,15 @@ struct PureOperator{Scalar<:Number, BR<:Unsigned} <:AbstractOperator{Scalar}
     return new{S, BR}(bitmask, bitrow, bitcol, amplitude)
   end
 
+  function PureOperator(bitmask::BR, bitrow::BR, bitcol::BR, amplitude::S) where {S<:Number, BR<:Unsigned}
+    if (~bitmask) & bitrow != zero(BR)
+      throw(ArgumentError("every bit of bitrow not in bitmask should be set to zero"))
+    elseif (~bitmask) & bitcol != zero(BR)
+      throw(ArgumentError("every bit of bitcol not in bitmask should be set to zero"))
+    end
+    return new{S, BR}(bitmask, bitrow, bitcol, amplitude)
+  end
+
   function PureOperator{S, BR}(s::UniformScaling{S}) where {S, BR}
     return new{S, BR}(zero(BR), zero(BR), zero(BR), s.λ)
   end
@@ -88,31 +97,25 @@ import Base.+, Base.-, Base.*, Base./, Base.\
 
 
 function (*)(lhs ::S1, rhs ::PureOperator{S2, BR}) where {S1<:Number, S2<:Number, BR}
-  S = promote_type(S1, S2)
-  return PureOperator{S, BR}(rhs.bitmask, rhs.bitrow, rhs.bitcol, lhs * rhs.amplitude)
+  return PureOperator(rhs.bitmask, rhs.bitrow, rhs.bitcol, lhs * rhs.amplitude)
 end
 
 function (*)(lhs ::PureOperator{S1, BR}, rhs ::S2) where {S1<:Number, S2<:Number, BR}
-  S = promote_type(S1, S2)
-  return PureOperator{S, BR}(lhs.bitmask, lhs.bitrow, lhs.bitcol, lhs.amplitude * rhs)
+  return PureOperator(lhs.bitmask, lhs.bitrow, lhs.bitcol, lhs.amplitude * rhs)
 end
 
 function (\)(lhs ::S1, rhs ::PureOperator{S2, BR}) where {S1<:Number, S2<:Number, BR}
-  S = promote_type(S1, S2)
-  return PureOperator{S, BR}(rhs.bitmask, rhs.bitrow, rhs.bitcol, lhs \ rhs.amplitude)
+  return PureOperator(rhs.bitmask, rhs.bitrow, rhs.bitcol, lhs \ rhs.amplitude)
 end
 
 function (/)(lhs ::PureOperator{S1, BR}, rhs ::S2) where {S1<:Number, S2<:Number, BR}
-  S = promote_type(S1, S2)
-  return PureOperator{S, BR}(lhs.bitmask, lhs.bitrow, lhs.bitcol, lhs.amplitude / rhs)
+  return PureOperator(lhs.bitmask, lhs.bitrow, lhs.bitcol, lhs.amplitude / rhs)
 end
 
 
 # === 4/6 Operator Products ===
 
 function (*)(lhs ::PureOperator{S1, BR}, rhs ::PureOperator{S2, BR}) ::AbstractOperator where {S1<:Number, S2<:Number, BR}
-  S3 = promote_type(S1, S2)
-
   onlylhs_bitmask   =   lhs.bitmask  & (~rhs.bitmask)
   onlyrhs_bitmask   = (~lhs.bitmask) &   rhs.bitmask
   intersect_bitmask =   lhs.bitmask  &   rhs.bitmask
@@ -125,10 +128,7 @@ function (*)(lhs ::PureOperator{S1, BR}, rhs ::PureOperator{S2, BR}) ::AbstractO
     new_bitrow = lhs.bitrow | (rhs.bitrow & onlyrhs_bitmask)
     new_bitcol = rhs.bitcol | (lhs.bitcol & onlylhs_bitmask)
     new_amplitude = lhs.amplitude * rhs.amplitude
-    return PureOperator{S3, BR}(new_bitmask,
-                                new_bitrow,
-                                new_bitcol,
-                                new_amplitude)
+    return PureOperator(new_bitmask, new_bitrow, new_bitcol, new_amplitude)
   end
 end
 
@@ -161,5 +161,5 @@ function pure_operator(
   bm = get_bitmask(hilbert_space, isite, BR)
   br = BR(istate_row - 1) << hilbert_space.bitoffsets[isite]
   bc = BR(istate_col - 1) << hilbert_space.bitoffsets[isite]
-  return PureOperator{S, BR}(bm, br, bc, amplitude)
+  return PureOperator(bm, br, bc, amplitude)
 end
