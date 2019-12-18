@@ -61,7 +61,7 @@ end
 
 
 function get_element(pureop::PureOperator{S, BR}, br ::BR2, bc::BR3) ::S where {S, BR, BR2 <:Unsigned, BR3<:Unsigned}
-  if ((br & pureop.bitmask) == pureop.bitrow) && ((bc & pureop.bitmask) == pureop.bitcol)
+  if ((br & pureop.bitmask) == pureop.bitrow) && (((br & ~pureop.bitmask) | pureop.bitcol) == bc)
     return pureop.amplitude
   else
     return zero(S)
