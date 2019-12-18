@@ -49,13 +49,13 @@ function (==)(lhs ::AbstractOperatorRepresentation{T1},
 end
 
 
-import Base.+, Base.-, Base.*
+import Base.+, Base.-, Base.*, Base./, Base.\
 
 
 for uniop in [:+, :-]
   @eval begin
     function ($uniop)(lhs ::AbstractOperatorRepresentation{T}) where T
-      return represent(lhs.hilbert_space_representation, ($uniop)(lhs.operator))
+      return represent(get_space(lhs), ($uniop)(lhs.operator))
     end
   end
 end
