@@ -72,9 +72,11 @@ end # testset NullOperator
   nop = NullOperator()
 
   @testset "constructor" begin
-    PureOperator{Float64, UInt}(0b0010, 0b0010, 0b0010, 1.0)
+    @test PureOperator{Float64, UInt}(0b0010, 0b0010, 0b0010, 1.0) == PureOperator(UInt(0b0010), UInt(0b0010), UInt(0b0010), 1.0)
     @test_throws ArgumentError PureOperator{Float64, UInt}(0b0010, 0b0011, 0b0010, 1.0)
     @test_throws ArgumentError PureOperator{Float64, UInt}(0b0010, 0b0010, 0b0011, 1.0)
+    @test_throws ArgumentError PureOperator(0b0010, 0b0011, 0b0010, 1.0)
+    @test_throws ArgumentError PureOperator(0b0010, 0b0010, 0b0011, 1.0)
     pop = PureOperator{Float64, UInt}(LinearAlgebra.UniformScaling{Float64}(3.0))
     @test pop.bitmask == 0x0
     @test pop.bitrow == 0x0
