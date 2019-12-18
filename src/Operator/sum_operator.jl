@@ -16,6 +16,10 @@ struct SumOperator{Scalar<:Number, BR <:Unsigned} <:AbstractOperator{Scalar}
   function SumOperator{S, BR}(terms) where {S, BR}
     return new{S, BR}(terms)
   end
+
+  function SumOperator(terms ::AbstractVector{PureOperator{S, BR}}) where {S<:Number, BR<:Unsigned}
+    return new{S, BR}(terms)
+  end
 end
 
 
@@ -54,23 +58,19 @@ import Base.+, Base.-, Base.*, Base./, Base.\
 
 
 function (*)(lhs ::S1, rhs ::SumOperator{S2, BR}) where {S1<:Number, S2<:Number, BR}
-  S = promote_type(S1, S2)
-  SumOperator{S, BR}(lhs .* rhs.terms)
+  SumOperator(lhs .* rhs.terms)
 end
 
 function (*)(lhs ::SumOperator{S1, BR}, rhs ::S2) where {S1<:Number, S2<:Number, BR}
-  S = promote_type(S1, S2)
-  SumOperator{S, BR}(lhs.terms .* rhs)
+  SumOperator(lhs.terms .* rhs)
 end
 
 function (\)(lhs ::S1, rhs ::SumOperator{S2, BR}) where {S1<:Number, S2<:Number, BR}
-  S = promote_type(S1, S2)
-  SumOperator{S, BR}(lhs .\ rhs.terms)
+  SumOperator(lhs .\ rhs.terms)
 end
 
 function (/)(lhs ::SumOperator{S1, BR}, rhs ::S2) where {S1<:Number, S2<:Number, BR}
-  S = promote_type(S1, S2)
-  SumOperator{S, BR}(lhs.terms ./ rhs)
+  SumOperator(lhs.terms ./ rhs)
 end
 
 
