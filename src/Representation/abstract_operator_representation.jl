@@ -84,6 +84,16 @@ function (*)(lhs ::Number, rhs ::AbstractOperatorRepresentation{T}) where {T}
 end
 
 
+function (/)(lhs ::AbstractOperatorRepresentation{T}, rhs ::Number) where {T}
+  return represent(get_space(lhs), simplify(lhs.operator / rhs))
+end
+
+
+function (\)(lhs ::Number, rhs ::AbstractOperatorRepresentation{T}) where {T}
+  return represent(get_space(rhs), simplify(lhs \ rhs.operator))
+end
+
+
 function simplify(arg::AbstractOperatorRepresentation{T}) where {T}
   return represent(get_space(arg), simplify(arg.operator))
 end
