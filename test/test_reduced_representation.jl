@@ -61,6 +61,11 @@ using ExactDiagonalization.Toolkit: pauli_matrix
       @test get_space(j1_redrep) === rhsr
     end
 
+    @testset "sym" begin
+      @test ishermitian(represent(hsr, σ[2, :x]))
+      @test !ishermitian(represent(hsr, σ[2, :+]))
+    end
+
     @testset "unary operator" begin
       @test +j1_redrep == j1_redrep
       @test -j1_redrep == represent(rhsr, -j1)
@@ -70,7 +75,7 @@ using ExactDiagonalization.Toolkit: pauli_matrix
       @test simplify(j1_redrep + j2_redrep) == represent(rhsr, simplify(j1 + j2))
       @test simplify(j1_redrep - j2_redrep) == represent(rhsr, simplify(j1 - j2))
       @test simplify(j1_redrep * j2_redrep) == represent(rhsr, simplify(j1 * j2))
-      
+
       @test simplify(j1_redrep * 2) == represent(rhsr, simplify(j1 * 2))
       @test simplify(2 * j1_redrep) == represent(rhsr, simplify(2 * j1))
       @test simplify(j1_redrep * 0) == represent(rhsr, NullOperator())
