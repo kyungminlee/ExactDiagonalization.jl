@@ -1,7 +1,6 @@
 environment:
   matrix:
   - julia_version: 1.0.5
-  - julia_version: 1.2
   - julia_version: 1.3
   - julia_version: nightly
 platform:
@@ -25,16 +24,6 @@ install:
   - ps: Invoke-Expression ((new-object net.webclient).DownloadString("https://raw.githubusercontent.com/JuliaCI/Appveyor.jl/version-1/bin/install.ps1"))
   - git clone https://github.com/JuliaRegistries/General.git %USERPROFILE%\.julia\registries\General
   - git clone https://github.com/kyungminlee/KyungminLeeRegistry.jl.git %USERPROFILE%\.julia\registries\KyungminLeeRegistry
-# for:
-# -
-#   matrix:
-#     only:
-#       - julia_version: 1.3
-#       - julia_version: nightly
-#   install:
-#     - ps: Invoke-Expression ((new-object net.webclient).DownloadString("https://raw.githubusercontent.com/JuliaCI/Appveyor.jl/version-1/bin/install.ps1"))
-#     - git clone https://github.com/JuliaRegistries/General.git %USERPROFILE%\.julia\registries\General
-#     - git clone https://github.com/kyungminlee/KyungminLeeRegistry.jl.git %USERPROFILE%\.julia\registries\KyungminLeeRegistry
 build_script:
   - echo "%JL_BUILD_SCRIPT%"
   - C:\julia\bin\julia -e "%JL_BUILD_SCRIPT%"
