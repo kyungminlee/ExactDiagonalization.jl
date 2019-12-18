@@ -1,6 +1,6 @@
 export HilbertSpaceRepresentation
 export dimension
-export represent, represent_dict
+export represent, represent_array, represent_dict
 
 """
     HilbertSpaceRepresentation{HS, BR, DictType}
@@ -162,9 +162,10 @@ function hs_get_basis_list(hss::HilbertSpaceSector{QN}, binary_type::Type{BR}=UI
   return basis_list
 end
 
+represent(hs::AbstractHilbertSpace, binary_type::Type{BR}=UInt) where {BR <:Unsigned} = represent_array(hs, binary_type)
 
 """
-    represent(hs; BR=UInt)
+    represent_array(hs; BR=UInt)
 
 Make a HilbertSpaceRepresentation with all the basis vectors of the specified HilbertSpaceSector.
 
@@ -172,15 +173,17 @@ Make a HilbertSpaceRepresentation with all the basis vectors of the specified Hi
 - `hs ::AbstractHilbertSpace`
 - `BR ::DataType=UInt`: Binary representation type
 """
-function represent(hs::AbstractHilbertSpace, binary_type::Type{BR}=UInt) where {BR <:Unsigned}
+function represent_array(hs::AbstractHilbertSpace, binary_type::Type{BR}=UInt) where {BR <:Unsigned}
   basis_list = hs_get_basis_list(hs, BR)
   basis_lookup = FrozenSortedArrayIndex{BR}(basis_list)
   return HilbertSpaceRepresentation(basespace(hs), basis_list, basis_lookup)
 end
 
 
+represent(hs ::AbstractHilbertSpace, basis_list ::AbstractVector{BR}) where {BR<:Unsigned} = represent_array(hs, basis_list)
+
 """
-    represent(hs, basis_list)
+    represent_array(hs, basis_list)
 
 Make a HilbertSpaceRepresentation with the provided list of basis vectors
 
@@ -188,8 +191,8 @@ Make a HilbertSpaceRepresentation with the provided list of basis vectors
 - `hs ::AbstractHilbertSpace`
 - `basis_list ::AbstractVector{BR}`
 """
-function represent(hs ::AbstractHilbertSpace,
-                   basis_list ::AbstractVector{BR}) where {BR<:Unsigned}
+function represent_array(hs ::AbstractHilbertSpace,
+                         basis_list ::AbstractVector{BR}) where {BR<:Unsigned}
   if !issorted(basis_list)
     basis_list = sort(basis_list)
   end
