@@ -7,40 +7,42 @@ export dimension, bitwidth
 export get_row, get_column
 export sparse_serial, sparse_parallel
 
+
 """
     AbstractOperatorRepresentation{S}
 """
 abstract type AbstractOperatorRepresentation{S} <: AbstractMatrix{S} end
 
+
 ## typetraits
 
-# a subclass of AbstractOperatorRepresentation should implement
-# spacetype, operatortype, and get_space.
+import Base.valtype
+valtype(lhs::AbstractOperatorRepresentation{T}) where T = T
+valtype(lhs::Type{<:AbstractOperatorRepresentation{T}}) where T = T
 
-spacetype(lhs::AbstractOperatorRepresentation{T}) where T = spacetype(typeof(lhs)) ::Type{<:AbstractHilbertSpaceRepresentation}
-operatortype(lhs ::AbstractOperatorRepresentation{T}) where T = operatortype(typeof(lhs)) ::Type{<:AbstractOperator}
-
-#if not specialized
-# @inline spacetype(lhs::Type{AbstractOperatorRepresentation}) = error("spacetype not implemented")
-# @inline operatortype(lhs ::Type{AbstractOperatorRepresentation}) = error("operatortype not implemented")
-#@inline get_space(lhs::AbstractOperatorRepresentation) = error("get_space not implemented")
+scalartype(lhs::AbstractOperatorRepresentation{T}) where T = T
+scalartype(lhs::Type{<:AbstractOperatorRepresentation{T}}) where T = T
 
 bintype(lhs ::AbstractOperatorRepresentation{T}) where T = bintype(typeof(lhs)) ::DataType
 bintype(lhs ::Type{<:AbstractOperatorRepresentation{T}}) where T = bintype(spacetype(lhs)) ::DataType
 
-#scalartype(lhs::AbstractOperatorRepresentation) ::DataType = scalartype(typeof(lhs)) ::DataType
-scalartype(lhs::AbstractOperatorRepresentation{T}) where T = T
-scalartype(lhs::Type{<:AbstractOperatorRepresentation{T}}) where T = T
+
+# a subclass of AbstractOperatorRepresentation should implement
+# spacetype, operatortype, and get_space.
+spacetype(lhs::AbstractOperatorRepresentation{T}) where T = spacetype(typeof(lhs)) ::Type{<:AbstractHilbertSpaceRepresentation}
+operatortype(lhs ::AbstractOperatorRepresentation{T}) where T = operatortype(typeof(lhs)) ::Type{<:AbstractOperator}
+
 
 dimension(lhs::AbstractOperatorRepresentation{S}) where S = dimension(get_space(lhs))
 bitwidth(lhs::AbstractOperatorRepresentation{S}) where S = bitwidth(get_space(lhs))
 
+
 import Base.size
+
 function size(arg::AbstractOperatorRepresentation{T}) ::Tuple{Int, Int} where T
   dim = dimension(get_space(arg))
   return (dim, dim)
 end
-
 
 size(arg::AbstractOperatorRepresentation{T}, i::Integer) where T = size(arg)[i]
 
@@ -54,7 +56,6 @@ end
 
 import Base.+, Base.-, Base.*, Base./, Base.\
 
-
 for uniop in [:+, :-]
   @eval begin
     function ($uniop)(lhs ::AbstractOperatorRepresentation{T}) where T
@@ -62,7 +63,6 @@ for uniop in [:+, :-]
     end
   end
 end
-
 
 for binop in [:+, :-, :*]
   @eval begin
@@ -76,26 +76,21 @@ for binop in [:+, :-, :*]
   end
 end
 
-
 function (*)(lhs ::AbstractOperatorRepresentation{T}, rhs ::Number) where {T}
   return represent(get_space(lhs), simplify(lhs.operator * rhs))
 end
-
 
 function (*)(lhs ::Number, rhs ::AbstractOperatorRepresentation{T}) where {T}
   return represent(get_space(rhs), simplify(lhs * rhs.operator))
 end
 
-
 function (/)(lhs ::AbstractOperatorRepresentation{T}, rhs ::Number) where {T}
   return represent(get_space(lhs), simplify(lhs.operator / rhs))
 end
 
-
 function (\)(lhs ::Number, rhs ::AbstractOperatorRepresentation{T}) where {T}
   return represent(get_space(rhs), simplify(lhs \ rhs.operator))
 end
-
 
 function simplify(arg::AbstractOperatorRepresentation{T}) where {T}
   return represent(get_space(arg), simplify(arg.operator))
@@ -105,6 +100,16 @@ end
 import LinearAlgebra.ishermitian
 function ishermitian(arg::AbstractOperatorRepresentation{S}) where S
   return ishermitian(arg.operator)
+end
+
+
+import LinearAlgebra.mul!
+function LinearAlgebra.mul!(out ::AbstractVector{S1},
+                            opr ::AbstractOperatorRepresentation{S2},
+                            state ::AbstractVector{S3}) where {S1<:Number, S2<:Number, S3<:Number}
+  fill!(out, zero(S1))
+  apply!(out, opr, state)
+  out
 end
 
 
@@ -120,16 +125,6 @@ function Matrix(opr::AbstractOperatorRepresentation{S}) where S
     end
   end
   return out
-end
-
-
-import LinearAlgebra.mul!
-function LinearAlgebra.mul!(out ::AbstractVector{S1},
-                            opr ::AbstractOperatorRepresentation{S2},
-                            state ::AbstractVector{S3}) where {S1<:Number, S2<:Number, S3<:Number}
-  fill!(out, zero(S1))
-  apply!(out, opr, state)
-  out
 end
 
 
@@ -267,6 +262,7 @@ function apply!(out ::AbstractVector{S1},
              apply_parallel!(out, opr, state)
 end
 
+
 """
     apply!(out, opr, state)
 
@@ -288,6 +284,7 @@ function apply!(out ::AbstractVector{S1},
              apply_serial!(out, state, opr) :
              apply_parallel!(out, state, opr)
 end
+
 
 """
     apply_serial!(out, opr, state; range=1:size(opr, 2))
@@ -320,6 +317,7 @@ function apply_serial!(out ::AbstractVector{S1},
   end
   out
 end
+
 
 """
     apply_serial!(out, state, opr; range=1:size(opr, 1))

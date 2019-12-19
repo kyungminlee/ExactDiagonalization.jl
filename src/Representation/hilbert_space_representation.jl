@@ -2,13 +2,16 @@ export HilbertSpaceRepresentation
 export dimension
 export represent, represent_array, represent_dict
 
+
 """
     HilbertSpaceRepresentation{HS, BR, DictType}
 
-# Members
-- `hilbert_space ::HS`
-- `basis_list ::Vector{BR}`
-- `basis_lookup ::DictType`
+# Fields
+```
+hilbert_space :: HS
+basis_list    :: Vector{BR}
+basis_lookup  :: DictType
+```
 """
 struct HilbertSpaceRepresentation{HS <:AbstractHilbertSpace,
                                   BR <:Unsigned,
@@ -43,12 +46,13 @@ end
 
 
 import Base.valtype
-
-scalartype(lhs ::Type{HilbertSpaceRepresentation{HS, BR, DT}}) where {HS, BR, DT} = Bool
 valtype(lhs ::Type{HilbertSpaceRepresentation{HS, BR, DT}}) where {HS, BR, DT} = Bool
+scalartype(lhs ::Type{HilbertSpaceRepresentation{HS, BR, DT}}) where {HS, BR, DT} = Bool
 bintype(lhs ::Type{HilbertSpaceRepresentation{HS, BR, DT}}) where {HS, BR, DT} = BR
 
+
 basespace(lhs::HilbertSpaceRepresentation{HS, BR, DT}) where {HS, BR, DT} = lhs.hilbert_space ::HS
+
 
 """
     dimension
@@ -163,16 +167,19 @@ function hs_get_basis_list(hss::HilbertSpaceSector{QN}, binary_type::Type{BR}=UI
   return basis_list
 end
 
+
 represent(hs::AbstractHilbertSpace, binary_type::Type{BR}=UInt) where {BR <:Unsigned} = represent_array(hs, binary_type)
 
-"""
-    represent_array(hs; BR=UInt)
 
-Make a HilbertSpaceRepresentation with all the basis vectors of the specified HilbertSpaceSector.
+"""
+    represent_array(hs, binary_type=UInt)
+
+Make a HilbertSpaceRepresentation with all the basis vectors of the specified HilbertSpaceSector
+using `FrozenSortedArrayIndex{BR}`.
 
 # Arguments
-- `hs ::AbstractHilbertSpace`
-- `BR ::DataType=UInt`: Binary representation type
+- `hs :: AbstractHilbertSpace`
+- `binary_type = UInt`: Binary representation type
 """
 function represent_array(hs::AbstractHilbertSpace, binary_type::Type{BR}=UInt) where {BR <:Unsigned}
   basis_list = hs_get_basis_list(hs, BR)
@@ -187,10 +194,11 @@ represent(hs ::AbstractHilbertSpace, basis_list ::AbstractVector{BR}) where {BR<
     represent_array(hs, basis_list)
 
 Make a HilbertSpaceRepresentation with the provided list of basis vectors
+using `Dict{BR, Int}`.
 
 # Arguments
-- `hs ::AbstractHilbertSpace`
-- `basis_list ::AbstractVector{BR}`
+- `hs :: AbstractHilbertSpace`
+- `basis_list :: AbstractVector{BR}`
 """
 function represent_array(hs ::AbstractHilbertSpace,
                          basis_list ::AbstractVector{BR}) where {BR<:Unsigned}
@@ -203,13 +211,13 @@ end
 
 
 """
-    represent_dict(hs; BR=UInt)
+    represent_dict(hs, binary_type=UInt)
 
 Make a HilbertSpaceRepresentation with all the basis vectors of the specified HilbertSpace.
 
 # Arguments
-- `hs ::AbstractHilbertSpace`
-- `BR ::DataType=UInt`: Binary representation type
+- `hs :: AbstractHilbertSpace`
+- `binary_type = UInt`: Binary representation type
 """
 function represent_dict(hs::AbstractHilbertSpace, binary_type::Type{BR}=UInt) where {BR<:Unsigned}
   basis_list = hs_get_basis_list(hs, BR)
@@ -225,7 +233,7 @@ end
 """
     represent_dict(hs, basis_list)
 
-Make a HilbertSpaceRepresentation with the provided list of basis vectors using Dict
+Make a HilbertSpaceRepresentation with the provided list of basis vectors using `Dict`.
 
 # Arguments
 - `hs ::HilbertSpace{QN}`: Abstract Hilbert space

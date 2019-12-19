@@ -1,6 +1,7 @@
 using Test
 using ExactDiagonalization
 
+using Suppressor
 using StaticArrays
 using LinearAlgebra
 using SparseArrays
@@ -51,6 +52,11 @@ using ExactDiagonalization.Toolkit: pauli_matrix
       @test valtype(opr2) === Complex{Int}
       @test valtype(typeof(opr1)) === Int
       @test valtype(typeof(opr2)) === Complex{Int}
+    end
+
+    @testset "show" begin
+      opr = OperatorRepresentation(hsr, σ[1, :x])
+      show(devnull, MIME("text/plain"), opr)
     end
 
     @testset "properties" begin
@@ -106,10 +112,10 @@ using ExactDiagonalization.Toolkit: pauli_matrix
       op2 = σ[3, :y]
       opr1 = OperatorRepresentation(hsr, op1)
       opr2 = OperatorRepresentation(hsr, op2)
-      @test issymmetric(op1)
-      @test !issymmetric(op2)
-      @test ishermitian(op1)
-      @test ishermitian(op2)
+      @test issymmetric(opr1)
+      @test !issymmetric(opr2)
+      @test ishermitian(opr1)
+      @test ishermitian(opr2)
     end
 
     @testset "iterator" begin
@@ -121,10 +127,6 @@ using ExactDiagonalization.Toolkit: pauli_matrix
       @test collect(get_row_iterator(opr2, 2)) == [-1 => 2.0]
       @test collect(get_column_iterator(opr2, 1)) == [-1 => 3.0]
       @test collect(get_column_iterator(opr2, 2)) == [-1 => 3.0]
-      # @test collect(get_row_iterator(opr2, 1)) == []
-      # @test collect(get_row_iterator(opr2, 2)) == []
-      # @test collect(get_column_iterator(opr2, 1)) == []
-      # @test collect(get_column_iterator(opr2, 2)) == []
     end
 
     @testset "get" begin

@@ -42,8 +42,6 @@ struct HilbertSpace{QN} <: AbstractHilbertSpace
   end
 end
 
-scalartype(arg ::HilbertSpace{QN}) where QN = Bool
-
 
 """
     scalartype(arg ::Type{HilbertSpace{QN}})
@@ -52,20 +50,18 @@ Returns the scalar type of the given hilbert space type.
 For HilbertSpace{QN}, it is always `Bool`.
 """
 scalartype(arg ::Type{HilbertSpace{QN}}) where QN = Bool
+scalartype(arg ::HilbertSpace{QN}) where QN = Bool
+
 
 import Base.valtype
-valtype(arg ::HilbertSpace{QN}) where QN = Bool
-
-
 """
     valtype(arg ::Type{HilbertSpace{QN}})
 
 Returns the `valtype` (scalar type) of the given hilbert space type.
 """
 valtype(arg ::Type{HilbertSpace{QN}}) where QN = Bool
+valtype(arg ::HilbertSpace{QN}) where QN = Bool
 
-
-qntype(arg ::HilbertSpace{QN}) where QN = QN
 
 """
     qntype(arg ::Type{HilbertSpace{QN}})
@@ -73,8 +69,14 @@ qntype(arg ::HilbertSpace{QN}) where QN = QN
 Returns the quantum number type of the given hilbert space type.
 """
 qntype(arg ::Type{HilbertSpace{QN}}) where QN = QN
+qntype(arg ::HilbertSpace{QN}) where QN = QN
 
 
+"""
+    basespace(hs)
+
+Get the base space of the HilbertSpace `hs`, which is itself.
+"""
 basespace(hs::HilbertSpace) = hs
 
 
@@ -102,9 +104,11 @@ function (==)(lhs ::HilbertSpace{Q1}, rhs ::HilbertSpace{Q2}) where {Q1, Q2}
   return lhs.sites == rhs.sites
 end
 
+
 function get_bitmask(hs ::HilbertSpace, isite ::Integer, binary_type ::Type{BR}=UInt) ::BR where {BR<:Unsigned}
   return make_bitmask(hs.bitoffsets[isite+1], hs.bitoffsets[isite], BR)
 end
+
 
 """
     quantum_number_sectors
@@ -121,6 +125,7 @@ function quantum_number_sectors(hs ::HilbertSpace{QN})::Vector{QN} where QN
   return sort(collect(qns))
 end
 
+
 """
     get_quantum_number
 """
@@ -132,6 +137,7 @@ function get_quantum_number(hs ::HilbertSpace{QN}, binrep ::BR) where {QN, BR}
     for (isite, site) in enumerate(hs.sites)
   )
 end
+
 
 function get_quantum_number(hs ::HilbertSpace{QN}, indexarray ::AbstractArray{I, 1}) where {QN, I <:Integer}
     sum(
@@ -172,7 +178,6 @@ function compress(hs ::HilbertSpace{QN}, indexarray ::CartesianIndex, binary_typ
   if length(indexarray) != length(hs.sites)
     throw(ArgumentError("length of indexarray should be the number of sites"))
   end
-
   binrep = zero(BR)
   for (isite, site) in enumerate(hs.sites)
     @boundscheck if !(1 <= indexarray[isite] <= dimension(site))
@@ -192,13 +197,16 @@ end
   return (binrep & (~mask)) | (BR(new_state_index-1) << hs.bitoffsets[isite])
 end
 
+
 function get_state_index(hs ::HilbertSpace, binrep ::BR, isite ::Integer) where {BR<:Unsigned}
   return Int( ( binrep >> hs.bitoffsets[isite] ) & make_bitmask(hs.bitwidths[isite], BR) ) + 1
 end
 
+
 function get_state(hs ::HilbertSpace, binrep ::BR, isite ::Integer) where {BR<:Unsigned}
   return hs.sites[isite].states[get_state_index(hs, binrep, isite)]
 end
+
 
 # import Base.iterate
 # @inline function iterate(hs ::HilbertSpace{QN}) where {QN}
@@ -217,6 +225,7 @@ end
 #   value, next_substate = next
 #   return (Int[value...], (subiterator, next_substate))
 # end
+
 
 import Base.keys
 function keys(hs ::HilbertSpace{QN}) where QN

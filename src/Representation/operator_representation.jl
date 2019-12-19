@@ -2,6 +2,7 @@ export OperatorRepresentation
 export represent
 export apply!, apply_serial!, apply_parallel!
 
+
 """
     OperatorRepresentation{HSR, S, O}
 
@@ -12,10 +13,11 @@ struct OperatorRepresentation{HSR <:HilbertSpaceRepresentation, S<:Number, O<:Ab
   operator ::O
 
   function OperatorRepresentation(hsr ::HSR, op ::O) where {HSR<:HilbertSpaceRepresentation, O<:AbstractOperator}
-    S = scalartype(op)
+    S = valtype(op)
     new{HSR, S, O}(hsr, op)
   end
 end
+
 
 function represent(hsr ::HSR, op ::O) where {HSR<:HilbertSpaceRepresentation, O<:AbstractOperator}
   return OperatorRepresentation(hsr, op)
@@ -30,12 +32,6 @@ get_space(lhs ::OperatorRepresentation{HSR, S, O}) where {HSR, S, O} = lhs.hilbe
 import LinearAlgebra.issymmetric
 function issymmetric(arg::OperatorRepresentation{HSR, S, O}) where {HSR, S, O}
   return issymmetric(arg.operator)
-end
-
-
-import LinearAlgebra.ishermitian
-function ishermitian(arg::OperatorRepresentation{HSR, S, O}) where {HSR, S, O}
-  return ishermitian(arg.operator)
 end
 
 

@@ -16,11 +16,12 @@ struct ReducedOperatorRepresentation{RHSR <:ReducedHilbertSpaceRepresentation, O
   reduced_hilbert_space_representation ::RHSR
   operator ::O
   function ReducedOperatorRepresentation(rhsr ::RHSR, op::O) where {RHSR <:ReducedHilbertSpaceRepresentation, O <:AbstractOperator}
-    S = promote_type(scalartype(RHSR), scalartype(O))
+    S = promote_type(valtype(RHSR), valtype(O))
     BR = bintype(RHSR)
     return new{RHSR, O, S, BR}(rhsr, op)
   end
 end
+
 
 spacetype(lhs::Type{ReducedOperatorRepresentation{RHSR, O, S, BR}}) where {RHSR, O, S, BR} = RHSR
 operatortype(lhs ::Type{ReducedOperatorRepresentation{RHSR, O, S, BR}}) where {RHSR, O, S, BR} = O
@@ -104,5 +105,9 @@ function get_element(opr ::ReducedOperatorRepresentation{RHSR, O, S, BR},
      throw(BoundsError(opr, [irow_r, icol_r]))
    end
   end
-  return @inbounds sum(ampl for (irow_r2, ampl::S) in get_column_iterator(opr, icol_r) if irow_r2 == irow_r)
+  #return @inbounds sum(ampl for (irow_r2, ampl::S) in get_column_iterator(opr, icol_r) if irow_r2 == irow_r)
+  return @inbounds mapreduce(identity,
+                             +,
+                             ampl for (irow_r2, ampl::S) in get_column_iterator(opr, icol_r) if irow_r2 == irow_r
+                             ;init=zero(S))
 end

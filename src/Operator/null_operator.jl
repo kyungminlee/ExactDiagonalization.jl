@@ -8,6 +8,10 @@ A null operator, i.e. 0.
 """
 struct NullOperator <:AbstractOperator{Bool} end
 
+
+bintype(lhs ::Type{NullOperator}) = UInt8
+
+
 import Base.-, Base.+, Base.*, Base.==
 
 (-)(op ::NullOperator) = op
@@ -25,8 +29,7 @@ import Base.-, Base.+, Base.*, Base.==
 (+)(lhs ::NullOperator, rhs ::AbstractOperator) = rhs
 
 (==)(lhs ::NullOperator, rhs::NullOperator) = true
-# (==)(lhs ::NullOperator, rhs::AbstractOperator) = false
-# (==)(lhs ::AbstractOperator, rhs::NullOperator) = false
+
 
 import Base.real, Base.imag, Base.conj, Base.transpose, Base.adjoint
 real(arg::NullOperator) = arg
@@ -35,15 +38,9 @@ conj(arg::NullOperator) = arg
 transpose(arg::NullOperator) = arg
 adjoint(arg::NullOperator) = arg
 
-#@inline scalartype(lhs ::Type{NullOperator}) = Bool
-bintype(lhs ::Type{NullOperator}) = UInt8
-
 
 import Base.<
 # null operator is smaller than any other operators
 (<)(lhs ::NullOperator, rhs ::NullOperator) = false
 (<)(lhs ::NullOperator, rhs ::AbstractOperator) = true
 (<)(lhs ::AbstractOperator, rhs ::NullOperator) = false
-
-# import Base.size
-# size(arg ::NullOperator) = (-1, -1)

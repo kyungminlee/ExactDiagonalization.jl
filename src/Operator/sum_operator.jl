@@ -1,6 +1,6 @@
-
 export SumOperator
 export bintype
+
 
 """
     SumOperator{Scalar, BR}
@@ -23,8 +23,8 @@ struct SumOperator{Scalar<:Number, BR <:Unsigned} <:AbstractOperator{Scalar}
 end
 
 
-scalartype(lhs ::Type{SumOperator{S, BR}}) where {S, BR} = S
 bintype(lhs ::Type{SumOperator{S, BR}}) where {S, BR} = BR
+
 
 # === 1/6 Equality ===
 

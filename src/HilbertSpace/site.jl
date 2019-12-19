@@ -9,12 +9,16 @@ export get_state_index
 
 using StaticArrays
 
+
 abstract type AbstractHilbertSpace end
+
 
 ## TODO: Think about this
 AbstractQuantumNumber = Union{Int, SVector{N, Int} where N}
 
+
 qntype(arg ::T) where T = qntype(T)
+
 
 """
     State{QN}
@@ -41,10 +45,12 @@ struct State{QN<:AbstractQuantumNumber}
   State{QN}(name ::AbstractString, quantum_number ::QN) where {QN} = new{QN}(name, quantum_number)
 end
 
+
 import Base.==
 function ==(lhs ::State{Q1}, rhs ::State{Q2}) where {Q1, Q2}
   return (Q1 == Q2) && (lhs.name == rhs.name) && (lhs.quantum_number == rhs.quantum_number)
 end
+
 
 """
     qntype(::Type{State{QN}})
@@ -52,6 +58,7 @@ end
 Returns the quantum number type of the given state type.
 """
 qntype(::Type{State{QN}}) where QN = QN
+
 
 """
     Site{QN}
@@ -75,6 +82,7 @@ struct Site{QN<:AbstractQuantumNumber} <: AbstractHilbertSpace
   Site{QN}(states ::AbstractArray{State{QN}, 1}) where QN = new{QN}(states)
 end
 
+
 """
     qntype(::Type{Site{QN}})
 
@@ -82,10 +90,12 @@ Returns the quantum number type of the given site type.
 """
 qntype(::Type{Site{QN}}) where QN = QN
 
+
 import Base.==
 function ==(lhs ::Site{Q1}, rhs ::Site{Q2}) where {Q1, Q2}
   return (lhs.states == rhs.states)
 end
+
 
 """
     bitwidth(site ::Site)
@@ -94,10 +104,11 @@ Number of bits necessary to represent the states of the given site.
 """
 bitwidth(site ::Site) = Int(ceil(log2(length(site.states))))
 
+
 """
     dimension(site ::Site)
 
-Hilbert space dimension of a given site ( = number of states).
+Hilbert space dimension of a given site (= number of states).
 """
 dimension(site ::Site) = length(site.states)
 
@@ -111,8 +122,9 @@ function get_state(site::Site, binrep::U) where {U<:Unsigned}
   return site.states[Int(binrep+1)]
 end
 
+
 """
-    compress(site, state_index, binary_type=UInt) -> binary_type
+    compress(site, state_index, binary_type=UInt) :: binary_type
 
 Get binary representation of the state specified by `state_index`.
 Check bounds `1 <= state_index <= dimension(site)`, and returns binary representation of `state_index-1`.
@@ -127,6 +139,7 @@ Check bounds `1 <= state_index <= dimension(site)`, and returns binary represent
   return BR(state_index-1)
 end
 
+
 """
     get_state_index(site, binrep)
 
@@ -138,14 +151,16 @@ Gets the state index of the binary representation. Returns `Int(binrep+1)`.
   return i
 end
 
+
 """
-    quantum_number_sectors(site ::Site{QN})::Vector{QN}
+    quantum_number_sectors(site :: Site{QN}) :: Vector{QN}
 
 Gets a list of possible quantum numbers as a sorted vector of QN.
 """
 function quantum_number_sectors(site ::Site{QN})::Vector{QN} where QN
   return sort(collect(Set([state.quantum_number for state in site.states])))
 end
+
 
 """
     get_quantum_number(site, state_index)
