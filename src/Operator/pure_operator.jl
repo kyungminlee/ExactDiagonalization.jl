@@ -4,17 +4,21 @@ export bintype
 
 using LinearAlgebra
 
+
 """
     PureOperator{Scalar, BR}
 
-Represents an operator ``A_1 \\otimes A_2 \\otimes \\ldots \\otimes A_n`` where
-``A_i`` is either identity, or projection ``\\vert r_i \\rangle \\langle c_i \\vert``.
+Represents an operator ``α (P₁ ⊗ P₂ ⊗ … ⊗ Pₙ)`` where
+``Pᵢ`` is either identity (when bitmask is set to zero),
+or projection ``|rᵢ⟩⟨cᵢ|`` (when bitmask is set to one).
 
-# Members
-- `bitmask::BR`
-- `bitrow::BR`
-- `bitcol::BR`
-- `amplitude::Scalar`
+# Fields
+```
+bitmask   :: BR
+bitrow    :: BR
+bitcol    :: BR
+amplitude :: Scalar
+```
 """
 struct PureOperator{Scalar<:Number, BR<:Unsigned} <:AbstractOperator{Scalar}
   bitmask ::BR
@@ -45,8 +49,9 @@ struct PureOperator{Scalar<:Number, BR<:Unsigned} <:AbstractOperator{Scalar}
   end
 end
 
-scalartype(lhs ::Type{PureOperator{S, BR}}) where {S, BR} = S
+
 bintype(lhs ::Type{PureOperator{S, BR}}) where {S, BR} = BR
+
 
 # === 1/6 (In)equality ===
 
@@ -72,6 +77,7 @@ function (<)(lhs ::PureOperator{S1, BR}, rhs ::PureOperator{S2, BR}) where {S1, 
   imag(lhs.amplitude) > imag(rhs.amplitude) && return false
   return false
 end
+
 
 # === 2/6 Unary functions ===
 
@@ -132,6 +138,8 @@ function (*)(lhs ::PureOperator{S1, BR}, rhs ::PureOperator{S2, BR}) ::AbstractO
   end
 end
 
+# === 5/6 Operator Sums ===
+# implemented in sum_operator.jl
 
 # === 6/6 Conversion ===
 
@@ -146,6 +154,22 @@ function convert(type ::Type{PureOperator{S1, BR}}, obj::PureOperator{S2, BR}) w
   return PureOperator{S1, BR}(obj.bitmask, obj.bitrow, obj.bitcol, convert(S1, obj.amplitude))
 end
 
+
+"""
+    pure_operator
+
+Creates a pure operator where projection is at one of the sites.
+
+# Arguments
+```
+hilbert_space :: HilbertSpace
+isite         :: Integer
+istate_row    :: Integer
+istate_col    :: Integer
+amplitude     :: S=1
+binary_type   :: Type{BR}=UInt
+```
+"""
 function pure_operator(
     hilbert_space ::HilbertSpace,
     isite ::Integer,

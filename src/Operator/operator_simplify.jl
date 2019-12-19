@@ -1,11 +1,13 @@
 export simplify
 
+
 """
     simplify
 
 Simplify the given operator.
 """
 simplify(op ::NullOperator; tol::Real=0.0) = op
+
 
 function simplify(op ::PureOperator{S, BR}; tol ::Real=Base.rtoldefault(S)) where {S<:Real, BR}
   if isapprox(op.amplitude, zero(S); atol=tol)
@@ -14,6 +16,7 @@ function simplify(op ::PureOperator{S, BR}; tol ::Real=Base.rtoldefault(S)) wher
     return op
   end
 end
+
 
 function simplify(op ::PureOperator{Complex{S}, BR}; tol ::Real=Base.rtoldefault(S)) where {S<:Real, BR}
   if isapprox(abs(op.amplitude), zero(S); atol=tol)

@@ -3,7 +3,9 @@ export get_row_iterator, get_column_iterator, get_iterator
 export scalartype
 export bintype
 
+
 abstract type AbstractOperator{S<:Number} end
+
 
 """
     scalartype(lhs::Type{<:AbstractOperator{S}})
@@ -14,8 +16,6 @@ scalartype(lhs::Type{<:AbstractOperator{S}}) where S = S
 scalartype(lhs::AbstractOperator{S}) where S = S
 
 
-bintype(lhs::AbstractOperator{S}) where S = bintype(typeof(lhs)) ::DataType
-
 import Base.valtype
 """
     valtype(lhs::Type{<:AbstractOperator{S}})
@@ -25,6 +25,8 @@ Returns the `valtype` (scalar type) of the given AbstractOperator.
 valtype(lhs::Type{<:AbstractOperator{S}}) where S = S
 valtype(lhs::AbstractOperator{S}) where S = S
 
+
+bintype(lhs::AbstractOperator{S}) where S = bintype(typeof(lhs)) ::DataType
 
 #=
  UNARY OPERATORS
@@ -52,15 +54,18 @@ import Base.-, Base.+
 (-)(lhs ::AbstractOperator{S1}, rhs::AbstractOperator{S2}) where {S1, S2} = (lhs) + (-rhs)
 (+)(op ::AbstractOperator{S}) where S = op
 
+
 import LinearAlgebra.issymmetric
 function issymmetric(arg::AbstractOperator{S}) where S
   return isa(simplify(arg - transpose(arg)), NullOperator)
 end
 
+
 import LinearAlgebra.ishermitian
 function ishermitian(arg::AbstractOperator{S}) where S
   return isa(simplify(arg - adjoint(arg)), NullOperator)
 end
+
 
 import Base.^
 function ^(lhs ::AbstractOperator{S}, p ::Integer) where S

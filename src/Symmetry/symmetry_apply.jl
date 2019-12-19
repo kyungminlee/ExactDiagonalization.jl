@@ -20,6 +20,7 @@ function is_invariant(hss::HilbertSpaceSector{QN}, symgroup ::AbstractSymmetryGr
   return is_invariant(hss.parent, symgroup, args...; kwargs...)
 end
 
+
 ### generic symmetry operations for NullOperator and SumOperator
 function symmetry_apply(hs ::HilbertSpace{QN}, symop ::AbstractSymmetryOperation, op::NullOperator) where {QN}
   return op
@@ -30,6 +31,7 @@ function symmetry_apply(hs::HilbertSpace{QN}, symop ::AbstractSymmetryOperation,
   return SumOperator{S, BR}(terms)
 end
 
+
 ## Permutation
 ### Binary Representation
 function symmetry_apply(hs::HilbertSpace{QN}, permutation ::Permutation, bitrep ::BR) ::BR where {QN, BR<:Unsigned}
@@ -39,6 +41,7 @@ function symmetry_apply(hs::HilbertSpace{QN}, permutation ::Permutation, bitrep 
   end
   return out
 end
+
 
 ### Operator
 function symmetry_apply(hs::HilbertSpace{QN}, permutation ::Permutation, op::PureOperator{S, BR}) where {QN, S<:Number, BR<:Unsigned}

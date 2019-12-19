@@ -4,6 +4,7 @@ export bintype
 
 using LinearAlgebra
 
+
 """
     struct SparseState{Scalar<:Number, BR}
 
@@ -36,31 +37,38 @@ mutable struct SparseState{Scalar<:Number, BR}
   end
 end
 
-import Base.getindex, Base.setindex!
 
+import Base.getindex
 function Base.getindex(state ::SparseState{Scalar, BR}, basis ::BR2) where {Scalar, BR, BR2 <:Unsigned}
   return get(state.components, basis, zero(Scalar))
 end
 
+
+import Base.setindex!
 function Base.setindex!(state ::SparseState{Scalar, BR}, value ::S, basis ::BR2) where {Scalar, BR, S<:Number, BR2 <:Unsigned}
   Base.setindex!(state.components, value, basis)
   return state
 end
 
+
 scalartype(::SparseState{Scalar, BR}) where {Scalar, BR} = Scalar
 scalartype(::Type{SparseState{Scalar, BR}}) where {Scalar, BR} = Scalar
+
 
 import Base.valtype
 valtype(::SparseState{Scalar, BR}) where {Scalar, BR} = Scalar
 valtype(::Type{SparseState{Scalar, BR}}) where {Scalar, BR} = Scalar
 
+
 bintype(::SparseState{Scalar, BR}) where {Scalar, BR} = BR
 bintype(::Type{SparseState{Scalar, BR}}) where {Scalar, BR} = BR
+
 
 import Base.==
 function (==)(lhs ::SparseState{S1, BR}, rhs::SparseState{S2, BR}) where {S1, S2, BR}
   return lhs.components == rhs.components
 end
+
 
 import Base.isapprox
 function isapprox(lhs ::SparseState{S1, BR}, rhs::SparseState{S2, BR}; atol=sqrt(eps(Float64)), rtol=sqrt(eps(Float64))) where {S1, S2, BR}
@@ -76,10 +84,12 @@ function isapprox(lhs ::SparseState{S1, BR}, rhs::SparseState{S2, BR}; atol=sqrt
   return true
 end
 
+
 import Base.copy
 function copy(arg ::SparseState{S, BR}) where {S, BR}
   return SparseState{S, BR}(copy(arg.components))
 end
+
 
 import Base.real, Base.imag, Base.conj
 real(arg ::SparseState{R, BR}) where {R<:Real, BR} = copy(arg)
@@ -97,6 +107,7 @@ end
 function conj(arg ::SparseState{Complex{R}, BR}) where {R<:Real, BR}
   return SparseState{Complex{R}, BR}(Dict{BR, Complex{R}}((k, conj(v)) for (k, v) in arg.components))
 end
+
 
 import Base.-, Base.+, Base.*, Base./, Base.\
 
@@ -140,23 +151,29 @@ function (\)(lhs ::S1, rhs ::SparseState{S2, BR}) where {S1<:Number, S2<:Number,
   return SparseState(Dict(k => lhs \ v for (k, v) in rhs.components))
 end
 
+
 import Base.convert
 function convert(type ::Type{SparseState{S1, BR}}, obj::SparseState{S2, BR}) where {S1, S2, BR}
   return SparseState{S1, BR}(Dict{BR, S1}(obj.components))
 end
 
+
 import Base.eltype
 Base.eltype(::Type{SparseState{Scalar, BR}}) where {Scalar, BR} = Pair{BR, Scalar}
+
 
 import Base.isempty
 Base.isempty(psi::SparseState{S, BR}) where {S, BR} = isempty(psi.components)
 
+
 import Base.length
 Base.length(psi::SparseState{S, BR}) where {S, BR} = length(psi.components)
+
 
 import Base.iterate
 Base.iterate(iter ::SparseState{S, BR}) where {S, BR} = Base.iterate(iter.components)
 Base.iterate(iter ::SparseState{S, BR}, i) where {S, BR} =  Base.iterate(iter.components, i)
+
 
 function choptol!(arg ::SparseState{S1, BR}, tol::Real) where {S1, BR}
   to_delete = [k for (k, v) in arg.components if isapprox(v, 0; atol=tol)]
@@ -165,6 +182,7 @@ function choptol!(arg ::SparseState{S1, BR}, tol::Real) where {S1, BR}
   end
   arg
 end
+
 
 import LinearAlgebra.norm
 function norm(arg ::SparseState{S1, BR}) where {S1, BR}
@@ -175,6 +193,7 @@ function norm(arg ::SparseState{S1, BR}) where {S1, BR}
   end
 end
 
+
 import LinearAlgebra.normalize
 function normalize(arg ::SparseState{S1, BR}) where {S1, BR}
   norm_val = norm(arg)
@@ -182,6 +201,7 @@ function normalize(arg ::SparseState{S1, BR}) where {S1, BR}
   components = Dict{BR, S2}(k => v/norm_val for (k, v) in arg.components)
   return SparseState{S2, BR}(components)
 end
+
 
 import LinearAlgebra.normalize!
 function normalize!(arg ::SparseState{S1, BR}) where {S1, BR}

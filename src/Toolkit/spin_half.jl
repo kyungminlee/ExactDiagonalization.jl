@@ -1,5 +1,6 @@
 using ExactDiagonalization
 
+
 """
     spin_half_system(n_sites)
 
@@ -20,6 +21,7 @@ function spin_half_system(n_sites ::Integer)
   pauli(isite ::Integer, j::Symbol) = pauli_matrix(hilbert_space, isite, j)
   return (hilbert_space, pauli)
 end
+
 
 """
     pauli_matrix(hs::HilbertSpace, isite ::Integer, j ::Symbol)

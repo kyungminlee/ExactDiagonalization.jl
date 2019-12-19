@@ -3,7 +3,6 @@ export symmetry_reduce, symmetry_unreduce
 
 import TightBindingLattice.TranslationGroup
 
-import Dates
 
 """
     symmetry_reduce(hsr, trans_group, frac_momentum, complex_type=ComplexF64, tol=sqrt(eps(Float64)))
@@ -20,6 +19,7 @@ function symmetry_reduce(
   symred = Threads.nthreads() == 1 ? symmetry_reduce_serial : symmetry_reduce_parallel
   return symred(hsr, trans_group, fractional_momentum, ComplexType; tol=tol)
 end
+
 
 """
     symmetry_reduce_serial(hsr, trans_group, frac_momentum, complex_type=ComplexF64, tol=sqrt(eps(Float64)))
@@ -314,6 +314,7 @@ function symmetry_unreduce(
   end
   return large_vector
 end
+
 
 """
 """

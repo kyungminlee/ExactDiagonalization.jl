@@ -35,7 +35,6 @@ using ExactDiagonalization.Toolkit: pauli_matrix
       @test apply(σ(2, :+), psi) == SparseState{Float64, UInt}(UInt(0b0001) => 2.0)
       @test apply(σ(2, :-), psi) == SparseState{Float64, UInt}(UInt(0b0111) => 10.0)
 
-
       for i1 in 1:4, j1 in [:x, :y, :z, :+, :-]
         for i2 in 1:4, j2 in [:x, :y, :z, :+, :-]
           let
@@ -50,7 +49,6 @@ using ExactDiagonalization.Toolkit: pauli_matrix
           end
         end
       end
-
     end
 
     @testset "apply!" begin

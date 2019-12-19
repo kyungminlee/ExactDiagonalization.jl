@@ -127,10 +127,6 @@ using ExactDiagonalization.Toolkit: pauli_matrix
       @test collect(get_row_iterator(opr2, 2)) == [-1 => 2.0]
       @test collect(get_column_iterator(opr2, 1)) == [-1 => 3.0]
       @test collect(get_column_iterator(opr2, 2)) == [-1 => 3.0]
-      # @test collect(get_row_iterator(opr2, 1)) == []
-      # @test collect(get_row_iterator(opr2, 2)) == []
-      # @test collect(get_column_iterator(opr2, 1)) == []
-      # @test collect(get_column_iterator(opr2, 2)) == []
     end
 
     @testset "get" begin
