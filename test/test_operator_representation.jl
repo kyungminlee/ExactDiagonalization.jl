@@ -54,9 +54,9 @@ using ExactDiagonalization.Toolkit: pauli_matrix
       @test valtype(typeof(opr2)) === Complex{Int}
     end
 
-    @testset "print" begin
+    @testset "show" begin
       opr = OperatorRepresentation(hsr, σ[1, :x])
-      @capture_out show(opr)
+      show(devnull, MIME("text/plain"), opr)
     end
 
     @testset "properties" begin
