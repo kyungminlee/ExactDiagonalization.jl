@@ -89,7 +89,11 @@ function hs_get_basis_list(hs ::HilbertSpace{QN}, binary_type::Type{BR}=UInt)::V
   return basis_list
 end
 
+"""
+    hs_get_basis_list(hss, binary_type=UInt)
 
+Generate a basis for the `HilbertSpaceSector`.
+"""
 function hs_get_basis_list(hss::HilbertSpaceSector{QN}, binary_type::Type{BR}=UInt) ::Vector{BR} where {QN, BR<:Unsigned}
   hs = hss.parent
   if sizeof(BR) * 8 <= bitwidth(hs)
@@ -103,6 +107,12 @@ function hs_get_basis_list(hss::HilbertSpaceSector{QN}, binary_type::Type{BR}=UI
 
   n_sites = length(hs.sites)
 
+  # `qn_possible[i]` contains all possible quantum numbers in the subspace
+  # spanned by sites 1 ⊗ 2 ⊗ ... ⊗ (i-1).
+  # `qn_requested[i]` contains quantum numbers that are requested in the subspace
+  # spanned by sites 1 ⊗ 2 ⊗ ... ⊗ (i-1).
+  # `qn_schedule` is the intersection of these two, and are the ones we need to
+  # generate the basis.
   qn_possible ::Vector{Vector{QN}} = let qn_possible = Vector{Vector{QN}}(undef, n_sites+1)
     qn_possible[1] = [zero(QN)]
     for i in eachindex(hs.sites)
@@ -135,6 +145,7 @@ function hs_get_basis_list(hss::HilbertSpaceSector{QN}, binary_type::Type{BR}=UI
   #sl = Threads.SpinLock()
   for i in 1:n_sites
     empty!(new_sector_basis_list)
+    # @threads
     for q in qn_schedule[i+1]
       new_sector_basis_list_q = BR[]
       for (i_state, q_curr) in enumerate(quantum_numbers[i])
@@ -176,10 +187,6 @@ represent(hs::AbstractHilbertSpace, binary_type::Type{BR}=UInt) where {BR <:Unsi
 
 Make a HilbertSpaceRepresentation with all the basis vectors of the specified HilbertSpaceSector
 using `FrozenSortedArrayIndex{BR}`.
-
-# Arguments
-- `hs :: AbstractHilbertSpace`
-- `binary_type = UInt`: Binary representation type
 """
 function represent_array(hs::AbstractHilbertSpace, binary_type::Type{BR}=UInt) where {BR <:Unsigned}
   basis_list = hs_get_basis_list(hs, BR)
@@ -195,10 +202,6 @@ represent(hs ::AbstractHilbertSpace, basis_list ::AbstractVector{BR}) where {BR<
 
 Make a HilbertSpaceRepresentation with the provided list of basis vectors
 using `Dict{BR, Int}`.
-
-# Arguments
-- `hs :: AbstractHilbertSpace`
-- `basis_list :: AbstractVector{BR}`
 """
 function represent_array(hs ::AbstractHilbertSpace,
                          basis_list ::AbstractVector{BR}) where {BR<:Unsigned}
@@ -214,10 +217,6 @@ end
     represent_dict(hs, binary_type=UInt)
 
 Make a HilbertSpaceRepresentation with all the basis vectors of the specified HilbertSpace.
-
-# Arguments
-- `hs :: AbstractHilbertSpace`
-- `binary_type = UInt`: Binary representation type
 """
 function represent_dict(hs::AbstractHilbertSpace, binary_type::Type{BR}=UInt) where {BR<:Unsigned}
   basis_list = hs_get_basis_list(hs, BR)
@@ -234,10 +233,6 @@ end
     represent_dict(hs, basis_list)
 
 Make a HilbertSpaceRepresentation with the provided list of basis vectors using `Dict`.
-
-# Arguments
-- `hs ::HilbertSpace{QN}`: Abstract Hilbert space
-- `basis_list ::AbstractVector{BR}`
 """
 function represent_dict(hs ::AbstractHilbertSpace,
                         basis_list ::AbstractVector{BR}) where {BR<:Unsigned}

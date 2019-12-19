@@ -17,14 +17,14 @@ abstract type AbstractOperatorRepresentation{S} <: AbstractMatrix{S} end
 ## typetraits
 
 import Base.valtype
-valtype(lhs::AbstractOperatorRepresentation{T}) where T = T
 valtype(lhs::Type{<:AbstractOperatorRepresentation{T}}) where T = T
+valtype(lhs::AbstractOperatorRepresentation{T}) where T = T
 
-scalartype(lhs::AbstractOperatorRepresentation{T}) where T = T
 scalartype(lhs::Type{<:AbstractOperatorRepresentation{T}}) where T = T
+scalartype(lhs::AbstractOperatorRepresentation{T}) where T = T
 
-bintype(lhs ::AbstractOperatorRepresentation{T}) where T = bintype(typeof(lhs)) ::DataType
 bintype(lhs ::Type{<:AbstractOperatorRepresentation{T}}) where T = bintype(spacetype(lhs)) ::DataType
+bintype(lhs ::AbstractOperatorRepresentation{T}) where T = bintype(typeof(lhs)) ::DataType
 
 
 # a subclass of AbstractOperatorRepresentation should implement
@@ -247,11 +247,6 @@ Perform `out += opr * state`. Apply the operator representation `opr` to the
 column vector `state` and *add* it to the column vector `out`.
 Return sum of errors and sum of error-squared.
 Call `apply_serial!` if `Threads.nthreads() == 1`, and `apply_parallel!` if greater.
-
-# Arguments
-- `out ::Vector{S1}`
-- `opr ::OperatorRepresentation{HSR, O}`
-- `state ::AbstractVector{S2}`
 """
 function apply!(out ::AbstractVector{S1},
                 opr ::AbstractOperatorRepresentation{S},
@@ -270,11 +265,6 @@ Perform `out += opr * state`. Apply the operator representation `opr` to the
 row vector `state` and *add* it to the row vector `out`.
 Return sum of errors and sum of error-squared.
 Call `apply_serial!` if `Threads.nthreads() == 1`, and `apply_parallel!` if greater.
-
-# Arguments
-- `out ::Vector{S1}`
-- `state ::AbstractVector{S2}`
-- `opr ::AbstractOperatorRepresentation{S}`
 """
 function apply!(out ::AbstractVector{S1},
                 state ::AbstractVector{S2},
@@ -293,12 +283,6 @@ Perform `out += opr * state`. Apply the operator representation `opr` to the
 column vector `state` and *add* it to the column vector `out`.
 Return sum of errors and sum of error-squared.
 Single-threaded version.
-
-# Arguments
-- `out ::Vector{S1}`
-- `opr ::AbstractOperatorRepresentation{S}`
-- `state ::AbstractVector{S2}`
-- `range ::AbstractVector{<:Integer}=1:size(opr, 1)`
 """
 function apply_serial!(out ::AbstractVector{S1},
                        opr ::AbstractOperatorRepresentation{S},
@@ -326,12 +310,6 @@ Perform `out += state * opr`. Apply the operator representation `opr` to the
 row vector `state` and *add* it to the row vector `out`.
 Return sum of errors and sum of error-squared.
 Single-threaded version.
-
-# Arguments
-- `out ::Vector{S1}`
-- `state ::AbstractVector{S2}`
-- `opr ::AbstractOperatorRepresentation{S}`
-- `range ::AbstractVector{<:Integer}=1:size(opr, 1)`
 """
 function apply_serial!(out ::AbstractVector{S1},
                        state ::AbstractVector{S2},
@@ -359,12 +337,6 @@ Perform `out += opr * state`. Apply the operator representation `opr` to the
 column vector `state` and *add* it to the column vector `out`.
 Return sum of errors and sum of error-squared.
 Multi-threaded version.
-
-# Arguments
-- `out ::Vector{S1}`
-- `opr ::AbstractOperatorRepresentation{S}`
-- `state ::AbstractVector{S2}`
-- `range ::AbstractVector{<:Integer}=1:size(opr, 2)`
 """
 function apply_parallel!(out ::AbstractVector{S1},
                          opr ::AbstractOperatorRepresentation{S},
@@ -394,12 +366,6 @@ Perform `out += state * opr`. Apply the operator representation `opr` to the
 row vector `state` and *add* it to the row vector `out`.
 Return sum of errors and sum of error-squared.
 Multi-threaded version.
-
-# Arguments
-- `out ::Vector{S1}`
-- `state ::AbstractVector{S2}`
-- `opr ::OperatorRepresentation{HSR, O}`
-- `range ::AbstractVector{<:Integer}=1:dimension(opr.hilbert_space_representation)`
 """
 function apply_parallel!(out ::AbstractVector{S1},
                          state ::AbstractVector{S2},

@@ -56,10 +56,6 @@ end
     splitblock
 
 Split n into b blocks.
-
-# Arguments
-- `n ::Integer`: the number of elements to split.
-- `b ::Integer`: the number of blocks.
 """
 function splitblock(n ::Integer, b ::Integer) ::Vector{Int}
   (n < 0) && throw(ArgumentError("n cannot be negative"))

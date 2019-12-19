@@ -71,7 +71,7 @@ its parent `HilbertSpace` (with no quantum number restriction).
 basespace(hss::HilbertSpaceSector{QN}) where QN = basespace(hss.parent) ::HilbertSpace{QN}
 
 
-bitwidth(hss::HilbertSpaceSector{QN}) where QN = bitwidth(basespace(hss))
+bitwidth(hss::HilbertSpaceSector) = bitwidth(basespace(hss))
 
 
 import Base.==

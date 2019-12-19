@@ -6,9 +6,6 @@ using ExactDiagonalization
 
 Create a Hilbert space of spin 1/2 system of `n_sites`
 
-# Arguments
-- `n_sites ::Integer`: number of sites
-
 # Returns
 - `(hilbert_space, pauli)`
 """
@@ -27,11 +24,7 @@ end
     pauli_matrix(hs::HilbertSpace, isite ::Integer, j ::Symbol)
 
 Return an Operator for Pauli Matrix at site `isite`.
-
-# Arguments
-- `hs ::HilbertSpace`
-- `isite ::Integer` : site index
-- `j ::Symbol`: one of `:x`, `:y`, `:z`, `:+`, `:-`
+`j` is one of `:x`, `:y`, `:z`, `:+`, `:-`.
 """
 function pauli_matrix(hs::HilbertSpace, isite ::Integer, j ::Symbol)
   if j == :x

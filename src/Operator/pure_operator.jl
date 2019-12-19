@@ -12,6 +12,8 @@ Represents an operator ``α (P₁ ⊗ P₂ ⊗ … ⊗ Pₙ)`` where
 ``Pᵢ`` is either identity (when bitmask is set to zero),
 or projection ``|rᵢ⟩⟨cᵢ|`` (when bitmask is set to one).
 
+See also: [`pure_operator`](@ref)
+
 # Fields
 ```
 bitmask   :: BR
@@ -166,8 +168,8 @@ hilbert_space :: HilbertSpace
 isite         :: Integer
 istate_row    :: Integer
 istate_col    :: Integer
-amplitude     :: S=1
-binary_type   :: Type{BR}=UInt
+amplitude     :: S = 1
+binary_type   :: Type{BR} = UInt
 ```
 """
 function pure_operator(
