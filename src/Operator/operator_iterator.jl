@@ -70,5 +70,7 @@ end
 
 
 function get_element(sumop::SumOperator{S, BR}, br ::BR2, bc::BR3) where {S, BR, BR2 <:Unsigned, BR3<:Unsigned}
-  return sum(get_element(op, br, bc)::S for op in sumop.terms)
+  #return sum(get_element(op, br, bc)::S for op in sumop.terms)
+  element(op::PureOperator{S, BR}) = get_element(op, br, bc)
+  return mapreduce(element, +, sumop.terms; init=zero(S))
 end

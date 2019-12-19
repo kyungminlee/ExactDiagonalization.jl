@@ -104,5 +104,9 @@ function get_element(opr ::ReducedOperatorRepresentation{RHSR, O, S, BR},
      throw(BoundsError(opr, [irow_r, icol_r]))
    end
   end
-  return @inbounds sum(ampl for (irow_r2, ampl::S) in get_column_iterator(opr, icol_r) if irow_r2 == irow_r)
+  #return @inbounds sum(ampl for (irow_r2, ampl::S) in get_column_iterator(opr, icol_r) if irow_r2 == irow_r)
+  return @inbounds mapreduce(identity,
+                             +,
+                             ampl for (irow_r2, ampl::S) in get_column_iterator(opr, icol_r) if irow_r2 == irow_r
+                             ;init=zero(S))
 end
