@@ -10,17 +10,15 @@ makedocs(
     checkdocs=:all,
     pages = [
       "Home" => "index.md",
-      "Types" => Any[
+      "Types" => [
         "Hilbert space" => "hilbertspace.md",
         "Operator" => "operator.md",
         "Representation" => "representation.md",
         "Symmetry" => "symmetry.md"
       ],
+      "Index" => "links.md",
       "API" => "api.md",
     ]
   )
 
-deploydocs(
-    #deps=Deps.pip("pygments", "mkdocs", "python-markdown-math"),
-    repo = "github.com/kyungminlee/ExactDiagonalization.jl.git",
-  )
+deploydocs(repo="github.com/kyungminlee/ExactDiagonalization.jl.git")

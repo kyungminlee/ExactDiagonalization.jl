@@ -1,5 +1,7 @@
 # ExactDiagonalization
 
+## Overview
+
 Implements exact diagonalization.
 
 Schematics for the structure of the package
@@ -8,9 +10,11 @@ Schematics for the structure of the package
                   ↓
                 Site
                   ↓
-                HilbertSpace → HilbertSpaceSector    Operator
-                  ↓              ↓                     ↓
-                HilbertSpaceRepresentation         → OperatorRepresentation
-                  ↓                                    ↓
-SymmetryGroup → ReducedHilbertSpaceRepresentation  → ReducedOperatorRepresentation
+                HilbertSpace → HilbertSpaceSector   Operator
+                  ↓              ↓                    ↓
+                HilbertSpaceRepresentation        → OperatorRepresentation
+                  ↓                                   ↓
+SymmetryGroup → ReducedHilbertSpaceRepresentation → ReducedOperatorRepresentation
 ```
+
+## Installation
