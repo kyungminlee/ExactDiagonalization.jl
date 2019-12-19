@@ -32,6 +32,10 @@ bintype(lhs ::Type{<:AbstractOperatorRepresentation{T}}) where T = bintype(space
 scalartype(lhs::AbstractOperatorRepresentation{T}) where T = T
 scalartype(lhs::Type{<:AbstractOperatorRepresentation{T}}) where T = T
 
+import Base.valtype
+valtype(lhs::AbstractOperatorRepresentation{T}) where T = T
+valtype(lhs::Type{<:AbstractOperatorRepresentation{T}}) where T = T
+
 dimension(lhs::AbstractOperatorRepresentation{S}) where S = dimension(get_space(lhs))
 bitwidth(lhs::AbstractOperatorRepresentation{S}) where S = bitwidth(get_space(lhs))
 
