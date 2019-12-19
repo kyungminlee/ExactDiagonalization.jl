@@ -1,6 +1,7 @@
 using Test
 using ExactDiagonalization
 
+using Suppressor
 using LinearAlgebra
 using SparseArrays
 
@@ -35,6 +36,7 @@ using ExactDiagonalization.Toolkit: pauli_matrix
     @test bintype(typeof(rhsr)) === UInt
     @test dimension(rhsr) <= 2^n
     @test bitwidth(rhsr) == n
+    @capture_out show(rhsr) # make sure it doesn't crash
   end
 
   j1_rep = represent(hsr, j1)
@@ -49,6 +51,7 @@ using ExactDiagonalization.Toolkit: pauli_matrix
 
     j1_redrep = represent(rhsr, j1)
     j2_redrep = represent(rhsr, j2)
+    @capture_out show(j1_redrep) # make sure it doesn't crash
 
     @testset "typetraits" begin
       @test scalartype(j1) === Complex{Int}

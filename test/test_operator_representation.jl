@@ -1,6 +1,7 @@
 using Test
 using ExactDiagonalization
 
+using Suppressor
 using StaticArrays
 using LinearAlgebra
 using SparseArrays
@@ -51,6 +52,11 @@ using ExactDiagonalization.Toolkit: pauli_matrix
       @test valtype(opr2) === Complex{Int}
       @test valtype(typeof(opr1)) === Int
       @test valtype(typeof(opr2)) === Complex{Int}
+    end
+
+    @testset "print" begin
+      opr = OperatorRepresentation(hsr, σ[1, :x])
+      @capture_out show(opr)
     end
 
     @testset "properties" begin
