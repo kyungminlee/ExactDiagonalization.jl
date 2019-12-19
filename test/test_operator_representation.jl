@@ -106,10 +106,10 @@ using ExactDiagonalization.Toolkit: pauli_matrix
       op2 = σ[3, :y]
       opr1 = OperatorRepresentation(hsr, op1)
       opr2 = OperatorRepresentation(hsr, op2)
-      @test issymmetric(op1)
-      @test !issymmetric(op2)
-      @test ishermitian(op1)
-      @test ishermitian(op2)
+      @test issymmetric(opr1)
+      @test !issymmetric(opr2)
+      @test ishermitian(opr1)
+      @test ishermitian(opr2)
     end
 
     @testset "iterator" begin
