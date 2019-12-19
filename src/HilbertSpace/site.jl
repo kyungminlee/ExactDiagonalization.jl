@@ -128,11 +128,6 @@ end
 
 Get binary representation of the state specified by `state_index`.
 Check bounds `1 <= state_index <= dimension(site)`, and returns binary representation of `state_index-1`.
-
-# Arguments
-- `site::Site`
-- `state_index::Integer`
-- `binary_type`
 """
 @inline function compress(site ::Site, state_index ::Integer, binary_type::Type{BR}=UInt) where {BR<:Unsigned}
   @boundscheck 1 <= state_index <= dimension(site) || throw(BoundsError("attempt to access a $(dimension(site))-state site at index $state_index"))

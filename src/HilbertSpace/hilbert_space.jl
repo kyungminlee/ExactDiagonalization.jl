@@ -150,10 +150,16 @@ end
 """
 Convert binary representation to an array of indices (of states)
 
-Examples
-≡≡≡≡≡≡≡≡≡≡
+# Examples
+```jldoctest
+julia> using ExactDiagonalization
 
-```
+julia> spin_site = Site{Int64}([State{Int64}("Up", +1), State{Int64}("Dn", -1)]);
+
+julia> hs = HilbertSpace{Int64}([spin_site, spin_site]);
+
+julia> extract(hs, 0x03)
+CartesianIndex(2, 2)
 ```
 """
 function extract(hs ::HilbertSpace{QN}, binrep ::BR) ::CartesianIndex where {QN, BR<:Unsigned}
@@ -172,7 +178,21 @@ end
 
 
 """
-Convert an array of indices (of states) to binary representation
+    compress(hs, indexarray ::CartesianIndex, binary_type=UInt)
+
+Convert a cartesian index (a of state) to its binary representation
+
+# Examples
+```jldoctest
+julia> using ExactDiagonalization
+
+julia> spin_site = Site{Int64}([State{Int64}("Up", +1), State{Int64}("Dn", -1)]);
+
+julia> hs = HilbertSpace{Int64}([spin_site, spin_site]);
+
+julia> compress(hs, CartesianIndex(2,2))
+0x0000000000000003
+```
 """
 function compress(hs ::HilbertSpace{QN}, indexarray ::CartesianIndex, binary_type ::Type{BR}=UInt) where {QN, BR<:Unsigned}
   if length(indexarray) != length(hs.sites)
@@ -189,6 +209,13 @@ function compress(hs ::HilbertSpace{QN}, indexarray ::CartesianIndex, binary_typ
 end
 
 
+"""
+    update(hs, binrep, isite, new_state_index)
+
+Update the binary representation of a basis state
+by changing the state at site `isite` to a new local state specified by
+`new_state_index`.
+"""
 @inline function update(hs ::HilbertSpace, binrep ::BR, isite ::Integer, new_state_index ::Integer) where {BR<:Unsigned}
   @boundscheck if !(1 <= new_state_index <= dimension(hs.sites[isite]))
     throw(BoundsError(1:dimension(hs.sites[isite]), new_state_index))
@@ -198,11 +225,23 @@ end
 end
 
 
+"""
+    get_state_index(hs, binrep, isite)
+
+Get the *index of* the local state at site `isite` for the basis state
+represented by `binrep`.
+"""
 function get_state_index(hs ::HilbertSpace, binrep ::BR, isite ::Integer) where {BR<:Unsigned}
   return Int( ( binrep >> hs.bitoffsets[isite] ) & make_bitmask(hs.bitwidths[isite], BR) ) + 1
 end
 
 
+"""
+    get_state(hs, binrep, isite)
+
+Get the local state at site `isite` for the basis state
+represented by `binrep`. Returns an object of type `State`
+"""
 function get_state(hs ::HilbertSpace, binrep ::BR, isite ::Integer) where {BR<:Unsigned}
   return hs.sites[isite].states[get_state_index(hs, binrep, isite)]
 end

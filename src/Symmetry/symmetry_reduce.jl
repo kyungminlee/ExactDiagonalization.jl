@@ -160,15 +160,15 @@ function symmetry_reduce_parallel(
   n_basis = length(hsr.basis_list)
   @debug "Original Hilbert space dimension: $n_basis"
 
+  # basis_mapping_index and basis_mapping_amplitude contain information about
+  # which basis vector of the larger Hilbert space is included
+  # in the basis of the smaller Hilbert space with what amplitude.
   basis_mapping_representative = Vector{Int}(undef, n_basis)
   fill!(basis_mapping_representative, -1)
   basis_mapping_amplitude = zeros(ComplexType, n_basis)
 
   nthreads = Threads.nthreads()
-  size_estimate = let
-    denom = max(1, length(trans_group.fractional_momenta) - 1)
-    n_basis ÷ denom
-  end
+  size_estimate = n_basis ÷ max(1, length(trans_group.fractional_momenta) - 1)
   @debug "Estimate for the reduced Hilbert space dimension: $size_estimate"
 
   local_reduced_basis_list = Vector{Vector{BR}}(undef, nthreads)
@@ -177,10 +177,11 @@ function symmetry_reduce_parallel(
     sizehint!(local_reduced_basis_list[i], size_estimate ÷ nthreads + 1)
   end
 
+  # |σᵨ⟩ = (1/Norm) ∑ χᵨ(g)* Rᵨ(g) |σ⟩
   phases = conj.(trans_group.character_table[ik, :])
   group_size = length(trans_group.elements)
 
-  visited = zeros(UInt8, n_basis) # use UInt8 for thread safety
+  visited = zeros(UInt8, n_basis) # use UInt8 rather than Bool for thread safety
 
   local_basis_states = Matrix{BR}(undef, (nthreads, group_size))
   local_basis_amplitudes = Vector{Dict{BR, ComplexType}}(undef, nthreads)
@@ -189,7 +190,9 @@ function symmetry_reduce_parallel(
     sizehint!(local_basis_amplitudes[id], group_size)
   end
 
-  # Load balancing (the representatives are the smaller binary numbers)
+  # Load balancing
+  #   The representatives are the smaller binary numbers.
+  #   Distribute them equally among threads.
   reorder = Int[]
   sizehint!(reorder, n_basis)
   nblocks = (n_basis + nthreads - 1) ÷ nthreads
@@ -200,6 +203,7 @@ function symmetry_reduce_parallel(
     end
   end
 
+  # whether the element is in the kernel of the representation
   is_identity = [is_compatible(fractional_momentum, t) for t in trans_group.translations]
 
   @debug "Starting reduction (parallel)"
@@ -210,6 +214,9 @@ function symmetry_reduce_parallel(
     id = Threads.threadid()
     bvec = hsr.basis_list[ivec_p]
 
+    # A basis binary representation is incompatible with the reduced Hilbert space if
+    # (1) it is not the smallest among the its star, or
+    # (2) its star is smaller than the representation
     compatible = true
     for i in 2:group_size
       g = trans_group.elements[i]
@@ -245,28 +252,29 @@ function symmetry_reduce_parallel(
   end
   @debug "Finished reduction (parallel)"
 
-  @debug "Collecting basis list"
   reduced_basis_list = BR[]
   sizehint!(reduced_basis_list, sum(length(x) for x in local_reduced_basis_list))
   while !isempty(local_reduced_basis_list)
     lbl = pop!(local_reduced_basis_list)
     append!(reduced_basis_list, lbl)
   end
+  @debug "Collected basis list"
 
-  @debug "Sorting basis list"
   sort!(reduced_basis_list)
+  @debug "Sorted basis list"
 
+  # Basis vectors of the unreduced Hilbert space that are
+  # not included in the reduced Hilbert space are marked as -1
   basis_mapping_index = Vector{Int}(undef, n_basis)
   fill!(basis_mapping_index, -1)
 
-  @debug "Collecting basis lookup (diagonal)"
   Threads.@threads for ivec_r in eachindex(reduced_basis_list)
     bvec = reduced_basis_list[ivec_r]
     ivec_p = hsr.basis_lookup[bvec]
     basis_mapping_index[ivec_p] = ivec_r
   end
+  @debug "Collected basis lookup (diagonal)"
 
-  @debug "Collecting basis lookup (offdiagonal)"
   Threads.@threads for ivec_p_prime in eachindex(basis_mapping_representative)
     ivec_p = basis_mapping_representative[ivec_p_prime]
     (ivec_p <= 0) && continue  # not in this irrep
@@ -274,6 +282,7 @@ function symmetry_reduce_parallel(
     ivec_r = basis_mapping_index[ivec_p]
     basis_mapping_index[ivec_p_prime] = ivec_r
   end
+  @debug "Collected basis lookup (offdiagonal)"
 
   @debug "END symmetry_reduce_parallel"
   return ReducedHilbertSpaceRepresentation{HSR, BR, ComplexType}(hsr, trans_group, reduced_basis_list,
@@ -317,6 +326,10 @@ end
 
 
 """
+    symmetry_reduce(rhsr, large_vector)
+
+Reduce a large vector into the reduced hilbert space representation.
+Simply throw away components that don't fit.
 """
 function symmetry_reduce(
     rhsr::ReducedHilbertSpaceRepresentation{HSR, BR, C},
