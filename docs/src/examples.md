@@ -1,6 +1,6 @@
 # Examples
 
-## Spin-½ Chain
+## S=1/2 Heisenberg Chain
 
 ```julia
 using SparseArrays
@@ -10,7 +10,7 @@ using Plots
 using ExactDiagonalization
 using TightBindingLattice
 
-println("# S=½ Heisenberg Chain")
+println("# S=1/2 Heisenberg Chain")
 n_sites = 8;
 (hs, σ) = ExactDiagonalization.Toolkit.spin_half_system(n_sites)
 println("Quantum number sectors (2Sz) : ", quantum_number_sectors(hs))
