@@ -16,6 +16,7 @@ makedocs(
         "Representation" => "representation.md",
         "Symmetry" => "symmetry.md"
       ],
+      "Examples" => "examples.md",
       "Index" => "links.md",
       "API" => "api.md",
     ]
