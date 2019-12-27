@@ -158,19 +158,9 @@ end
 
 
 """
-    pure_operator
+    pure_operator(hilbert_space, isite, istate_row, istate_col, amplitude=1, binary_type=UInt)
 
 Creates a pure operator where projection is at one of the sites.
-
-# Arguments
-```
-hilbert_space :: HilbertSpace
-isite         :: Integer
-istate_row    :: Integer
-istate_col    :: Integer
-amplitude     :: S = 1
-binary_type   :: Type{BR} = UInt
-```
 """
 function pure_operator(
     hilbert_space ::HilbertSpace,

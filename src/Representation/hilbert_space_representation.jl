@@ -178,15 +178,20 @@ function hs_get_basis_list(hss::HilbertSpaceSector{QN}, binary_type::Type{BR}=UI
   return basis_list
 end
 
+"""
+    represent(hs, binary_type=UInt)
 
+Make a HilbertSpaceRepresentation with all the basis vectors of the specified HilbertSpace.
+This function defaults to [`represent_array`](@ref).
+"""
 represent(hs::AbstractHilbertSpace, binary_type::Type{BR}=UInt) where {BR <:Unsigned} = represent_array(hs, binary_type)
 
 
 """
     represent_array(hs, binary_type=UInt)
 
-Make a HilbertSpaceRepresentation with all the basis vectors of the specified HilbertSpaceSector
-using `FrozenSortedArrayIndex{BR}`.
+Make a HilbertSpaceRepresentation with all the basis vectors of the specified HilbertSpace
+using [`FrozenSortedArrayIndex`](@ref).
 """
 function represent_array(hs::AbstractHilbertSpace, binary_type::Type{BR}=UInt) where {BR <:Unsigned}
   basis_list = hs_get_basis_list(hs, BR)
@@ -195,13 +200,20 @@ function represent_array(hs::AbstractHilbertSpace, binary_type::Type{BR}=UInt) w
 end
 
 
+"""
+    represent(hs, basis_list)
+
+Make a HilbertSpaceRepresentation with the provided list of basis vectors.
+This defaults to [`represent_array`](@ref).
+"""
 represent(hs ::AbstractHilbertSpace, basis_list ::AbstractVector{BR}) where {BR<:Unsigned} = represent_array(hs, basis_list)
+
 
 """
     represent_array(hs, basis_list)
 
 Make a HilbertSpaceRepresentation with the provided list of basis vectors
-using `Dict{BR, Int}`.
+using [`FrozenSortedArrayIndex`](@ref).
 """
 function represent_array(hs ::AbstractHilbertSpace,
                          basis_list ::AbstractVector{BR}) where {BR<:Unsigned}
@@ -216,7 +228,8 @@ end
 """
     represent_dict(hs, binary_type=UInt)
 
-Make a HilbertSpaceRepresentation with all the basis vectors of the specified HilbertSpace.
+Make a HilbertSpaceRepresentation with the provided list of basis vectors
+using `Dict{binary_type, Int}`.
 """
 function represent_dict(hs::AbstractHilbertSpace, binary_type::Type{BR}=UInt) where {BR<:Unsigned}
   basis_list = hs_get_basis_list(hs, BR)
