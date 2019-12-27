@@ -200,13 +200,20 @@ function represent_array(hs::AbstractHilbertSpace, binary_type::Type{BR}=UInt) w
 end
 
 
+"""
+    represent(hs, basis_list)
+
+Make a HilbertSpaceRepresentation with the provided list of basis vectors.
+This defaults to `represent_array`.
+"""
 represent(hs ::AbstractHilbertSpace, basis_list ::AbstractVector{BR}) where {BR<:Unsigned} = represent_array(hs, basis_list)
+
 
 """
     represent_array(hs, basis_list)
 
 Make a HilbertSpaceRepresentation with the provided list of basis vectors
-using `Dict{BR, Int}`.
+using `FrozenSortedArrayIndex{BR}`.
 """
 function represent_array(hs ::AbstractHilbertSpace,
                          basis_list ::AbstractVector{BR}) where {BR<:Unsigned}
@@ -221,7 +228,8 @@ end
 """
     represent_dict(hs, binary_type=UInt)
 
-Make a HilbertSpaceRepresentation with all the basis vectors of the specified HilbertSpace.
+Make a HilbertSpaceRepresentation with the provided list of basis vectors
+using `Dict{BR, Int}`.
 """
 function represent_dict(hs::AbstractHilbertSpace, binary_type::Type{BR}=UInt) where {BR<:Unsigned}
   basis_list = hs_get_basis_list(hs, BR)
