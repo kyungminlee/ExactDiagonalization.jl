@@ -3,10 +3,10 @@
 ## HilbertSpaceRepresentation
 
 A [`HilbertSpaceRepresentation`](@ref) is a representation of the Hilbert space,
-with the list of basis vectors in a ascending order of their binary representations,
-and a lookup table for them. The `HilbertSpaceRepresentation` can be constructed
-using [`represent_array`](@ref) which uses [`FrozenSortedArrayIndex`](@ref) for
-the lookup table, or [`represent_dict`](@ref) which uses `Dict`.
+with the list of basis vectors in a ascending order of their binary representations, and a lookup table for them.
+The [`HilbertSpaceRepresentation`](@ref) can be constructed using [`represent_array`](@ref)
+which uses [`FrozenSortedArrayIndex`](@ref) for the lookup table,
+or [`represent_dict`](@ref) which uses `Dict`.
 
 ```@docs
 represent(::HilbertSpace)
