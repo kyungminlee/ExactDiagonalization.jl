@@ -19,6 +19,11 @@ struct OperatorRepresentation{HSR <:HilbertSpaceRepresentation, S<:Number, O<:Ab
 end
 
 
+"""
+    represent(hilbert_space_representation, operator)
+
+Create an `OperatorRepresentation` of the `operator` in the `hilbert_space_representation`.
+"""
 function represent(hsr ::HSR, op ::O) where {HSR<:HilbertSpaceRepresentation, O<:AbstractOperator}
   return OperatorRepresentation(hsr, op)
 end
