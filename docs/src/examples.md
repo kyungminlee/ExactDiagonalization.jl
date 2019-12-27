@@ -2,7 +2,7 @@
 
 ## S=1/2 Heisenberg Chain
 
-```julia
+```@example
 using SparseArrays
 using LinearAlgebra
 using Arpack
@@ -21,7 +21,7 @@ j1 = simplify(sum(σ(i, j) * σ(mod(i, n_sites)+1 , j) for i in 1:n_sites for j 
 hs_rep = represent(hs);     # Use FrozenSortedArrayIndex{UInt} for basis lookup
 
 println("## All sectors at once")
-plt = plot(size=(300, 400))
+plt = plot(size=(300, 300))
 begin
   j1_rep = represent(hs_rep, j1)
   eigenvalues, eigenvectors = eigs(j1_rep; nev=32, which=:SR, )
@@ -58,4 +58,7 @@ xticks!(plt, collect(0:n_sites), ["All", string.(1:n_sites)...])
 xlims!(plt, -1, n_sites+1)
 xlabel!(plt, "Momentum index")
 ylabel!(plt, "Energy")
+savefig(plt, "spinchain.svg"); nothing
 ```
+
+![](spinchain.svg)
