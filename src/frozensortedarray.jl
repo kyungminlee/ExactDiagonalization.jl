@@ -3,6 +3,11 @@ export FrozenSortedArrayIndex
 
 abstract type AbstractFrozenSortedArray{K, V} <: AbstractDict{K, V} end
 
+"""
+    FrozenSortedArrayIndex([items])
+
+An immutable sorted array, with index lookup using binary search.
+"""
 struct FrozenSortedArrayIndex{K} <:AbstractFrozenSortedArray{K, Int}
   keys ::Vector{K}
   function FrozenSortedArrayIndex{K}(keys::Vector{K}) where K
