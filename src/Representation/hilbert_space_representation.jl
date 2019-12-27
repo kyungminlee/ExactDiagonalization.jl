@@ -178,14 +178,19 @@ function hs_get_basis_list(hss::HilbertSpaceSector{QN}, binary_type::Type{BR}=UI
   return basis_list
 end
 
+"""
+    represent(hs, binary_type=UInt)
 
+Make a HilbertSpaceRepresentation with all the basis vectors of the specified HilbertSpace.
+This function defaults to `represent_array`.
+"""
 represent(hs::AbstractHilbertSpace, binary_type::Type{BR}=UInt) where {BR <:Unsigned} = represent_array(hs, binary_type)
 
 
 """
     represent_array(hs, binary_type=UInt)
 
-Make a HilbertSpaceRepresentation with all the basis vectors of the specified HilbertSpaceSector
+Make a HilbertSpaceRepresentation with all the basis vectors of the specified HilbertSpace
 using `FrozenSortedArrayIndex{BR}`.
 """
 function represent_array(hs::AbstractHilbertSpace, binary_type::Type{BR}=UInt) where {BR <:Unsigned}
