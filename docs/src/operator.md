@@ -19,7 +19,7 @@ It serves as a building block for all the operators used for the construction of
 the representation of the operators.
 
 
-Internally, `PureOperator` has fields `bitmask`, `bitrow`, `bitcol`, and `amplitude`.
+Internally, [`PureOperator`](@ref) has fields `bitmask`, `bitrow`, `bitcol`, and `amplitude`.
 The `bitmask` marks whether the $\hat{P}_i$ is identity or projection:
 If the bitmask for site `i` is unset, then $\hat{P}_i$ is an identity operator;
 if it is set, then $\hat{P}_{i}$ is a projection.
@@ -28,10 +28,10 @@ contain nonzero bit-field only at sites with nonzero `bitmask`.
 
 ### SumOperator
 
-A [`SumOperator`](@ref) represents a sum of `PureOperator`. The scalar types of
-the `PureOperator`s are required to be the same. While a `SumOperator` can be constructed
-from the `PureOperators`, it can also be constructed using additions/subtractions
-(See [Binary Operations](@ref binary-operations)).
+A [`SumOperator`](@ref) represents a sum of [`PureOperator`](@ref). The scalar types
+of the [`PureOperator`](@ref)s are required to be the same. While a [`SumOperator`](@ref)
+can be constructed from the [`PureOperators`](@ref), it can also be constructed
+using additions/subtractions (See [Binary Operations](@ref Binary-Operations)).
 
 ## Mathematical Operations for Operators
 
@@ -52,17 +52,17 @@ operators. Depending on the scalar type, the resulting operator has a different 
 |  `real`  |  N  | PR | PR | SR | SR |
 |  `imag`  |  N  | N  | PR | N  | SR |
 
-- N: `NullOperator`
-- PR: `PureOperator` with real scalar type
-- PC: `PureOperator` with complex scalar type
-- SR: `SumOperator` with real scalar type
-- SC: `SumOperator` with complex scalar type
+- N: [`NullOperator`](@ref)
+- PR: [`PureOperator`](@ref) with real scalar type
+- PC: [`PureOperator`](@ref) with complex scalar type
+- SR: [`SumOperator`](@ref) with real scalar type
+- SC: [`SumOperator`](@ref) with complex scalar type
 
-### [Binary Operations](@id binary-operations)
+### [Binary Operations](@id Binary-Operations)
 
-Binary operations are also defined for the operators. Since `PureOperator`s are
-closed under multiplication, while product with `NullOperator` is always `NullOperator`,
-we get the following multiplication table
+Binary operations are also defined for the operators. Since [`PureOperator`](@ref)s are
+closed under multiplication, while product of [`NullOperator`](@ref) and any operator
+is always [`NullOperator`](@ref), we get the following multiplication table
 
 | `*`    | N | P | S |
 |:------:|:-:|:-:|:-:|
@@ -70,9 +70,10 @@ we get the following multiplication table
 | P      | N | P | S |
 | S      | N | S | S |
 
-- N: `NullOperator`, P: `PureOperator`, S: `SumOperator`
+- N: [`NullOperator`](@ref), P: [`PureOperator`](@ref), S: [`SumOperator`](@ref)
 
-Additions or subtractions of two `PureOperator`s, on the other hand, produce `SumOperator`s
+Additions or subtractions of two [`PureOperator`](@ref)s, on the other hand, produce
+[`SumOperator`](@ref)s
 
 |`+`/`-` | N | P | S |
 |:------:|:-:|:-:|:-:|
