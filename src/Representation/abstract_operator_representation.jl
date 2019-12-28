@@ -69,7 +69,7 @@ for binop in [:+, :-, :*]
     function ($binop)(lhs ::AbstractOperatorRepresentation{T1},
                       rhs ::AbstractOperatorRepresentation{T2}) where {T1, T2}
       @boundscheck if (get_space(lhs) != get_space(rhs))
-        throw(ArgumentError("The two OperatorRepresentation s do not have the same HilbertSpaceRepresentation"))
+        throw(ArgumentError("The two OperatorRepresentation's do not have the same HilbertSpaceRepresentation"))
       end
       return represent(get_space(lhs), simplify(($binop)(lhs.operator, rhs.operator)))
     end
@@ -246,7 +246,7 @@ end
 Perform `out += opr * state`. Apply the operator representation `opr` to the
 column vector `state` and *add* it to the column vector `out`.
 Return sum of errors and sum of error-squared.
-Call `apply_serial!` if `Threads.nthreads() == 1`, and `apply_parallel!` if greater.
+Call [`apply_serial!`](@ref) if `Threads.nthreads() == 1`, and [`apply_parallel!`](@ref) otherwise.
 """
 function apply!(out ::AbstractVector{S1},
                 opr ::AbstractOperatorRepresentation{S},
@@ -264,7 +264,7 @@ end
 Perform `out += opr * state`. Apply the operator representation `opr` to the
 row vector `state` and *add* it to the row vector `out`.
 Return sum of errors and sum of error-squared.
-Call `apply_serial!` if `Threads.nthreads() == 1`, and `apply_parallel!` if greater.
+Call [`apply_serial!`](@ref) if `Threads.nthreads() == 1`, and [`apply_parallel!`](@ref) otherwise.
 """
 function apply!(out ::AbstractVector{S1},
                 state ::AbstractVector{S2},
@@ -277,7 +277,7 @@ end
 
 
 """
-    apply_serial!(out, opr, state; range=1:size(opr, 2))
+    apply_serial!(out, opr, state)
 
 Perform `out += opr * state`. Apply the operator representation `opr` to the
 column vector `state` and *add* it to the column vector `out`.
@@ -304,7 +304,7 @@ end
 
 
 """
-    apply_serial!(out, state, opr; range=1:size(opr, 1))
+    apply_serial!(out, state, opr)
 
 Perform `out += state * opr`. Apply the operator representation `opr` to the
 row vector `state` and *add* it to the row vector `out`.
@@ -331,7 +331,7 @@ end
 
 
 """
-    apply_parallel!(out, opr, state; range=1:size(opr, 2))
+    apply_parallel!(out, opr, state)
 
 Perform `out += opr * state`. Apply the operator representation `opr` to the
 column vector `state` and *add* it to the column vector `out`.
@@ -360,7 +360,7 @@ end
 
 
 """
-    apply_parallel!(out, state, opr; range=1:size(opr, 1))
+    apply_parallel!(out, state, opr)
 
 Perform `out += state * opr`. Apply the operator representation `opr` to the
 row vector `state` and *add* it to the row vector `out`.
