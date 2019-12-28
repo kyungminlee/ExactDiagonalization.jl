@@ -14,11 +14,11 @@ end
 
 
 """
-    get_column_iterator(op, bc ::BR)
+    get_column_iterator(op, bcol ::BR)
 
 Returns an iterator over the elements of the column corresponding to bit representation `bc`.
 """
-function get_column_iterator(nullop ::NullOperator, bc ::BR) where {BR<:Unsigned}
+function get_column_iterator(nullop ::NullOperator, bcol ::BR) where {BR<:Unsigned}
   return ((zero(UInt8) => false) for i in 1:0)
 end
 
@@ -70,7 +70,6 @@ end
 
 
 function get_element(sumop::SumOperator{S, BR}, br ::BR2, bc::BR3) where {S, BR, BR2 <:Unsigned, BR3<:Unsigned}
-  #return sum(get_element(op, br, bc)::S for op in sumop.terms)
   element(op::PureOperator{S, BR}) = get_element(op, br, bc)
   return mapreduce(element, +, sumop.terms; init=zero(S))
 end

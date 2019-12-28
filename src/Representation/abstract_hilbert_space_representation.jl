@@ -8,10 +8,6 @@ export scalartype, bintype
 abstract type AbstractHilbertSpaceRepresentation{S<:Number} end
 
 
-# need scalartype for the hilbert space representation also, since layer we will have
-# symmetry reduction
-
-
 import Base.valtype
 
 scalartype(lhs ::AbstractHilbertSpaceRepresentation{S}) where S = S
