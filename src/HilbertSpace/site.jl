@@ -168,4 +168,4 @@ end
 
 
 import Base.keys
-keys(site::Site{QN}) where QN = 1:dimension(site)
+keys(site::Site) = Base.OneTo(dimension(site))
