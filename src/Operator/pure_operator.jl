@@ -65,8 +65,8 @@ function (==)(lhs ::PureOperator{S1, BR}, rhs::PureOperator{S2, BR}) where {S1, 
           (lhs.amplitude == rhs.amplitude))
 end
 
-import Base.<
-function (<)(lhs ::PureOperator{S1, BR}, rhs ::PureOperator{S2, BR}) where {S1, S2, BR}
+import Base.isless
+function isless(lhs ::PureOperator{S1, BR}, rhs ::PureOperator{S2, BR}) where {S1, S2, BR}
   lhs.bitmask < rhs.bitmask && return true
   lhs.bitmask > rhs.bitmask && return false
   lhs.bitrow < rhs.bitrow && return true
