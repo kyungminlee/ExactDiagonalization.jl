@@ -47,8 +47,8 @@ end
 
 
 import Base.==
-function ==(lhs ::State{Q1}, rhs ::State{Q2}) where {Q1, Q2}
-  return (Q1 == Q2) && (lhs.name == rhs.name) && (lhs.quantum_number == rhs.quantum_number)
+function ==(lhs ::State{Q}, rhs ::State{Q}) where Q
+  return (lhs.name == rhs.name) && (lhs.quantum_number == rhs.quantum_number)
 end
 
 

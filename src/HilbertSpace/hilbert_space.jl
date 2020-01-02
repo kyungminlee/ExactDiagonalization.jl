@@ -49,8 +49,8 @@ end
 Returns the scalar type of the given hilbert space type.
 For HilbertSpace{QN}, it is always `Bool`.
 """
-scalartype(arg ::Type{HilbertSpace{QN}}) where QN = Bool
-scalartype(arg ::HilbertSpace{QN}) where QN = Bool
+scalartype(arg ::Type{<:HilbertSpace}) = Bool
+scalartype(arg ::HilbertSpace) = Bool
 
 
 import Base.valtype
@@ -59,8 +59,8 @@ import Base.valtype
 
 Returns the `valtype` (scalar type) of the given hilbert space type.
 """
-valtype(arg ::Type{HilbertSpace{QN}}) where QN = Bool
-valtype(arg ::HilbertSpace{QN}) where QN = Bool
+valtype(arg ::Type{<:HilbertSpace}) = Bool
+valtype(arg ::HilbertSpace) = Bool
 
 
 """
