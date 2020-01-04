@@ -1,6 +1,28 @@
+export IntegerModulo
+
 export make_bitmask
 export choptol!
 export merge_vec
+
+struct IntegerModulo{N} <: Integer
+  value ::Int
+  IntegerModulo{N}(value::Integer) where N = new{N}(mod(value, N))
+end
+
+import Base.+, Base.-, Base.*
+(+)(lhs::IntegerModulo{N}) where N = lhs
+(-)(lhs::IntegerModulo{N}) where N = IntegerModulo{N}(-lhs.value)
+
+(+)(lhs::IntegerModulo{N}, rhs::IntegerModulo{N}) where N = IntegerModulo{N}(lhs.value + rhs.value)
+(+)(lhs::IntegerModulo{N}, rhs::Integer) where N = IntegerModulo{N}(lhs.value + rhs)
+(+)(lhs::Integer, rhs::IntegerModulo{N}) where N = IntegerModulo{N}(lhs + rhs.value)
+
+(*)(lhs::IntegerModulo{N}, rhs::IntegerModulo{N}) where N = IntegerModulo{N}(lhs.value * rhs.value)
+(*)(lhs::IntegerModulo{N}, rhs::Integer) where N = IntegerModulo{N}(lhs.value * rhs)
+(*)(lhs::Integer, rhs::IntegerModulo{N}) where N = IntegerModulo{N}(lhs * rhs.value)
+
+
+
 
 function make_bitmask(msb ::Integer,
                       binary_type::Type{BR}=UInt) where {BR <:Unsigned}
