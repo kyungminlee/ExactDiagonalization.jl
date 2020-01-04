@@ -1,4 +1,4 @@
-export AbstractHilbertSpace
+export GenericSiteType
 export State, Site
 export bitwidth, get_state, dimension
 export qntype
@@ -9,13 +9,7 @@ export get_state_index
 
 using StaticArrays
 
-
-abstract type AbstractHilbertSpace end
-
-
-## TODO: Think about this
-AbstractQuantumNumber = Union{Int, SVector{N, Int} where N}
-
+struct GenericSiteType <: AbstractSiteType end
 
 qntype(arg ::T) where T = qntype(T)
 
@@ -60,6 +54,7 @@ Returns the quantum number type of the given state type.
 qntype(::Type{State{QN}}) where QN = QN
 
 
+
 """
     Site{QN}
 
@@ -77,9 +72,29 @@ Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)])
 """
 struct Site{QN<:AbstractQuantumNumber} <: AbstractHilbertSpace
   states ::Vector{State{QN}}
+  sitetype ::Type{<:AbstractSiteType}
 
-  Site(states ::AbstractArray{State{QN}, 1}) where QN = new{QN}(states)
-  Site{QN}(states ::AbstractArray{State{QN}, 1}) where QN = new{QN}(states)
+  Site(states ::AbstractArray{State{QN}, 1}) where QN = new{QN}(states, GenericSiteType)
+  Site{QN}(states ::AbstractArray{State{QN}, 1}) where QN = new{QN}(states, GenericSiteType)
+  function Site(states ::AbstractArray{State{QN}, 1}, sitetype::Type{GenericSiteType}) where QN
+    new{QN}(states, sitetype)
+  end
+
+  """
+    Site(quantum_number, sitetype)
+
+  `quantum_number` is the quantum number of a single particle at this site.
+  """
+  function Site(quantum_number::QN, sitetype::Type{ParticleSiteType{P}}) where {QN<:AbstractQuantumNumber, P<:AbstractParticle}
+    states = State{QN}[]
+    qn = zero(QN)
+    for i in 0:maxoccupancy(sitetype)
+      name="$P($i)"
+      push!(states, State(name, qn))
+      qn += one(QN)
+    end
+    new{QN}(states, sitetype)
+  end
 end
 
 
