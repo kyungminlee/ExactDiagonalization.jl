@@ -212,5 +212,11 @@ function normalize!(arg ::SparseState{S1, BR}) where {S1, BR}
   arg
 end
 
+import LinearAlgebra.dot
+function dot(lhs::SparseState{SL, BL}, rhs::SparseState{SR, BR}) where {SL, BL, SR, BR}
+  allkeys = intersect(keys(lhs.components), keys(rhs.components))
+  return sum(conj(lhs[k]) * rhs[k] for k in allkeys)
+end
+
 
 # TODO Broadcasting

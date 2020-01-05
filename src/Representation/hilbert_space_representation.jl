@@ -89,6 +89,7 @@ function hs_get_basis_list(hs ::HilbertSpace{QN}, binary_type::Type{BR}=UInt)::V
   return basis_list
 end
 
+
 """
     hs_get_basis_list(hss, binary_type=UInt)
 
@@ -177,6 +178,7 @@ function hs_get_basis_list(hss::HilbertSpaceSector{QN}, binary_type::Type{BR}=UI
   @assert issorted(basis_list)
   return basis_list
 end
+
 
 """
     represent(hs, binary_type=UInt)

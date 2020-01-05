@@ -1,6 +1,28 @@
+export IntegerModulo
+
 export make_bitmask
 export choptol!
 export merge_vec
+
+struct IntegerModulo{N} <: Integer
+  value ::Int
+  IntegerModulo{N}(value::Integer) where N = new{N}(mod(value, N))
+end
+
+import Base.+, Base.-, Base.*
+(+)(lhs::IntegerModulo{N}) where N = lhs
+(-)(lhs::IntegerModulo{N}) where N = IntegerModulo{N}(-lhs.value)
+
+(+)(lhs::IntegerModulo{N}, rhs::IntegerModulo{N}) where N = IntegerModulo{N}(lhs.value + rhs.value)
+(+)(lhs::IntegerModulo{N}, rhs::Integer) where N = IntegerModulo{N}(lhs.value + rhs)
+(+)(lhs::Integer, rhs::IntegerModulo{N}) where N = IntegerModulo{N}(lhs + rhs.value)
+
+(*)(lhs::IntegerModulo{N}, rhs::IntegerModulo{N}) where N = IntegerModulo{N}(lhs.value * rhs.value)
+(*)(lhs::IntegerModulo{N}, rhs::Integer) where N = IntegerModulo{N}(lhs.value * rhs)
+(*)(lhs::Integer, rhs::IntegerModulo{N}) where N = IntegerModulo{N}(lhs * rhs.value)
+
+
+
 
 function make_bitmask(msb ::Integer,
                       binary_type::Type{BR}=UInt) where {BR <:Unsigned}
@@ -73,3 +95,24 @@ function splitrange(range::AbstractVector{<:Integer}, b::Integer)
   block_offsets = cumsum([1, block_sizes...])
   return [range[block_offsets[iblock]:block_offsets[iblock+1]-1] for iblock in 1:nblocks]
 end
+
+
+export elmax, elmin
+export elmaximum, elminimum
+
+elmax(x::S, y::S) where {S<:Number} = max(x,y)
+elmax(x::T, y::T) where {T<:Tuple{<:Number}} = (max(first(x), first(y)),)
+
+function elmax(x ::T, y::T) where {T<:Tuple{<:Number, <:Number, Vararg{<:Number}}}
+  return (max(first(x), first(y)), elmax(x[2:end], y[2:end])...)
+end
+
+elmin(x::S, y::S) where {S<:Number} = max(x,y)
+elmin(x::T, y::T) where {T<:Tuple{<:Number}} = (max(first(x), first(y)),)
+
+function elmin(x ::T, y::T) where {T<:Tuple{<:Number, <:Number, Vararg{<:Number}}}
+  return (max(first(x), first(y)), elmax(x[2:end], y[2:end])...)
+end
+
+elmaximum(arr::AbstractArray) = mapreduce(identity, elmax, arr)
+elminimum(arr::AbstractArray) = mapreduce(identity, elmin, arr)

@@ -34,7 +34,7 @@ function simplify(so ::SumOperator{S, BR}; tol ::Real=Base.rtoldefault(real(S)))
 
   isempty(terms) && return NullOperator()
 
-  sort!(terms; lt=(<))
+  sort!(terms; lt=isless)
   new_terms = PureOperator{S, BR}[]
 
   bm ::BR = terms[1].bitmask

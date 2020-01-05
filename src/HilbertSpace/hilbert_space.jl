@@ -15,11 +15,10 @@ Abstract Hilbert space with quantum number type `QN`.
 ```jldoctest
 julia> using ExactDiagonalization
 
-julia> spin_site = Site{Int64}([State{Int64}("Up", +1), State{Int64}("Dn", -1)])
-Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)])
+julia> spin_site = Site([State{Int64}("Up", +1), State{Int64}("Dn", -1)]);
 
-julia> hs = HilbertSpace{Int64}([spin_site, spin_site])
-HilbertSpace{Int64}(Site{Int64}[Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)]), Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)])], [1, 1], [0, 1, 2])
+julia> hs = HilbertSpace([spin_site, spin_site])
+HilbertSpace{Int64}(Site{Int64}[Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)], GenericSiteType), Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)], GenericSiteType)], [1, 1], [0, 1, 2])
 ```
 """
 struct HilbertSpace{QN} <: AbstractHilbertSpace
@@ -49,8 +48,8 @@ end
 Returns the scalar type of the given hilbert space type.
 For HilbertSpace{QN}, it is always `Bool`.
 """
-scalartype(arg ::Type{HilbertSpace{QN}}) where QN = Bool
-scalartype(arg ::HilbertSpace{QN}) where QN = Bool
+scalartype(arg ::Type{<:HilbertSpace}) = Bool
+scalartype(arg ::HilbertSpace) = Bool
 
 
 import Base.valtype
@@ -59,8 +58,8 @@ import Base.valtype
 
 Returns the `valtype` (scalar type) of the given hilbert space type.
 """
-valtype(arg ::Type{HilbertSpace{QN}}) where QN = Bool
-valtype(arg ::HilbertSpace{QN}) where QN = Bool
+valtype(arg ::Type{<:HilbertSpace}) = Bool
+valtype(arg ::HilbertSpace) = Bool
 
 
 """
@@ -86,11 +85,11 @@ Total number of bits
 ```jldoctest
 julia> using ExactDiagonalization
 
-julia> spin_site = Site{Int64}([State{Int64}("Up", +1), State{Int64}("Dn", -1)])
-Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)])
+julia> spin_site = Site([State{Int64}("Up", +1), State{Int64}("Dn", -1)])
+Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)], GenericSiteType)
 
 julia> hs = HilbertSpace{Int64}([spin_site, spin_site, spin_site,])
-HilbertSpace{Int64}(Site{Int64}[Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)]), Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)]), Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)])], [1, 1, 1], [0, 1, 2, 3])
+HilbertSpace{Int64}(Site{Int64}[Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)], GenericSiteType), Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)], GenericSiteType), Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)], GenericSiteType)], [1, 1, 1], [0, 1, 2, 3])
 
 julia> bitwidth(hs)
 3
@@ -154,9 +153,9 @@ Convert binary representation to an array of indices (of states)
 ```jldoctest
 julia> using ExactDiagonalization
 
-julia> spin_site = Site{Int64}([State{Int64}("Up", +1), State{Int64}("Dn", -1)]);
+julia> spin_site = Site([State{Int64}("Up", +1), State{Int64}("Dn", -1)]);
 
-julia> hs = HilbertSpace{Int64}([spin_site, spin_site]);
+julia> hs = HilbertSpace([spin_site, spin_site]);
 
 julia> extract(hs, 0x03)
 CartesianIndex(2, 2)
@@ -186,9 +185,9 @@ Convert a cartesian index (a of state) to its binary representation
 ```jldoctest
 julia> using ExactDiagonalization
 
-julia> spin_site = Site{Int64}([State{Int64}("Up", +1), State{Int64}("Dn", -1)]);
+julia> spin_site = Site([State{Int64}("Up", +1), State{Int64}("Dn", -1)]);
 
-julia> hs = HilbertSpace{Int64}([spin_site, spin_site]);
+julia> hs = HilbertSpace([spin_site, spin_site]);
 
 julia> compress(hs, CartesianIndex(2,2))
 0x0000000000000003

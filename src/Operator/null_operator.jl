@@ -39,8 +39,8 @@ transpose(arg::NullOperator) = arg
 adjoint(arg::NullOperator) = arg
 
 
-import Base.<
-# null operator is smaller than any other operators
-(<)(lhs ::NullOperator, rhs ::NullOperator) = false
-(<)(lhs ::NullOperator, rhs ::AbstractOperator) = true
-(<)(lhs ::AbstractOperator, rhs ::NullOperator) = false
+import Base.isless
+# null operator is less than any other operators
+isless(lhs ::NullOperator, rhs ::NullOperator) = false
+isless(lhs ::NullOperator, rhs ::AbstractOperator) = true
+isless(lhs ::AbstractOperator, rhs ::NullOperator) = false
