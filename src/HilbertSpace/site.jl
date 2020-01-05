@@ -67,7 +67,7 @@ julia> using ExactDiagonalization
 julia> up = State{Int}("Up", 1); dn = State("Dn", -1);
 
 julia> Site([up, dn])
-Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)])
+Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)], GenericSiteType)
 ```
 """
 struct Site{QN<:AbstractQuantumNumber} <: AbstractHilbertSpace
