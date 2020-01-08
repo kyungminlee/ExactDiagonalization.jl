@@ -318,6 +318,7 @@ function symmetry_unreduce(
   for (i_p, i_r) in enumerate(rhsr.basis_mapping_index)
     if i_r > 0
       ampl = rhsr.basis_mapping_amplitude[i_p]
+      # H_r = U† H U
       large_vector[i_p] += ampl * small_vector[i_r]
     end
   end
@@ -346,6 +347,7 @@ function symmetry_reduce(
   for (i_p, i_r) in enumerate(rhsr.basis_mapping_index)
     if i_r > 0
       ampl = rhsr.basis_mapping_amplitude[i_p]
+      # H_r = U† H U
       small_vector[i_r] += conj(ampl) * large_vector[i_p]
     end
   end
