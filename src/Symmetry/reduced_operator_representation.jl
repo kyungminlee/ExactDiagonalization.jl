@@ -52,6 +52,7 @@ function get_row_iterator(opr ::ReducedOperatorRepresentation{RHSR, O, S, BR},
   irow_p ::Int = hsr.basis_lookup[brow]
   ampl_row ::S = rhsr.basis_mapping_amplitude[irow_p]
 
+  # H_r = U H U†
   full_iter = let inv_ampl_row = one(S) / ampl_row,
                   basis_lookup = rhsr.parent.basis_lookup,
                   basis_mapping_index ::Vector{Int} = rhsr.basis_mapping_index,
@@ -80,7 +81,8 @@ function get_column_iterator(opr ::ReducedOperatorRepresentation{RHSR, O, S, BR}
   icol_p ::Int = hsr.basis_lookup[bcol]
   ampl_col ::S = rhsr.basis_mapping_amplitude[icol_p]
 
-  full_iter = let inv_ampl_col = one(S) / ampl_col,
+  # H_r = U† H U
+  full_iter = let inv_ampl_col = one(S) / conj(ampl_col),
                   basis_lookup = rhsr.parent.basis_lookup,
                   basis_mapping_index ::Vector{Int} = rhsr.basis_mapping_index,
                   basis_mapping_amplitude ::Vector{S} = rhsr.basis_mapping_amplitude,
@@ -90,7 +92,7 @@ function get_column_iterator(opr ::ReducedOperatorRepresentation{RHSR, O, S, BR}
       (irow_p > 0) || return (-1 => ampl)
       irow_r = basis_mapping_index[irow_p]
       (irow_r > 0) || return (-1 => ampl)
-      ampl_row = basis_mapping_amplitude[irow_p]
+      ampl_row = conj(basis_mapping_amplitude[irow_p])
       return irow_r => ampl * ampl_row * inv_ampl_col
     end
     (element(brow, ampl) for (brow::BR, ampl::S) in get_column_iterator(operator, bcol))
