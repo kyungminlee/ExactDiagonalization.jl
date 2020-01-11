@@ -7,7 +7,7 @@ using SparseArrays
 
 using ExactDiagonalization.Toolkit: pauli_matrix
 
-@testset "RedRep" begin
+@testset "RedRep4" begin
   tol = sqrt(eps(Float64))
   QN = Int
 
@@ -196,7 +196,49 @@ using ExactDiagonalization.Toolkit: pauli_matrix
     @test isapprox(eigenvalues1, eigenvalues2; atol=tol)
   end # testset iterator
 
-end # testset RedOp
+end # testset RedOp4
+
+@testset "RedOp7" begin
+  # testing complex phase
+  tol = sqrt(eps(Float64))
+  spin_site = Site([State("Up", 1), State("Dn",-1)])
+  n = 7
+  hs = HilbertSpace(repeat([spin_site], n))
+  σ = Dict( (isite, j) => pauli_matrix(hs, isite, j) for isite in 1:n, j in [:x, :y, :z, :+, :-])
+  j1 = sum(σ[i, j] * σ[mod(i, n) + 1 , j] for i in 1:n, j in [:x, :y, :z])
+
+  hsr = represent(HilbertSpaceSector(hs, 0))
+  translation_group = TranslationGroup([Permutation([2,3,4,5,6,7,1])])
+  @test is_invariant(hs, translation_group, j1)
+  @test is_invariant(HilbertSpaceSector(hs, 0), translation_group, j1)
+
+  j1_rep = represent(hsr, j1)
+  mat_size = size(j1_rep)
+
+  mat0 = Matrix(j1_rep)
+  mat1 = zeros(ComplexF64, mat_size)
+  mat2 = zeros(ComplexF64, mat_size)
+  for i in 1:mat_size[1]
+    for (j, v) in get_row_iterator(j1_rep, i)
+      if j > 0
+        mat1[i,j] += v
+      end
+    end
+  end
+
+  for j in 1:mat_size[2]
+    for (i, v) in get_column_iterator(j1_rep, j)
+      if i > 0
+        mat2[i,j] += v
+      end
+    end
+  end
+
+  @test isapprox(mat0, mat1; atol=1E-8)
+  @test isapprox(mat0, mat2; atol=1E-8)
+
+
+end
 
 @testset "RedOp-nontriv" begin
 # TODO: at an angle
