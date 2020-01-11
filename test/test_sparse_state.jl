@@ -88,6 +88,13 @@ using StaticArrays
     @test length(ψ) == 2
   end
 
+  @testset "dot" begin
+    ψ1 = SparseState{ComplexF64, UInt}(Dict(UInt(0b0000001) => 2.0+3.0im, UInt(0b0010001) => 4.0 + 5.0im ))
+    ψ2 = SparseState{Float64, UInt}(Dict(UInt(0b0000010) => 6.0, UInt(0b0010001) => 7.0 ))
+    @test dot(ψ1, ψ2) == (4.0 - 5.0im) * 7.0
+    @test dot(ψ2, ψ1) == 7.0 * (4.0 + 5.0im)
+  end
+
   @testset "choptol!" begin
     let
       d = SparseState{ComplexF64, UInt}(UInt(0b0000001) => 0.0, UInt(0b0010001) => 1E-9)
