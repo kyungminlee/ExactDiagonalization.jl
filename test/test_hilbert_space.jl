@@ -38,12 +38,14 @@ end
     dn = State("Dn",-1)
     site1 = Site([up, dn])
     site2 = Site{Int}([up, dn])
+    site3 = Site([up, dn], GenericSiteType)
     @test qntype(site1) === Int
     @test qntype(site2) === Int
     @test qntype(typeof(site1)) === Int
     @test qntype(typeof(site2)) === Int
 
     @test site1 == site2
+    @test site2 == site3
     @test dimension(site1) == 2
     @test get_state(site1, 0x0000000) == up
     @test get_state(site1, 0x0000001) == dn
