@@ -20,7 +20,7 @@ function product_state(hs::HilbertSpace,
     end
   end
 
-  S = promote_type(valtype.(typeof.(local_states))...)
+  S = promote_type(eltype.(typeof.(local_states))...)
   out = SparseState{S, BR}()
 
   index_iterator = Iterators.product((
@@ -58,7 +58,7 @@ function product_state(hsr::HilbertSpaceRepresentation{HS, BR, DT},
     end
   end
 
-  S = promote_type(valtype.(typeof.(local_states))...)
+  S = promote_type(eltype.(typeof.(local_states))...)
   out = zeros(S, dimension(hsr))
 
   index_iterator = Iterators.product((
