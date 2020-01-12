@@ -4,10 +4,10 @@ using ExactDiagonalization
 using StaticArrays
 
 @testset "SparseState" begin
-  QN = SVector{2, Int}
-  em = State("Em", QN( 0, 0))  # charge and spin
-  up = State("Up", QN( 1, 1))
-  dn = State("Dn", QN( 1,-1))
+  QN = Tuple{Int, Int}
+  em = State("Em", ( 0, 0))  # charge and spin
+  up = State("Up", ( 1, 1))
+  dn = State("Dn", ( 1,-1))
   spin_site = Site([up, dn])
   site = Site([em, up, dn])
   hs = HilbertSpace([site, site, spin_site, site])
@@ -86,6 +86,13 @@ using StaticArrays
     @test Set([k for (k, v) in ψ]) == Set(UInt[0b0000001, 0b0010001])
     @test Set([v for (k, v) in ψ]) == Set([2.0+0.0im, 3.0+0.0im])
     @test length(ψ) == 2
+  end
+
+  @testset "dot" begin
+    ψ1 = SparseState{ComplexF64, UInt}(Dict(UInt(0b0000001) => 2.0+3.0im, UInt(0b0010001) => 4.0 + 5.0im ))
+    ψ2 = SparseState{Float64, UInt}(Dict(UInt(0b0000010) => 6.0, UInt(0b0010001) => 7.0 ))
+    @test dot(ψ1, ψ2) == (4.0 - 5.0im) * 7.0
+    @test dot(ψ2, ψ1) == 7.0 * (4.0 + 5.0im)
   end
 
   @testset "choptol!" begin

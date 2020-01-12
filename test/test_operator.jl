@@ -62,13 +62,13 @@ using StaticArrays
 end # testset NullOperator
 
 @testset "PureOperator" begin
-  QN = Int
+  QN = Tuple{Int}
   up = State("Up", 1)
-  dn = State{QN}("Dn",-1)
-  spin_site = Site{QN}([up, dn])
+  dn = State("Dn", (-1,))
+  spin_site = Site([up, dn])
 
-  hs = HilbertSpace{QN}([spin_site for i in 1:4])
-  hs2 = HilbertSpace{QN}([spin_site, spin_site])
+  hs = HilbertSpace([spin_site for i in 1:4])
+  hs2 = HilbertSpace([spin_site, spin_site])
   nop = NullOperator()
 
   @testset "constructor" begin
@@ -295,13 +295,13 @@ end # testset NullOperator
 end
 
 @testset "SumOperator" begin
-  QN = Int
+  QN = Tuple{Int}
   up = State("Up", 1)
-  dn = State{QN}("Dn",-1)
-  spin_site = Site{QN}([up, dn])
+  dn = State("Dn", (-1,))
+  spin_site = Site([up, dn])
 
-  hs = HilbertSpace{QN}([spin_site for i in 1:4])
-  hs2 = HilbertSpace{QN}([spin_site, spin_site])
+  hs = HilbertSpace([spin_site for i in 1:4])
+  hs2 = HilbertSpace([spin_site, spin_site])
   nop = NullOperator()
 
   @testset "constructor" begin

@@ -26,11 +26,11 @@ valtype(lhs::Type{<:AbstractOperator{S}}) where S = S
 valtype(lhs::AbstractOperator{S}) where S = S
 
 
-bintype(lhs::AbstractOperator{S}) where S = bintype(typeof(lhs)) ::DataType
+bintype(lhs::AbstractOperator{S}) where S = bintype(typeof(lhs))::DataType
 
 import Base.-, Base.+
-(-)(lhs ::AbstractOperator{S1}, rhs::AbstractOperator{S2}) where {S1, S2} = (lhs) + (-rhs)
-(+)(op ::AbstractOperator{S}) where S = op
+(-)(lhs::AbstractOperator{S1}, rhs::AbstractOperator{S2}) where {S1, S2} = (lhs) + (-rhs)
+(+)(op::AbstractOperator{S}) where S = op
 
 
 import LinearAlgebra.issymmetric
@@ -46,7 +46,7 @@ end
 
 
 import Base.^
-function ^(lhs ::AbstractOperator{S}, p ::Integer) where S
+function ^(lhs::AbstractOperator{S}, p::Integer) where S
   p <= 0 && error("Non-positive power for AbstractOperator not supported")
 
   # smallest nonzero power

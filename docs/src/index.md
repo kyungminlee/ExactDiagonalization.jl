@@ -45,15 +45,11 @@ can install it using its URL as
 ]add https://github.com/kyungminlee/ExactDiagonalization.jl.git
 ```
 Since, however, `ExactDiagonalization.jl` depends on other packages including [`TightBindingLattice.jl`](https://github.com/kyungminlee/TightBindingLattice.jl), it is convenient to add a custom registry.
-In shell, type
+In Julia, type
 ```sh
-$ git clone https://github.com/kyungminlee/KyungminLeeRegistry.jl.git ~/.julia/registries/KyungminLeeRegistry
+]registry add https://github.com/kyungminlee/KyungminLeeRegistry.jl.git
 ```
-on Unix-like systems and Windows PowerShell, or
-```cmd
-> git clone https://github.com/kyungminlee/KyungminLeeRegistry.jl.git %USERPROFILE%\.julia\registries\KyungminLeeRegistry
-```
-on Windows Command Prompt. After this, you can
+After this, you can
 ```julia
 ]add ExactDiagonalization
 ```

@@ -5,7 +5,7 @@ export choptol!
 export merge_vec
 
 struct IntegerModulo{N} <: Integer
-  value ::Int
+  value::Int
   IntegerModulo{N}(value::Integer) where N = new{N}(mod(value, N))
 end
 
@@ -22,17 +22,19 @@ import Base.+, Base.-, Base.*
 (*)(lhs::Integer, rhs::IntegerModulo{N}) where N = IntegerModulo{N}(lhs * rhs.value)
 
 
+tupleadd(l::T, r::T) where {T<:Tuple} = l .+ r
+tuplezero(l::Type{T}) where {T<:Tuple} = ((zero(S) for S in T.parameters)...,)
+tupleone(l::Type{T}) where {T<:Tuple} = ((one(S) for S in T.parameters)...,)
 
-
-function make_bitmask(msb ::Integer,
-                      binary_type::Type{BR}=UInt) where {BR <:Unsigned}
+function make_bitmask(msb::Integer,
+                      binary_type::Type{BR}=UInt) where {BR<:Unsigned}
   mask = BR(0x1) << msb - BR(0x1)
   return mask
 end
 
-function make_bitmask(msb ::Integer,
-                      lsb ::Integer,
-                      binary_type::Type{BR}=UInt) where {BR <:Unsigned}
+function make_bitmask(msb::Integer,
+                      lsb::Integer,
+                      binary_type::Type{BR}=UInt) where {BR<:Unsigned}
   mask = BR(0x1) << msb - BR(0x1)
   submask = BR(0x1) << lsb - BR(0x1)
   return mask ⊻ submask
@@ -64,7 +66,7 @@ function merge_vec(x::Vector{T}, y::Vector{T})::Vector{T} where {T}
   return z
 end
 
-function choptol!(d ::Dict{K, V}, tol::Real) where {K, V<:Number}
+function choptol!(d::Dict{K, V}, tol::Real) where {K, V<:Number}
   to_delete = K[k for (k, v) in d if abs(v) < tol]
   for k in to_delete
     delete!(d, k)
@@ -79,7 +81,7 @@ end
 
 Split n into b blocks.
 """
-function splitblock(n ::Integer, b ::Integer) ::Vector{Int}
+function splitblock(n::Integer, b::Integer)::Vector{Int}
   (n < 0) && throw(ArgumentError("n cannot be negative"))
   (b <= 0) && throw(ArgumentError("b must be positive"))
   blocksize = n ÷ b
@@ -103,14 +105,14 @@ export elmaximum, elminimum
 elmax(x::S, y::S) where {S<:Number} = max(x,y)
 elmax(x::T, y::T) where {T<:Tuple{<:Number}} = (max(first(x), first(y)),)
 
-function elmax(x ::T, y::T) where {T<:Tuple{<:Number, <:Number, Vararg{<:Number}}}
+function elmax(x::T, y::T) where {T<:Tuple{<:Number, <:Number, Vararg{<:Number}}}
   return (max(first(x), first(y)), elmax(x[2:end], y[2:end])...)
 end
 
 elmin(x::S, y::S) where {S<:Number} = max(x,y)
 elmin(x::T, y::T) where {T<:Tuple{<:Number}} = (max(first(x), first(y)),)
 
-function elmin(x ::T, y::T) where {T<:Tuple{<:Number, <:Number, Vararg{<:Number}}}
+function elmin(x::T, y::T) where {T<:Tuple{<:Number, <:Number, Vararg{<:Number}}}
   return (max(first(x), first(y)), elmax(x[2:end], y[2:end])...)
 end
 

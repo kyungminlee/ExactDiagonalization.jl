@@ -8,11 +8,11 @@ export apply!, apply_serial!, apply_parallel!
 
 Operator representation of given operator of type `O`.
 """
-struct OperatorRepresentation{HSR <:HilbertSpaceRepresentation, S<:Number, O<:AbstractOperator} <: AbstractOperatorRepresentation{S}
-  hilbert_space_representation ::HSR
-  operator ::O
+struct OperatorRepresentation{HSR<:HilbertSpaceRepresentation, S<:Number, O<:AbstractOperator} <: AbstractOperatorRepresentation{S}
+  hilbert_space_representation::HSR
+  operator::O
 
-  function OperatorRepresentation(hsr ::HSR, op ::O) where {HSR<:HilbertSpaceRepresentation, O<:AbstractOperator}
+  function OperatorRepresentation(hsr::HSR, op::O) where {HSR<:HilbertSpaceRepresentation, O<:AbstractOperator}
     S = valtype(op)
     new{HSR, S, O}(hsr, op)
   end
@@ -24,14 +24,14 @@ end
 
 Create an `OperatorRepresentation` of the `operator` in the `hilbert_space_representation`.
 """
-function represent(hsr ::HSR, op ::O) where {HSR<:HilbertSpaceRepresentation, O<:AbstractOperator}
+function represent(hsr::HSR, op::O) where {HSR<:HilbertSpaceRepresentation, O<:AbstractOperator}
   return OperatorRepresentation(hsr, op)
 end
 
 
 spacetype(lhs::Type{OperatorRepresentation{HSR, S, O}}) where {HSR, S, O} = HSR
-operatortype(lhs ::Type{OperatorRepresentation{HSR, S, O}}) where {HSR, S, O} = O
-get_space(lhs ::OperatorRepresentation{HSR, S, O}) where {HSR, S, O} = lhs.hilbert_space_representation ::HSR
+operatortype(lhs::Type{OperatorRepresentation{HSR, S, O}}) where {HSR, S, O} = O
+get_space(lhs::OperatorRepresentation{HSR, S, O}) where {HSR, S, O} = lhs.hilbert_space_representation ::HSR
 
 
 import LinearAlgebra.issymmetric
@@ -56,8 +56,8 @@ Each element is represented as (icol, amplitude).
 **May contain duplicates and invalid elements.**
 Invalid elements are represented as (-1, amplitude).
 """
-function get_row_iterator(opr ::OperatorRepresentation{HSR, S, O},
-                          irow ::Integer) where {HSR, S, O}
+function get_row_iterator(opr::OperatorRepresentation{HSR, S, O},
+                          irow::Integer) where {HSR, S, O}
   hsr = opr.hilbert_space_representation
   brow = hsr.basis_list[irow]
   basis_lookup = hsr.basis_lookup
@@ -76,8 +76,8 @@ Each element is represented as (irow, amplitude).
 **May contain duplicates and invalid elements.**
 Invalid elements are represented as (-1, amplitude).
 """
-function get_column_iterator(opr ::OperatorRepresentation{HSR, S, O},
-                             icol ::Integer) where {HSR, S, O}
+function get_column_iterator(opr::OperatorRepresentation{HSR, S, O},
+                             icol::Integer) where {HSR, S, O}
   hsr = opr.hilbert_space_representation
   bcol = hsr.basis_list[icol]
   basis_lookup = hsr.basis_lookup
@@ -91,7 +91,7 @@ end
 """
     get_element(opr, irow, icol)
 """
-function get_element(opr ::OperatorRepresentation{HSR, S, O}, irow ::Integer, icol ::Integer) where {HSR, S, O}
+function get_element(opr::OperatorRepresentation{HSR, S, O}, irow::Integer, icol::Integer) where {HSR, S, O}
   hsr = opr.hilbert_space_representation
   @boundscheck let
     dim = length(hsr.basis_list)
@@ -106,7 +106,7 @@ end
 
 
 import Base.*
-function (*)(opr ::OperatorRepresentation{HSR, SO, O}, state ::AbstractVector{SV}) where {HSR, O, SO, SV<:Number}
+function (*)(opr::OperatorRepresentation{HSR, SO, O}, state::AbstractVector{SV}) where {HSR, O, SO, SV<:Number}
   hsr = opr.hilbert_space_representation
   n = dimension(hsr)
   T = promote_type(SO, SV)
@@ -117,7 +117,7 @@ end
 
 
 import Base.*
-function (*)(state ::AbstractVector{SV}, opr ::OperatorRepresentation{HSR, SO, O}) where {HSR, SO, O, SV<:Number}
+function (*)(state::AbstractVector{SV}, opr::OperatorRepresentation{HSR, SO, O}) where {HSR, SO, O, SV<:Number}
   hsr = opr.hilbert_space_representation
   n = dimension(hsr)
   T = promote_type(SO, SV)

@@ -40,7 +40,7 @@ using ExactDiagonalization
 
   sector_bases = Dict{Int, Vector{UInt}}(
     +4 => [0b0000],
-    +2 => [0b0001, 0b0010, 0b0100, 0b1000], 
+    +2 => [0b0001, 0b0010, 0b0100, 0b1000],
      0 => [0b0011, 0b0101, 0b0110, 0b1001, 0b1010, 0b1100],
     -2 => [0b0111, 0b1011, 0b1101, 0b1110],
     -4 => [0b1111],
@@ -56,13 +56,13 @@ using ExactDiagonalization
     @test hsr1 != hsr3
     @test !(hsr1 == hsr3)
   end
-  
+
   #=
   PAULI_MATRICES = [ Float64[0 1.0; 1.0 0.0], ComplexF64[0.0 -1.0*im; 1.0*im 0.0], Float64[1.0 0.0; 0.0 -1.0]]
 
-  sigma(i ::Integer, j ::Integer) = KroneckerProductOperator(hs, 1.0, Dict(i=>PAULI_MATRICES[j]))
-  sigma_plus(i ::Integer) = KroneckerProductOperator(hs, 1.0, Dict(i=>[0.0 1.0; 0.0 0.0]))
-  sigma_minus(i ::Integer) = KroneckerProductOperator(hs, 1.0, Dict(i=>[0.0 0.0; 1.0 0.0]))
+  sigma(i::Integer, j::Integer) = KroneckerProductOperator(hs, 1.0, Dict(i=>PAULI_MATRICES[j]))
+  sigma_plus(i::Integer) = KroneckerProductOperator(hs, 1.0, Dict(i=>[0.0 1.0; 0.0 0.0]))
+  sigma_minus(i::Integer) = KroneckerProductOperator(hs, 1.0, Dict(i=>[0.0 0.0; 1.0 0.0]))
 
   sigma(1, 1)
   sigma(2, 1)

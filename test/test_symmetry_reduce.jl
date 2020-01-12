@@ -6,10 +6,10 @@ using TightBindingLattice
 using ExactDiagonalization.Toolkit: pauli_matrix
 
 @testset "symmetry_reduce" begin
-  QN = Int;
-  up = State{QN}("Up", 1);
-  dn = State{QN}("Dn",-1);
-  spin_site = Site{QN}([up, dn]);
+  QN = Tuple{Int}
+  up = State("Up", 1);
+  dn = State("Dn",-1);
+  spin_site = Site([up, dn]);
 
   n_sites = 4;
   hs = HilbertSpace([spin_site for i in 1:n_sites]);
@@ -65,10 +65,10 @@ using ExactDiagonalization.Toolkit: pauli_matrix
 
   @testset "convention" begin
     # want  |ψ(k)⟩ = ∑ exp(+ikx) |ψ(x)⟩
-    QN = Int;
-    up = State{QN}("Up", 1);
-    dn = State{QN}("Dn",-1);
-    spin_site = Site{QN}([up, dn]);
+    QN = Tuple{Int}
+    up = State("Up", 1);
+    dn = State("Dn",-1);
+    spin_site = Site([up, dn]);
     n_sites = 7;
     hs = HilbertSpace([spin_site for i in 1:n_sites]);
 
