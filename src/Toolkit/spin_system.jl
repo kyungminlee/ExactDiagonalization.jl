@@ -39,6 +39,8 @@ function spin_system(n_sites::Integer, S::Rational=1//2)
       return (Sp - Sm) * (-0.5im)
     elseif j == :z
       return sum(pure_operator(hilbert_space, isite, k+1, k+1, Sr - k, UInt) for k in 0:twoS)
+    else
+      throw(ArgumentError("spin component of type $(j) not supported"))
     end
   end
   return (hilbert_space, spin)
