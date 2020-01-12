@@ -99,7 +99,7 @@ adjoint(arg ::PureOperator{S, BR}) where {S, BR} = PureOperator{S, BR}(arg.bitma
 
 # === 3/6 Scalar Operators ===
 
-import Base.+, Base.-, Base.*, Base./, Base.\
+import Base.+, Base.-, Base.*, Base./, Base.\, Base.//
 
 (-)(op ::PureOperator{S, BR}) where {S, BR} = PureOperator{S, BR}(op.bitmask, op.bitrow, op.bitcol, -op.amplitude)
 
@@ -118,6 +118,10 @@ end
 
 function (/)(lhs ::PureOperator{S1, BR}, rhs ::S2) where {S1<:Number, S2<:Number, BR}
   return PureOperator(lhs.bitmask, lhs.bitrow, lhs.bitcol, lhs.amplitude / rhs)
+end
+
+function (//)(lhs ::PureOperator{S1, BR}, rhs ::S2) where {S1<:Number, S2<:Number, BR}
+  return PureOperator(lhs.bitmask, lhs.bitrow, lhs.bitcol, lhs.amplitude // rhs)
 end
 
 

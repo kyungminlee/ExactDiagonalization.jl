@@ -12,7 +12,7 @@ struct NullOperator <:AbstractOperator{Bool} end
 bintype(lhs ::Type{NullOperator}) = UInt8
 
 
-import Base.-, Base.+, Base.*, Base.==
+import Base.-, Base.+, Base.*, Base./, Base.\, Base.//, Base.==
 
 (-)(op ::NullOperator) = op
 
@@ -23,6 +23,9 @@ import Base.-, Base.+, Base.*, Base.==
 
 (*)(lhs ::Number, rhs ::NullOperator)::NullOperator = rhs
 (*)(lhs ::NullOperator, rhs ::Number)::NullOperator = lhs
+(\)(lhs ::Number, rhs ::NullOperator)::NullOperator = rhs
+(/)(lhs ::NullOperator, rhs ::Number)::NullOperator = lhs
+(//)(lhs ::NullOperator, rhs ::Number)::NullOperator = lhs
 
 (+)(lhs ::NullOperator, rhs ::NullOperator) = lhs
 (+)(lhs ::AbstractOperator, rhs ::NullOperator) = lhs

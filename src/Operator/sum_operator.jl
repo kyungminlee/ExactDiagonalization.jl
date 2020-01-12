@@ -52,7 +52,7 @@ adjoint(arg ::SumOperator{S, BR}) where {S, BR} = SumOperator{S, BR}(adjoint.(ar
 
 # === 3/6 Scalar Operators ===
 
-import Base.+, Base.-, Base.*, Base./, Base.\
+import Base.+, Base.-, Base.*, Base./, Base.\, Base.//
 
 (-)(arg ::SumOperator{S, BR}) where {S, BR} = SumOperator{S, BR}(-arg.terms)
 
@@ -71,6 +71,10 @@ end
 
 function (/)(lhs ::SumOperator{S1, BR}, rhs ::S2) where {S1<:Number, S2<:Number, BR}
   SumOperator(lhs.terms ./ rhs)
+end
+
+function (//)(lhs ::SumOperator{S1, BR}, rhs ::S2) where {S1<:Number, S2<:Number, BR}
+  SumOperator(lhs.terms .// rhs)
 end
 
 
