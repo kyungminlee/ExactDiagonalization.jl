@@ -1,11 +1,20 @@
 # ExactDiagonalization.jl
 
-*Exact Diagonalization*
-
 | **Documentation** | **Build Status** | **Code Coverage** |
 |:-----------------:|:----------------:|:-----------------:|
 | [![**STABLE**][docs-stable-img]][docs-stable-url] [![**DEV**][docs-dev-img]][docs-dev-url] | [![Build Status][travis-img]][travis-url] [![Build Status][appveyor-img]][appveyor-url] | [![Code Coverage][codecov-img]][codecov-url] [![Code Coverage][coveralls-img]][coveralls-url] |
 
+`ExactDiagonalization.jl` is a library for constructing quantum many-body Hamiltonians. It aims to provide
+- convenient and efficient representation of a generic lattice Hamiltonian and wave function
+- reduction of the Hilbert space dimension using symmetry
+
+## Installation
+
+To install, type the following in Julia's package Pkg REPL-mode:
+```julia-repl
+(v1.3) pkg> registry add https://github.com/kyungminlee/KyungminLeeRegistry.jl.git
+(v1.3) pkg> add ExactDiagonalization
+```
 
 [docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
 [docs-stable-url]: http://kyungminlee.org/ExactDiagonalization.jl/stable
