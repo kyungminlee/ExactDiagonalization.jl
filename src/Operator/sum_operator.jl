@@ -10,7 +10,7 @@ Represents a sum of pure operators.
 # Members
 - `terms::Vector{PureOperator{Scalar,BR}}`
 """
-struct SumOperator{Scalar<:Number, BR <:Unsigned} <:AbstractOperator{Scalar}
+struct SumOperator{Scalar<:Number, BR<:Unsigned} <:AbstractOperator{Scalar}
   terms::Vector{PureOperator{Scalar, BR}}
 
   function SumOperator{S, BR}(terms) where {S, BR}

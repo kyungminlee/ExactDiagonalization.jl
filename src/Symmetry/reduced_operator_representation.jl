@@ -12,10 +12,14 @@ export get_column
 
 Representation of an operator of type `O` in the symmetry-reduced hilbert space representation of type `RHSR`.
 """
-struct ReducedOperatorRepresentation{RHSR<:ReducedHilbertSpaceRepresentation, O <:AbstractOperator, S<:Number, BR<:Unsigned}<:AbstractOperatorRepresentation{S}
+struct ReducedOperatorRepresentation{RHSR<:ReducedHilbertSpaceRepresentation,
+                                     O<:AbstractOperator,
+                                     S<:Number,
+                                     BR<:Unsigned}<:AbstractOperatorRepresentation{S}
   reduced_hilbert_space_representation::RHSR
   operator::O
-  function ReducedOperatorRepresentation(rhsr::RHSR, op::O) where {RHSR <:ReducedHilbertSpaceRepresentation, O <:AbstractOperator}
+
+  function ReducedOperatorRepresentation(rhsr::RHSR, op::O) where {RHSR<:ReducedHilbertSpaceRepresentation, O<:AbstractOperator}
     S = promote_type(valtype(RHSR), valtype(O))
     BR = bintype(RHSR)
     return new{RHSR, O, S, BR}(rhsr, op)
@@ -34,7 +38,7 @@ end
 
 
 import Base.show
-function show(io::IO, ::MIME"text/plain", arg::ReducedOperatorRepresentation{RHSR, O, S, BR})  where {RHSR, O, S, BR}
+function show(io::IO, ::MIME"text/plain", arg::ReducedOperatorRepresentation{RHSR, O, S, BR}) where {RHSR, O, S, BR}
   print(io, string(typeof(arg)), "(", arg.reduced_hilbert_space_representation, ", ", arg.operator, ")")
 end
 

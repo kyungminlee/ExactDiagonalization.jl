@@ -6,7 +6,7 @@ export NullOperator
 
 A null operator, i.e. 0.
 """
-struct NullOperator <:AbstractOperator{Bool} end
+struct NullOperator<:AbstractOperator{Bool} end
 
 
 bintype(lhs::Type{NullOperator}) = UInt8
