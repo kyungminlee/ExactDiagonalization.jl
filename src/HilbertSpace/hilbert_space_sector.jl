@@ -14,23 +14,23 @@ struct HilbertSpaceSector{QN<:Tuple{Vararg{<:AbstractQuantumNumber}}} <: Abstrac
   parent ::HilbertSpace{QN}
   allowed_quantum_numbers ::Set{QN}
 
-  function HilbertSpaceSector(parent ::HilbertSpace{QN}) where QN
+  function HilbertSpaceSector(parent::HilbertSpace{QN}) where QN
     sectors = quantum_number_sectors(parent)
     new{QN}(parent, Set(sectors))
   end
 
-  function HilbertSpaceSector(parent ::HilbertSpace{QN}, allowed::Integer) where {QN<:Tuple{<:Integer}}
+  function HilbertSpaceSector(parent::HilbertSpace{QN}, allowed::Integer) where {QN<:Tuple{<:Integer}}
     sectors = Set{QN}(quantum_number_sectors(parent))
     new{QN}(parent, intersect(sectors, Set([(allowed,)])))
   end
 
 
-  function HilbertSpaceSector(parent ::HilbertSpace{QN}, allowed::QN) where QN
+  function HilbertSpaceSector(parent::HilbertSpace{QN}, allowed::QN) where QN
     sectors = Set{QN}(quantum_number_sectors(parent))
     new{QN}(parent, intersect(sectors, Set([allowed])))
   end
 
-  function HilbertSpaceSector(parent ::HilbertSpace{QN},
+  function HilbertSpaceSector(parent::HilbertSpace{QN},
                               allowed::Union{AbstractSet{QN}, AbstractVector{QN}}) where QN
     sectors = Set{QN}(quantum_number_sectors(parent))
     new{QN}(parent, intersect(sectors, Set(allowed)))
@@ -44,8 +44,8 @@ end
 Returns the scalar type of the given hilbert space sector type.
 For HilbertSpaceSector{QN}, it is always `Bool`.
 """
-scalartype(arg ::Type{HilbertSpaceSector{QN}}) where QN = Bool
-scalartype(arg ::HilbertSpaceSector{QN}) where QN = Bool
+scalartype(arg::Type{HilbertSpaceSector{QN}}) where QN = Bool
+scalartype(arg::HilbertSpaceSector{QN}) where QN = Bool
 
 
 import Base.valtype
@@ -55,8 +55,8 @@ import Base.valtype
 Returns the `valtype` (scalar type) of the given hilbert space sector type.
 For HilbertSpaceSector{QN}, it is always `Bool`.
 """
-valtype(arg ::Type{HilbertSpaceSector{QN}}) where QN = Bool
-valtype(arg ::HilbertSpaceSector{QN}) where QN = Bool
+valtype(arg::Type{HilbertSpaceSector{QN}}) where QN = Bool
+valtype(arg::HilbertSpaceSector{QN}) where QN = Bool
 
 
 """
@@ -64,8 +64,8 @@ valtype(arg ::HilbertSpaceSector{QN}) where QN = Bool
 
 Returns the quantum number type of the given hilbert space sector type.
 """
-qntype(arg ::Type{HilbertSpaceSector{QN}}) where QN = QN
-qntype(arg ::HilbertSpaceSector{QN}) where QN = QN
+qntype(arg::Type{HilbertSpaceSector{QN}}) where QN = QN
+qntype(arg::HilbertSpaceSector{QN}) where QN = QN
 
 
 """

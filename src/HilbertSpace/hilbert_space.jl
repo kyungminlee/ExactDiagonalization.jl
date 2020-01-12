@@ -26,15 +26,15 @@ struct HilbertSpace{QN<:Tuple{Vararg{<:AbstractQuantumNumber}}} <: AbstractHilbe
   bitwidths ::Vector{Int}
   bitoffsets ::Vector{Int}
 
-  HilbertSpace{QN}() where {QN} = new{QN}(Site{QN}[], Int[], Int[0])
+  HilbertSpace{QN}() where QN = new{QN}(Site{QN}[], Int[], Int[0])
 
-  function HilbertSpace(sites ::AbstractArray{Site{QN}, 1}) where QN
+  function HilbertSpace(sites::AbstractArray{Site{QN}, 1}) where QN
     bitwidths = map(bitwidth, sites)
     bitoffsets = Int[0, cumsum(bitwidths)...]
     new{QN}(sites, bitwidths, bitoffsets)
   end
 
-  function HilbertSpace{QN}(sites ::AbstractArray{Site{QN}, 1}) where QN
+  function HilbertSpace{QN}(sites::AbstractArray{Site{QN}, 1}) where QN
     bitwidths = map(bitwidth, sites)
     bitoffsets = Int[0, cumsum(bitwidths)...]
     new{QN}(sites, bitwidths, bitoffsets)
@@ -48,8 +48,8 @@ end
 Returns the scalar type of the given hilbert space type.
 For HilbertSpace{QN}, it is always `Bool`.
 """
-scalartype(arg ::Type{<:HilbertSpace}) = Bool
-scalartype(arg ::HilbertSpace) = Bool
+scalartype(arg::Type{<:HilbertSpace}) = Bool
+scalartype(arg::HilbertSpace) = Bool
 
 
 import Base.valtype
@@ -58,8 +58,8 @@ import Base.valtype
 
 Returns the `valtype` (scalar type) of the given hilbert space type.
 """
-valtype(arg ::Type{<:HilbertSpace}) = Bool
-valtype(arg ::HilbertSpace) = Bool
+valtype(arg::Type{<:HilbertSpace}) = Bool
+valtype(arg::HilbertSpace) = Bool
 
 
 """
@@ -67,8 +67,8 @@ valtype(arg ::HilbertSpace) = Bool
 
 Returns the quantum number type of the given hilbert space type.
 """
-qntype(arg ::Type{HilbertSpace{QN}}) where QN = QN
-qntype(arg ::HilbertSpace{QN}) where QN = QN
+qntype(arg::Type{HilbertSpace{QN}}) where QN = QN
+qntype(arg::HilbertSpace{QN}) where QN = QN
 
 
 """
@@ -99,12 +99,12 @@ bitwidth(hs::HilbertSpace) = hs.bitoffsets[end]
 
 
 import Base.==
-function (==)(lhs ::HilbertSpace{Q1}, rhs ::HilbertSpace{Q2}) where {Q1, Q2}
+function (==)(lhs::HilbertSpace{Q1}, rhs::HilbertSpace{Q2}) where {Q1, Q2}
   return lhs.sites == rhs.sites
 end
 
 
-function get_bitmask(hs ::HilbertSpace, isite ::Integer, binary_type ::Type{BR}=UInt) ::BR where {BR<:Unsigned}
+function get_bitmask(hs::HilbertSpace, isite::Integer, binary_type::Type{BR}=UInt) ::BR where {BR<:Unsigned}
   return make_bitmask(hs.bitoffsets[isite+1], hs.bitoffsets[isite], BR)
 end
 
@@ -112,7 +112,7 @@ end
 """
     quantum_number_sectors
 """
-function quantum_number_sectors(hs ::HilbertSpace{QN})::Vector{QN} where QN
+function quantum_number_sectors(hs::HilbertSpace{QN})::Vector{QN} where QN
   qns = Set{QN}([tuplezero(QN)])
   for site in hs.sites
     qns_next = Set{QN}()
@@ -129,7 +129,6 @@ end
     get_quantum_number
 """
 function get_quantum_number(hs ::HilbertSpace{QN}, binrep ::BR) where {QN, BR}
-  tupleadd(a::QN, b::QN) = a.+ b
   return mapreduce(identity, tupleadd,
       let i = get_state_index(hs, binrep, isite)
         site.states[i].quantum_number
@@ -139,7 +138,6 @@ end
 
 
 function get_quantum_number(hs ::HilbertSpace{QN}, indexarray ::AbstractArray{I, 1}) where {QN, I <:Integer}
-  tupleadd(a::QN, b::QN) = a.+ b
   return mapreduce(identity, tupleadd,
       site.states[indexarray[isite]].quantum_number
       for (isite, site) in enumerate(hs.sites)
@@ -162,7 +160,7 @@ julia> extract(hs, 0x03)
 CartesianIndex(2, 2)
 ```
 """
-function extract(hs ::HilbertSpace{QN}, binrep ::BR) ::CartesianIndex where {QN, BR<:Unsigned}
+function extract(hs::HilbertSpace{QN}, binrep::BR) ::CartesianIndex where {QN, BR<:Unsigned}
   out = Int[]
   for (isite, site) in enumerate(hs.sites)
     @inbounds mask = make_bitmask(hs.bitwidths[isite], BR)
@@ -194,7 +192,7 @@ julia> compress(hs, CartesianIndex(2,2))
 0x0000000000000003
 ```
 """
-function compress(hs ::HilbertSpace{QN}, indexarray ::CartesianIndex, binary_type ::Type{BR}=UInt) where {QN, BR<:Unsigned}
+function compress(hs::HilbertSpace{QN}, indexarray::CartesianIndex, binary_type::Type{BR}=UInt) where {QN, BR<:Unsigned}
   if length(indexarray) != length(hs.sites)
     throw(ArgumentError("length of indexarray should be the number of sites"))
   end
@@ -216,7 +214,7 @@ Update the binary representation of a basis state
 by changing the state at site `isite` to a new local state specified by
 `new_state_index`.
 """
-@inline function update(hs ::HilbertSpace, binrep ::BR, isite ::Integer, new_state_index ::Integer) where {BR<:Unsigned}
+@inline function update(hs::HilbertSpace, binrep::BR, isite::Integer, new_state_index::Integer) where {BR<:Unsigned}
   @boundscheck if !(1 <= new_state_index <= dimension(hs.sites[isite]))
     throw(BoundsError(1:dimension(hs.sites[isite]), new_state_index))
   end
@@ -231,8 +229,8 @@ end
 Get the *index of* the local state at site `isite` for the basis state
 represented by `binrep`.
 """
-function get_state_index(hs ::HilbertSpace, binrep ::BR, isite ::Integer) where {BR<:Unsigned}
-  return Int( ( binrep >> hs.bitoffsets[isite] ) & make_bitmask(hs.bitwidths[isite], BR) ) + 1
+function get_state_index(hs::HilbertSpace, binrep::BR, isite::Integer) where {BR<:Unsigned}
+  return Int((binrep >> hs.bitoffsets[isite]) & make_bitmask(hs.bitwidths[isite], BR)) + 1
 end
 
 
@@ -242,7 +240,7 @@ end
 Get the local state at site `isite` for the basis state
 represented by `binrep`. Returns an object of type `State`
 """
-function get_state(hs ::HilbertSpace, binrep ::BR, isite ::Integer) where {BR<:Unsigned}
+function get_state(hs::HilbertSpace, binrep::BR, isite::Integer) where {BR<:Unsigned}
   return hs.sites[isite].states[get_state_index(hs, binrep, isite)]
 end
 
@@ -267,6 +265,6 @@ end
 
 
 import Base.keys
-function keys(hs ::HilbertSpace{QN}) where QN
-  return CartesianIndices( ((1:length(site.states) for site in hs.sites)..., ) )
+function keys(hs::HilbertSpace{QN}) where QN
+  return CartesianIndices(((1:length(site.states) for site in hs.sites)...,))
 end
