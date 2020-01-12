@@ -31,7 +31,6 @@ struct State{QN<:Tuple{Vararg{<:AbstractQuantumNumber}}}
   State(name::AbstractString) = new{Tuple{}}(name, ())
   State(name::AbstractString, quantum_number::Integer) = new{Tuple{Int}}(name, (quantum_number,))
   State(name::AbstractString, quantum_number::QN) where {QN<:Tuple{Vararg{<:AbstractQuantumNumber}}} = new{QN}(name, quantum_number)
-  State{QN}(name::AbstractString, quantum_number::QN) where {QN<:Tuple{Vararg{<:AbstractQuantumNumber}}} = new{QN}(name, quantum_number)
 end
 
 
@@ -65,7 +64,6 @@ julia> site = Site([State("Up", 1), State("Dn", -1)]);
 struct Site{QN<:Tuple{Vararg{<:AbstractQuantumNumber}}} <: AbstractHilbertSpace
   states ::Vector{State{QN}}
   Site(states::AbstractVector{State{QN}}) where QN = new{QN}(states)
-  Site{QN}(states::AbstractVector{State{QN}}) where QN = new{QN}(states)
 end
 
 
