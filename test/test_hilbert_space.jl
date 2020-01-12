@@ -14,6 +14,8 @@ using StaticArrays
 
   let
     s = State("Up", 1)
+    sp = State{Tuple{Int}}("Up", 1)
+    @test s == sp
     @test typeof(s) == State{Tuple{Int}}
     @test s.name == "Up"
     @test s.quantum_number == (1,)
@@ -86,6 +88,8 @@ end
     up = State("Up", 1)
     dn = State("Dn",(-1,))
     spin_site = Site([up, dn])
+    spin_site_prime = Site{Tuple{Int}}([up, dn])
+    @test spin_site == spin_site_prime
     @test HilbertSpace{QN}().sites == []
     @test HilbertSpace{QN}().bitwidths == []
     @test HilbertSpace{QN}().bitoffsets == [0]
