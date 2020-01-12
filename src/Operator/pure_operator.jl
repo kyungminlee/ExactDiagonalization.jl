@@ -150,14 +150,18 @@ end
 # === 6/6 Conversion ===
 
 import Base.promote_rule
-function promote_rule(lhs::Type{PureOperator{S1, BR}}, rhs::Type{PureOperator{S2, BR}}) where {S1, S2, BR}
+function promote_rule(lhs::Type{PureOperator{S1, B1}}, rhs::Type{PureOperator{S2, B2}}) where {S1, S2, B1, B2}
   S3 = promote_type(S1, S2)
-  return PureOperator{S3, BR}
+  B3 = promote_type(B1, B2)
+  return PureOperator{S3, B3}
 end
 
 import Base.convert
-function convert(type::Type{PureOperator{S1, BR}}, obj::PureOperator{S2, BR}) where {S1, S2, BR}
-  return PureOperator{S1, BR}(obj.bitmask, obj.bitrow, obj.bitcol, convert(S1, obj.amplitude))
+function convert(type::Type{PureOperator{S1, B1}}, obj::PureOperator{S2, B2}) where {S1, S2, B1, B2}
+  return PureOperator{S1, B1}(convert(B1, obj.bitmask),
+                              convert(B1, obj.bitrow),
+                              convert(B1, obj.bitcol),
+                              convert(S1, obj.amplitude))
 end
 
 
