@@ -10,7 +10,7 @@ export bitwidth
 
 Hilbert space sector.
 """
-struct HilbertSpaceSector{QN} <: AbstractHilbertSpace
+struct HilbertSpaceSector{QN<:Tuple{Vararg{<:AbstractQuantumNumber}}} <: AbstractHilbertSpace
   parent ::HilbertSpace{QN}
   allowed_quantum_numbers ::Set{QN}
 
@@ -18,6 +18,12 @@ struct HilbertSpaceSector{QN} <: AbstractHilbertSpace
     sectors = quantum_number_sectors(parent)
     new{QN}(parent, Set(sectors))
   end
+
+  function HilbertSpaceSector(parent ::HilbertSpace{QN}, allowed::Integer) where {QN<:Tuple{<:Integer}}
+    sectors = Set{QN}(quantum_number_sectors(parent))
+    new{QN}(parent, intersect(sectors, Set([(allowed,)])))
+  end
+
 
   function HilbertSpaceSector(parent ::HilbertSpace{QN}, allowed::QN) where QN
     sectors = Set{QN}(quantum_number_sectors(parent))

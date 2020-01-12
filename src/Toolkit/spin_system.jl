@@ -13,7 +13,6 @@ Create a Hilbert space of spin 1/2 system of `n_sites`
 - `(hilbert_space, pauli)`
 """
 function spin_system(n_sites ::Integer, S::Rational=1//2)
-  QN = Int
   if (S <= 0)
     throw(ArgumentError("S needs to positive"))
   elseif !(denominator(S) == 1 || denominator(S) == 2)

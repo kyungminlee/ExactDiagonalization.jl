@@ -4,10 +4,10 @@ using ExactDiagonalization
 using StaticArrays
 
 @testset "SparseState" begin
-  QN = SVector{2, Int}
-  em = State("Em", QN( 0, 0))  # charge and spin
-  up = State("Up", QN( 1, 1))
-  dn = State("Dn", QN( 1,-1))
+  QN = Tuple{Int, Int}
+  em = State("Em", ( 0, 0))  # charge and spin
+  up = State("Up", ( 1, 1))
+  dn = State("Dn", ( 1,-1))
   spin_site = Site([up, dn])
   site = Site([em, up, dn])
   hs = HilbertSpace([site, site, spin_site, site])

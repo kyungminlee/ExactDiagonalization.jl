@@ -30,13 +30,13 @@ julia> State("Dn", SVector{2, Int}([-1, 1]))
 State{SArray{Tuple{2},Int64,1,2}}("Dn", [-1, 1])
 ```
 """
-struct State{QN<:AbstractQuantumNumber}
+struct State{QN<:Tuple{Vararg{<:AbstractQuantumNumber}}}
   name ::String
   quantum_number ::QN
-
-  State(name ::AbstractString) = new{Int}(name, 0)
-  State(name ::AbstractString, quantum_number ::QN) where {QN} = new{QN}(name, quantum_number)
-  State{QN}(name ::AbstractString, quantum_number ::QN) where {QN} = new{QN}(name, quantum_number)
+  State(name ::AbstractString) = new{Tuple{}}(name, ())
+  State(name ::AbstractString, quantum_number::Integer) = new{Tuple{Int}}(name, (quantum_number,))
+  State(name ::AbstractString, quantum_number ::QN) where {QN<:Tuple{Vararg{<:AbstractQuantumNumber}}} = new{QN}(name, quantum_number)
+  State{QN}(name ::AbstractString, quantum_number ::QN) where {QN<:Tuple{Vararg{<:AbstractQuantumNumber}}} = new{QN}(name, quantum_number)
 end
 
 
@@ -70,31 +70,11 @@ julia> Site([up, dn])
 Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)], GenericSiteType)
 ```
 """
-struct Site{QN<:AbstractQuantumNumber} <: AbstractHilbertSpace
+struct Site{QN<:Tuple{Vararg{<:AbstractQuantumNumber}}} <: AbstractHilbertSpace
   states ::Vector{State{QN}}
-  sitetype ::Type{<:AbstractSiteType}
 
-  Site(states ::AbstractArray{State{QN}, 1}) where QN = new{QN}(states, GenericSiteType)
-  Site{QN}(states ::AbstractArray{State{QN}, 1}) where QN = new{QN}(states, GenericSiteType)
-  function Site(states ::AbstractArray{State{QN}, 1}, sitetype::Type{GenericSiteType}) where QN
-    new{QN}(states, sitetype)
-  end
-
-  """
-    Site(quantum_number, sitetype)
-
-  `quantum_number` is the quantum number of a single particle at this site.
-  """
-  function Site(quantum_number::QN, sitetype::Type{ParticleSiteType{P}}) where {QN<:AbstractQuantumNumber, P<:AbstractParticle}
-    states = State{QN}[]
-    qn = zero(QN)
-    for i in 0:maxoccupancy(sitetype)
-      name="$P($i)"
-      push!(states, State(name, qn))
-      qn += one(QN)
-    end
-    new{QN}(states, sitetype)
-  end
+  Site(states ::AbstractArray{State{QN}, 1}) where QN = new{QN}(states)
+  Site{QN}(states ::AbstractArray{State{QN}, 1}) where QN = new{QN}(states)
 end
 
 

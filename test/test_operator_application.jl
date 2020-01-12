@@ -6,9 +6,9 @@ using ExactDiagonalization.Toolkit: pauli_matrix
 @testset "Operator Application" begin
 
   @testset "spinhalf" begin
-    QN = Int
-    up = State("Up", QN( 1))
-    dn = State("Dn", QN(-1))
+    QN = Tuple{Int}
+    up = State("Up", 1)
+    dn = State("Dn", -1)
     spin_site = Site([up, dn])
     hs = HilbertSpace([spin_site, spin_site, spin_site, spin_site])
     σ(i::Integer, j::Symbol) = pauli_matrix(hs, i, j)

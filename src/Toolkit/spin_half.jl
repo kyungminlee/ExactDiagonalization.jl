@@ -10,10 +10,9 @@ Create a Hilbert space of spin 1/2 system of `n_sites`
 - `(hilbert_space, pauli)`
 """
 function spin_half_system(n_sites ::Integer)
-  QN = Int
-  up = State{QN}("Up", 1)
-  dn = State{QN}("Dn", -1)
-  spin_site = Site{QN}([up, dn])
+  up = State("Up", 1)
+  dn = State("Dn", -1)
+  spin_site = Site([up, dn])
   hilbert_space = HilbertSpace([spin_site for i in 1:n_sites])
   pauli(isite ::Integer, j::Symbol) = pauli_matrix(hilbert_space, isite, j)
   return (hilbert_space, pauli)

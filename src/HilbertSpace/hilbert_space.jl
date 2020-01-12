@@ -21,12 +21,12 @@ julia> hs = HilbertSpace([spin_site, spin_site])
 HilbertSpace{Int64}(Site{Int64}[Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)], GenericSiteType), Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)], GenericSiteType)], [1, 1], [0, 1, 2])
 ```
 """
-struct HilbertSpace{QN} <: AbstractHilbertSpace
+struct HilbertSpace{QN<:Tuple{Vararg{<:AbstractQuantumNumber}}} <: AbstractHilbertSpace
   sites ::Vector{Site{QN}}
   bitwidths ::Vector{Int}
   bitoffsets ::Vector{Int}
 
-  HilbertSpace{QN}() where {QN} = new{QN}([], [], [0])
+  HilbertSpace{QN}() where {QN} = new{QN}(Site{QN}[], Int[], Int[0])
 
   function HilbertSpace(sites ::AbstractArray{Site{QN}, 1}) where QN
     bitwidths = map(bitwidth, sites)
@@ -113,7 +113,7 @@ end
     quantum_number_sectors
 """
 function quantum_number_sectors(hs ::HilbertSpace{QN})::Vector{QN} where QN
-  qns = Set{QN}([zero(QN)])
+  qns = Set{QN}([tuplezero(QN)])
   for site in hs.sites
     qns_next = Set{QN}()
     for state in site.states, q in qns
@@ -129,17 +129,18 @@ end
     get_quantum_number
 """
 function get_quantum_number(hs ::HilbertSpace{QN}, binrep ::BR) where {QN, BR}
-  sum(
-    let i = get_state_index(hs, binrep, isite)
-      site.states[i].quantum_number
-    end
-    for (isite, site) in enumerate(hs.sites)
-  )
+  tupleadd(a::QN, b::QN) = a.+ b
+  return mapreduce(identity, tupleadd,
+      let i = get_state_index(hs, binrep, isite)
+        site.states[i].quantum_number
+      end
+      for (isite, site) in enumerate(hs.sites))
 end
 
 
 function get_quantum_number(hs ::HilbertSpace{QN}, indexarray ::AbstractArray{I, 1}) where {QN, I <:Integer}
-    sum(
+  tupleadd(a::QN, b::QN) = a.+ b
+  return mapreduce(identity, tupleadd,
       site.states[indexarray[isite]].quantum_number
       for (isite, site) in enumerate(hs.sites)
     )

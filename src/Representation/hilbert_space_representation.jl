@@ -115,11 +115,11 @@ function hs_get_basis_list(hss::HilbertSpaceSector{QN}, binary_type::Type{BR}=UI
   # `qn_schedule` is the intersection of these two, and are the ones we need to
   # generate the basis.
   qn_possible ::Vector{Vector{QN}} = let qn_possible = Vector{Vector{QN}}(undef, n_sites+1)
-    qn_possible[1] = [zero(QN)]
+    qn_possible[1] = [tuplezero(QN)]
     for i in eachindex(hs.sites)
       a = Set{QN}()
       for qi in quantum_numbers[i], qa in qn_possible[i]
-        push!(a, qa + qi)
+        push!(a, qa .+ qi)
       end
       qn_possible[i+1] = sort(collect(a))
     end
@@ -131,7 +131,7 @@ function hs_get_basis_list(hss::HilbertSpaceSector{QN}, binary_type::Type{BR}=UI
     for i in n_sites:-1:1
       a = Set{QN}()
       for qi in quantum_numbers[i], qa in qn_requested[i+1]
-        push!(a, qa - qi)
+        push!(a, qa .- qi)
       end
       qn_requested[i] = sort(collect(a))
     end
@@ -140,7 +140,7 @@ function hs_get_basis_list(hss::HilbertSpaceSector{QN}, binary_type::Type{BR}=UI
 
   qn_schedule = [intersect(x,y) for (x, y) in zip(qn_requested, qn_possible)]
 
-  sector_basis_list = Dict{QN, Vector{BR}}(zero(QN) => BR[BR(0x0)])
+  sector_basis_list = Dict{QN, Vector{BR}}(tuplezero(QN) => BR[BR(0x0)])
   new_sector_basis_list = Dict{QN, Vector{BR}}()
 
   #sl = Threads.SpinLock()
@@ -150,7 +150,7 @@ function hs_get_basis_list(hss::HilbertSpaceSector{QN}, binary_type::Type{BR}=UI
     for q in qn_schedule[i+1]
       new_sector_basis_list_q = BR[]
       for (i_state, q_curr) in enumerate(quantum_numbers[i])
-        q_prev ::QN = q - q_curr
+        q_prev ::QN = q .- q_curr
         if haskey(sector_basis_list, q_prev)
           append!(new_sector_basis_list_q,
                   (s | (BR(i_state-1) << hs.bitoffsets[i])) for s in sector_basis_list[q_prev])

@@ -4,8 +4,6 @@ using ExactDiagonalization
 @testset "Toolkit" begin
   @testset "SpinHalf" begin
     n_sites = 4
-
-    QN = Int
     up = State("Up", 1)
     dn = State("Dn",-1)
     spin_site = Site([up, dn])

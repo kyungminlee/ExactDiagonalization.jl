@@ -62,9 +62,9 @@ using StaticArrays
 end # testset NullOperator
 
 @testset "PureOperator" begin
-  QN = Int
+  QN = Tuple{Int}
   up = State("Up", 1)
-  dn = State{QN}("Dn",-1)
+  dn = State{QN}("Dn", (-1,))
   spin_site = Site{QN}([up, dn])
 
   hs = HilbertSpace{QN}([spin_site for i in 1:4])
@@ -295,9 +295,9 @@ end # testset NullOperator
 end
 
 @testset "SumOperator" begin
-  QN = Int
+  QN = Tuple{Int}
   up = State("Up", 1)
-  dn = State{QN}("Dn",-1)
+  dn = State{QN}("Dn", (-1,))
   spin_site = Site{QN}([up, dn])
 
   hs = HilbertSpace{QN}([spin_site for i in 1:4])
