@@ -24,6 +24,51 @@ using ExactDiagonalization
     @test_throws ArgumentError pauli(1, :unknown)
   end
 
+  @testset "SpinSystem" begin
+    r2, r3, r6 = sqrt(2), sqrt(3), sqrt(6)
+
+    spin_matrices = Dict(
+      1//2 => Dict(
+          :x => [0 1; 1 0] ./2,
+          :y => [0 1; -1 0] ./(2im),
+          :z => [1 0; 0 -1] ./2,
+          :+ => [0 1; 0 0],
+          :- => [0 0; 1 0],
+        ),
+      1//1 => Dict(
+          :x => [0 1 0; 1 0 1; 0 1 0] ./ r2,
+          :y => [0 1 0; -1 0 1; 0 -1 0] ./ (r2*1im),
+          :z => [1 0 0; 0 0 0; 0 0 -1],
+          :+ => [0 1 0; 0 0 1; 0 0 0] .* r2,
+          :- => [0 0 0; 1 0 0; 0 1 0] .* r2,
+        ),
+      3//2 => Dict(
+          :x => [0 r3 0 0; r3 0 2 0; 0 2 0 r3; 0 0 r3 0] ./ 2,
+          :y => [0 r3 0 0;-r3 0 2 0; 0 -2 0 r3; 0 0 -r3 0] ./ (2im),
+          :z => [3/2 0 0 0; 0 1/2 0 0; 0 0 -1/2 0; 0 0 0 -3/2],
+          :+ => [0 r3 0 0; 0 0 2 0; 0 0 0 r3; 0 0 0 0],
+          :- => [0 0 0 0; r3 0 0 0; 0 2 0 0; 0 0 r3 0],
+        ),
+      2//1 => Dict(
+          :x => [0 2 0 0 0; 2 0 r6 0 0; 0 r6 0 r6 0; 0 0 r6 0 2; 0 0 0 2 0] ./ 2,
+          :y => [0 2 0 0 0; -2 0 r6 0 0; 0 -r6 0 r6 0; 0 0 -r6 0 2; 0 0 0 -2 0] ./ (2im),
+          :z => [2 0 0 0 0; 0 1 0 0 0; 0 0 0 0 0; 0 0 0 -1 0; 0 0 0 0 -2],
+          :+ => [0 2 0 0 0; 0 0 r6 0 0; 0 0 0 r6 0; 0 0 0 0 2; 0 0 0 0 0],
+          :- => [0 0 0 0 0; 2 0 0 0 0; 0 r6 0 0 0; 0 0 r6 0 0; 0 0 0 2 0],
+        ),
+    )
+
+    @testset "SingleSite" begin
+      for S in [1//2, 1//1, 3//2, 2//1]
+        (hs, spin) = ExactDiagonalization.Toolkit.spin_system(1, S)
+        hsr = represent(hs)
+        for μ in [:x, :y, :z, :+, :-]
+          @test isapprox(spin_matrices[S][μ], Matrix(represent(hsr, spin(1, μ))))
+        end
+      end # for S
+    end # SingleSite
+  end
+
   @testset "product_state" begin
     (hs, pauli) = ExactDiagonalization.Toolkit.spin_half_system(4)
     @test_throws ArgumentError ExactDiagonalization.Toolkit.product_state(hs, [[1.0, 0.0], [0.0, 0.0]]) # too few
