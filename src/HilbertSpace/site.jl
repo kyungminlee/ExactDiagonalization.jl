@@ -19,10 +19,10 @@ State with quantum number type `QN`.
 julia> using ExactDiagonalization
 
 julia> up = State("Up", 1)
-State{Tuple{Int64}}("Up", 1)
+State{Tuple{Int64}}("Up", (1,))
 
 julia> State("Dn", (-1, 1))
-State{Tuple{Int64, Int64}}("Dn", (-1, 1))
+State{Tuple{Int64,Int64}}("Dn", (-1, 1))
 ```
 """
 struct State{QN<:Tuple{Vararg{<:AbstractQuantumNumber}}}

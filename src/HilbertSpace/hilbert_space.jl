@@ -15,10 +15,10 @@ Abstract Hilbert space with quantum number type `QN`.
 ```jldoctest
 julia> using ExactDiagonalization
 
-julia> spin_site = Site([State{Int64}("Up", +1), State{Int64}("Dn", -1)]);
+julia> spin_site = Site([State("Up", +1), State("Dn", -1)]);
 
 julia> hs = HilbertSpace([spin_site, spin_site])
-HilbertSpace{Int64}(Site{Int64}[Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)], GenericSiteType), Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)], GenericSiteType)], [1, 1], [0, 1, 2])
+HilbertSpace{Tuple{Int64}}(Site{Tuple{Int64}}[Site{Tuple{Int64}}(State{Tuple{Int64}}[State{Tuple{Int64}}("Up", (1,)), State{Tuple{Int64}}("Dn", (-1,))]), Site{Tuple{Int64}}(State{Tuple{Int64}}[State{Tuple{Int64}}("Up", (1,)), State{Tuple{Int64}}("Dn", (-1,))])], [1, 1], [0, 1, 2])
 ```
 """
 struct HilbertSpace{QN<:Tuple{Vararg{<:AbstractQuantumNumber}}} <: AbstractHilbertSpace
@@ -85,11 +85,11 @@ Total number of bits
 ```jldoctest
 julia> using ExactDiagonalization
 
-julia> spin_site = Site([State{Int64}("Up", +1), State{Int64}("Dn", -1)])
-Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)], GenericSiteType)
+julia> spin_site = Site([State("Up", +1), State("Dn", -1)])
+Site{Tuple{Int64}}(State{Tuple{Int64}}[State{Tuple{Int64}}("Up", (1,)), State{Tuple{Int64}}("Dn", (-1,))])
 
-julia> hs = HilbertSpace{Int64}([spin_site, spin_site, spin_site,])
-HilbertSpace{Int64}(Site{Int64}[Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)], GenericSiteType), Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)], GenericSiteType), Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)], GenericSiteType)], [1, 1, 1], [0, 1, 2, 3])
+julia> hs = HilbertSpace([spin_site, spin_site, spin_site,])
+HilbertSpace{Tuple{Int64}}(Site{Tuple{Int64}}[Site{Tuple{Int64}}(State{Tuple{Int64}}[State{Tuple{Int64}}("Up", (1,)), State{Tuple{Int64}}("Dn", (-1,))]), Site{Tuple{Int64}}(State{Tuple{Int64}}[State{Tuple{Int64}}("Up", (1,)), State{Tuple{Int64}}("Dn", (-1,))]), Site{Tuple{Int64}}(State{Tuple{Int64}}[State{Tuple{Int64}}("Up", (1,)), State{Tuple{Int64}}("Dn", (-1,))])], [1, 1, 1], [0, 1, 2, 3])
 
 julia> bitwidth(hs)
 3
@@ -152,7 +152,7 @@ Convert binary representation to an array of indices (of states)
 ```jldoctest
 julia> using ExactDiagonalization
 
-julia> spin_site = Site([State{Int64}("Up", +1), State{Int64}("Dn", -1)]);
+julia> spin_site = Site([State("Up", +1), State("Dn", -1)]);
 
 julia> hs = HilbertSpace([spin_site, spin_site]);
 
@@ -184,7 +184,7 @@ Convert a cartesian index (a of state) to its binary representation
 ```jldoctest
 julia> using ExactDiagonalization
 
-julia> spin_site = Site([State{Int64}("Up", +1), State{Int64}("Dn", -1)]);
+julia> spin_site = Site([State("Up", +1), State("Dn", -1)]);
 
 julia> hs = HilbertSpace([spin_site, spin_site]);
 
