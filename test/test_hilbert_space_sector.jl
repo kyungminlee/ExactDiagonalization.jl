@@ -7,7 +7,7 @@ using StaticArrays
   @testset "spinhalf" begin
     QN = Tuple{Int}
     up = State("Up", 1)
-    dn = State{QN}("Dn",(-1,))
+    dn = State("Dn",(-1,))
     spin_site = Site([up, dn])
     hs = let
       hs = HilbertSpace([spin_site, spin_site, spin_site, spin_site])

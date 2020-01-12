@@ -9,7 +9,7 @@ using ExactDiagonalization.Toolkit: pauli_matrix
   QN = Tuple{Int}
   up = State("Up", 1);
   dn = State("Dn",-1);
-  spin_site = Site{QN}([up, dn]);
+  spin_site = Site([up, dn]);
 
   n_sites = 4;
   hs = HilbertSpace([spin_site for i in 1:n_sites]);
@@ -68,7 +68,7 @@ using ExactDiagonalization.Toolkit: pauli_matrix
     QN = Tuple{Int}
     up = State("Up", 1);
     dn = State("Dn",-1);
-    spin_site = Site{QN}([up, dn]);
+    spin_site = Site([up, dn]);
     n_sites = 7;
     hs = HilbertSpace([spin_site for i in 1:n_sites]);
 

@@ -36,13 +36,9 @@ end
     up = State("Up", 1)
     dn = State("Dn",-1)
     site1 = Site([up, dn])
-    site2 = Site{Tuple{Int}}([up, dn])
     @test qntype(site1) === Tuple{Int}
-    @test qntype(site2) === Tuple{Int}
     @test qntype(typeof(site1)) === Tuple{Int}
-    @test qntype(typeof(site2)) === Tuple{Int}
 
-    @test site1 == site2
     @test dimension(site1) == 2
     @test get_state(site1, 0x0000000) == up
     @test get_state(site1, 0x0000001) == dn
@@ -88,7 +84,7 @@ end
   @testset "spinhalf" begin
     QN = Tuple{Int}
     up = State("Up", 1)
-    dn = State{QN}("Dn",(-1,))
+    dn = State("Dn",(-1,))
     spin_site = Site([up, dn])
     @test HilbertSpace{QN}().sites == []
     @test HilbertSpace{QN}().bitwidths == []
