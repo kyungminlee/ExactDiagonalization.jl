@@ -6,6 +6,7 @@ export get_quantum_number
 export compress
 export get_state_index
 
+
 qntype(arg::T) where T = qntype(T)
 
 
@@ -26,8 +27,8 @@ State{Tuple{Int64,Int64}}("Dn", (-1, 1))
 ```
 """
 struct State{QN<:Tuple{Vararg{<:AbstractQuantumNumber}}}
-  name ::String
-  quantum_number ::QN
+  name::String
+  quantum_number::QN
   State(name::AbstractString) = new{Tuple{}}(name, ())
   State(name::AbstractString, quantum_number::Integer) = new{Tuple{Int}}(name, (quantum_number,))
   State(name::AbstractString, quantum_number::QN) where {QN<:Tuple{Vararg{<:AbstractQuantumNumber}}} = new{QN}(name, quantum_number)
@@ -35,7 +36,7 @@ end
 
 
 import Base.==
-function ==(lhs ::State{Q}, rhs ::State{Q}) where Q
+function ==(lhs::State{Q}, rhs::State{Q}) where Q
   return (lhs.name == rhs.name) && (lhs.quantum_number == rhs.quantum_number)
 end
 
@@ -46,7 +47,6 @@ end
 Returns the quantum number type of the given state type.
 """
 qntype(::Type{State{QN}}) where QN = QN
-
 
 
 """
@@ -62,7 +62,7 @@ julia> site = Site([State("Up", 1), State("Dn", -1)]);
 ```
 """
 struct Site{QN<:Tuple{Vararg{<:AbstractQuantumNumber}}} <: AbstractHilbertSpace
-  states ::Vector{State{QN}}
+  states::Vector{State{QN}}
   Site(states::AbstractVector{State{QN}}) where QN = new{QN}(states)
 end
 
@@ -82,7 +82,7 @@ end
 
 
 """
-    bitwidth(site ::Site)
+    bitwidth(site)
 
 Number of bits necessary to represent the states of the given site.
 """
@@ -90,7 +90,7 @@ bitwidth(site::Site) = Int(ceil(log2(length(site.states))))
 
 
 """
-    dimension(site ::Site)
+    dimension(site)
 
 Hilbert space dimension of a given site (= number of states).
 """
@@ -98,7 +98,7 @@ dimension(site::Site) = length(site.states)
 
 
 """
-    get_state(site ::Site{QN}, binrep ::BR) where {QN, BR<:Unsigned}
+    get_state(site, binrep) where {QN, BR<:Unsigned}
 
 Returns the state of `site` represented by the bits `binrep`.
 """
@@ -108,7 +108,7 @@ end
 
 
 """
-    compress(site, state_index, binary_type=UInt) :: binary_type
+    compress(site, state_index, binary_type=UInt) -> binary_type
 
 Get binary representation of the state specified by `state_index`.
 Check bounds `1 <= state_index <= dimension(site)`, and returns binary representation of `state_index-1`.
@@ -132,7 +132,7 @@ end
 
 
 """
-    quantum_number_sectors(site :: Site{QN}) :: Vector{QN}
+    quantum_number_sectors(site) -> Vector{QN}
 
 Gets a list of possible quantum numbers as a sorted vector of QN.
 """

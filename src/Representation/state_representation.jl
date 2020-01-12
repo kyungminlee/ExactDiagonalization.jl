@@ -1,5 +1,5 @@
-function represent(hsrep ::HilbertSpaceRepresentation{HS, BR, DT},
-                   state ::SparseState{S, BR2}) where {HS, BR, DT, S, BR2}
+function represent(hsrep::HilbertSpaceRepresentation{HS, BR, DT},
+                   state::SparseState{S, BR2}) where {HS, BR, DT, S, BR2}
   err = zero(S)
   err_sq = zero(real(S))
   out = zeros(S, dimension(hsrep))
@@ -20,8 +20,8 @@ end
 
 Make a `SparseState` from a representation
 """
-function SparseState(hsrep ::HilbertSpaceRepresentation{HS, BR, DT},
-                     state_rep ::AbstractVector{S},
+function SparseState(hsrep::HilbertSpaceRepresentation{HS, BR, DT},
+                     state_rep::AbstractVector{S},
                      tol::Real=Base.rtoldefault(Float64)) where {HS, BR, DT, S<:Number}
   if dimension(hsrep) != length(state_rep)
     throw(ArgumentError("dimension of the Hilbert space representation ($(dimension(hsrep))) "*

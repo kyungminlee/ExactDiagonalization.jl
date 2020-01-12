@@ -21,7 +21,7 @@ exchangesign(::T1, ::T2) where {T1 <:AbstractParticle, T2 <:AbstractParticle} = 
 
 maxoccupancy(::Type{<:Fermion}) = 1
 maxoccupancy(::Type{<:HardcoreBoson}) = 1
-maxoccupancy(::Type{Boson{S, M}}) where {S, M} = M ::Int
+maxoccupancy(::Type{Boson{S, M}}) where {S, M} = M::Int
 
 export ParticleSiteType
 struct ParticleSiteType{ParticleType<:AbstractParticle} <: AbstractSiteType end
@@ -40,7 +40,7 @@ maxoccupancy(::Type{ParticleSiteType{P}}) where P <: AbstractParticle = maxoccup
 #
 # struct ParticleState{QN<:AbstractQuantumNumber}
 #   name ::String
-#   quantum_number ::QN
+#   quantum_number::QN
 #
 #   ParticleState(name ::AbstractString) = new{Int}(name, 0)
 #   ParticleState(name ::AbstractString, quantum_number ::QN) where {QN} = new{QN}(name, quantum_number)

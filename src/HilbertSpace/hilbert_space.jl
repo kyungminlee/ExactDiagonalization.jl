@@ -6,6 +6,7 @@ export scalartype
 export qntype
 export basespace
 
+
 """
     HilbertSpace{QN}
 
@@ -21,10 +22,10 @@ julia> hs = HilbertSpace([spin_site, spin_site])
 HilbertSpace{Tuple{Int64}}(Site{Tuple{Int64}}[Site{Tuple{Int64}}(State{Tuple{Int64}}[State{Tuple{Int64}}("Up", (1,)), State{Tuple{Int64}}("Dn", (-1,))]), Site{Tuple{Int64}}(State{Tuple{Int64}}[State{Tuple{Int64}}("Up", (1,)), State{Tuple{Int64}}("Dn", (-1,))])], [1, 1], [0, 1, 2])
 ```
 """
-struct HilbertSpace{QN<:Tuple{Vararg{<:AbstractQuantumNumber}}} <: AbstractHilbertSpace
-  sites ::Vector{Site{QN}}
-  bitwidths ::Vector{Int}
-  bitoffsets ::Vector{Int}
+struct HilbertSpace{QN<:Tuple{Vararg{<:AbstractQuantumNumber}}}<:AbstractHilbertSpace
+  sites::Vector{Site{QN}}
+  bitwidths::Vector{Int}
+  bitoffsets::Vector{Int}
 
   function HilbertSpace(sites::AbstractArray{Site{QN}, 1}) where QN
     bitwidths = map(bitwidth, sites)
@@ -41,7 +42,7 @@ end
 
 
 """
-    scalartype(arg ::Type{HilbertSpace{QN}})
+    scalartype(arg::Type{HilbertSpace{QN}})
 
 Returns the scalar type of the given hilbert space type.
 For HilbertSpace{QN}, it is always `Bool`.
@@ -52,7 +53,7 @@ scalartype(arg::HilbertSpace) = Bool
 
 import Base.valtype
 """
-    valtype(arg ::Type{HilbertSpace{QN}})
+    valtype(arg::Type{HilbertSpace{QN}})
 
 Returns the `valtype` (scalar type) of the given hilbert space type.
 """
@@ -61,7 +62,7 @@ valtype(arg::HilbertSpace) = Bool
 
 
 """
-    qntype(arg ::Type{HilbertSpace{QN}})
+    qntype(arg::Type{HilbertSpace{QN}})
 
 Returns the quantum number type of the given hilbert space type.
 """
@@ -102,7 +103,7 @@ function (==)(lhs::HilbertSpace{Q1}, rhs::HilbertSpace{Q2}) where {Q1, Q2}
 end
 
 
-function get_bitmask(hs::HilbertSpace, isite::Integer, binary_type::Type{BR}=UInt) ::BR where {BR<:Unsigned}
+function get_bitmask(hs::HilbertSpace, isite::Integer, binary_type::Type{BR}=UInt)::BR where {BR<:Unsigned}
   return make_bitmask(hs.bitoffsets[isite+1], hs.bitoffsets[isite], BR)
 end
 
@@ -126,7 +127,7 @@ end
 """
     get_quantum_number
 """
-function get_quantum_number(hs ::HilbertSpace{QN}, binrep ::BR) where {QN, BR}
+function get_quantum_number(hs::HilbertSpace{QN}, binrep::BR) where {QN, BR}
   return mapreduce(identity, tupleadd,
       let i = get_state_index(hs, binrep, isite)
         site.states[i].quantum_number
@@ -135,7 +136,7 @@ function get_quantum_number(hs ::HilbertSpace{QN}, binrep ::BR) where {QN, BR}
 end
 
 
-function get_quantum_number(hs ::HilbertSpace{QN}, indexarray ::AbstractArray{I, 1}) where {QN, I <:Integer}
+function get_quantum_number(hs::HilbertSpace{QN}, indexarray::AbstractArray{I, 1}) where {QN, I<:Integer}
   return mapreduce(identity, tupleadd,
       site.states[indexarray[isite]].quantum_number
       for (isite, site) in enumerate(hs.sites)
@@ -158,7 +159,7 @@ julia> extract(hs, 0x03)
 CartesianIndex(2, 2)
 ```
 """
-function extract(hs::HilbertSpace{QN}, binrep::BR) ::CartesianIndex where {QN, BR<:Unsigned}
+function extract(hs::HilbertSpace{QN}, binrep::BR)::CartesianIndex where {QN, BR<:Unsigned}
   out = Int[]
   for (isite, site) in enumerate(hs.sites)
     @inbounds mask = make_bitmask(hs.bitwidths[isite], BR)
@@ -174,7 +175,7 @@ end
 
 
 """
-    compress(hs, indexarray ::CartesianIndex, binary_type=UInt)
+    compress(hs, indexarray::CartesianIndex, binary_type=UInt)
 
 Convert a cartesian index (a of state) to its binary representation
 
@@ -244,7 +245,7 @@ end
 
 
 # import Base.iterate
-# @inline function iterate(hs ::HilbertSpace{QN}) where {QN}
+# @inline function iterate(hs::HilbertSpace{QN}) where {QN}
 #   subiterator = Iterators.product((1:length(site.states) for site in hs.sites)...)
 #   next = Base.iterate(subiterator)
 #   next === nothing && return nothing
@@ -253,7 +254,7 @@ end
 # end
 #
 # import Base.iterate
-# @inline function iterate(hs ::HilbertSpace{QN}, state) where {QN}
+# @inline function iterate(hs::HilbertSpace{QN}, state) where {QN}
 #   (subiterator, substate) = state
 #   next = Base.iterate(subiterator, substate)
 #   next === nothing && return nothing

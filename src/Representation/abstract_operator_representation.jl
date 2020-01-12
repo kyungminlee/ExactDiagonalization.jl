@@ -23,14 +23,14 @@ valtype(lhs::AbstractOperatorRepresentation{T}) where T = T
 scalartype(lhs::Type{<:AbstractOperatorRepresentation{T}}) where T = T
 scalartype(lhs::AbstractOperatorRepresentation{T}) where T = T
 
-bintype(lhs ::Type{<:AbstractOperatorRepresentation{T}}) where T = bintype(spacetype(lhs)) ::DataType
-bintype(lhs ::AbstractOperatorRepresentation{T}) where T = bintype(typeof(lhs)) ::DataType
+bintype(lhs::Type{<:AbstractOperatorRepresentation{T}}) where T = bintype(spacetype(lhs))::DataType
+bintype(lhs::AbstractOperatorRepresentation{T}) where T = bintype(typeof(lhs))::DataType
 
 
 # a subclass of AbstractOperatorRepresentation should implement
 # spacetype, operatortype, and get_space.
-spacetype(lhs::AbstractOperatorRepresentation{T}) where T = spacetype(typeof(lhs)) ::Type{<:AbstractHilbertSpaceRepresentation}
-operatortype(lhs ::AbstractOperatorRepresentation{T}) where T = operatortype(typeof(lhs)) ::Type{<:AbstractOperator}
+spacetype(lhs::AbstractOperatorRepresentation{T}) where T = spacetype(typeof(lhs))::Type{<:AbstractHilbertSpaceRepresentation}
+operatortype(lhs::AbstractOperatorRepresentation{T}) where T = operatortype(typeof(lhs))::Type{<:AbstractOperator}
 
 
 dimension(lhs::AbstractOperatorRepresentation{S}) where S = dimension(get_space(lhs))
@@ -39,7 +39,7 @@ bitwidth(lhs::AbstractOperatorRepresentation{S}) where S = bitwidth(get_space(lh
 
 import Base.size
 
-function size(arg::AbstractOperatorRepresentation{T}) ::Tuple{Int, Int} where T
+function size(arg::AbstractOperatorRepresentation{T})::Tuple{Int, Int} where T
   dim = dimension(get_space(arg))
   return (dim, dim)
 end
@@ -48,17 +48,17 @@ size(arg::AbstractOperatorRepresentation{T}, i::Integer) where T = size(arg)[i]
 
 
 import Base.==
-function (==)(lhs ::AbstractOperatorRepresentation{T1},
-                      rhs ::AbstractOperatorRepresentation{T2}) where {T1, T2}
+function (==)(lhs::AbstractOperatorRepresentation{T1},
+              rhs::AbstractOperatorRepresentation{T2}) where {T1, T2}
   return ((get_space(lhs) == get_space(rhs)) && (lhs.operator == rhs.operator))
 end
 
 
-import Base.+, Base.-, Base.*, Base./, Base.\
+import Base.+, Base.-, Base.*, Base./, Base.\, Base.//
 
 for uniop in [:+, :-]
   @eval begin
-    function ($uniop)(lhs ::AbstractOperatorRepresentation{T}) where T
+    function ($uniop)(lhs::AbstractOperatorRepresentation{T}) where T
       return represent(get_space(lhs), ($uniop)(lhs.operator))
     end
   end
@@ -66,8 +66,8 @@ end
 
 for binop in [:+, :-, :*]
   @eval begin
-    function ($binop)(lhs ::AbstractOperatorRepresentation{T1},
-                      rhs ::AbstractOperatorRepresentation{T2}) where {T1, T2}
+    function ($binop)(lhs::AbstractOperatorRepresentation{T1},
+                      rhs::AbstractOperatorRepresentation{T2}) where {T1, T2}
       @boundscheck if (get_space(lhs) != get_space(rhs))
         throw(ArgumentError("The two OperatorRepresentation's do not have the same HilbertSpaceRepresentation"))
       end
@@ -76,21 +76,26 @@ for binop in [:+, :-, :*]
   end
 end
 
-function (*)(lhs ::AbstractOperatorRepresentation{T}, rhs ::Number) where {T}
+function (*)(lhs::AbstractOperatorRepresentation{T}, rhs::Number) where {T}
   return represent(get_space(lhs), simplify(lhs.operator * rhs))
 end
 
-function (*)(lhs ::Number, rhs ::AbstractOperatorRepresentation{T}) where {T}
+function (*)(lhs::Number, rhs::AbstractOperatorRepresentation{T}) where {T}
   return represent(get_space(rhs), simplify(lhs * rhs.operator))
 end
 
-function (/)(lhs ::AbstractOperatorRepresentation{T}, rhs ::Number) where {T}
+function (/)(lhs::AbstractOperatorRepresentation{T}, rhs::Number) where {T}
   return represent(get_space(lhs), simplify(lhs.operator / rhs))
 end
 
-function (\)(lhs ::Number, rhs ::AbstractOperatorRepresentation{T}) where {T}
+function (\)(lhs::Number, rhs::AbstractOperatorRepresentation{T}) where {T}
   return represent(get_space(rhs), simplify(lhs \ rhs.operator))
 end
+
+function (//)(lhs::AbstractOperatorRepresentation{T}, rhs::Number) where {T}
+  return represent(get_space(lhs), simplify(lhs.operator // rhs))
+end
+
 
 function simplify(arg::AbstractOperatorRepresentation{T}) where {T}
   return represent(get_space(arg), simplify(arg.operator))
@@ -104,9 +109,9 @@ end
 
 
 import LinearAlgebra.mul!
-function LinearAlgebra.mul!(out ::AbstractVector{S1},
-                            opr ::AbstractOperatorRepresentation{S2},
-                            state ::AbstractVector{S3}) where {S1<:Number, S2<:Number, S3<:Number}
+function LinearAlgebra.mul!(out::AbstractVector{S1},
+                            opr::AbstractOperatorRepresentation{S2},
+                            state::AbstractVector{S3}) where {S1<:Number, S2<:Number, S3<:Number}
   fill!(out, zero(S1))
   apply!(out, opr, state)
   out
@@ -129,13 +134,13 @@ end
 
 
 import SparseArrays.sparse
-function SparseArrays.sparse(opr::AbstractOperatorRepresentation{S}; tol ::Real=sqrt(eps(Float64))) where S
+function SparseArrays.sparse(opr::AbstractOperatorRepresentation{S}; tol::Real=sqrt(eps(Float64))) where S
   sp = Threads.nthreads() == 1 ? sparse_serial : sparse_parallel
   return sp(opr; tol=tol)
 end
 
 
-function sparse_serial(opr::AbstractOperatorRepresentation{S}; tol ::Real=sqrt(eps(Float64))) where S
+function sparse_serial(opr::AbstractOperatorRepresentation{S}; tol::Real=sqrt(eps(Float64))) where S
   m, n = size(opr)
   colptr = zeros(Int, n+1)
   rowval = Int[]
@@ -159,7 +164,7 @@ function sparse_serial(opr::AbstractOperatorRepresentation{S}; tol ::Real=sqrt(e
 end
 
 
-function sparse_parallel(opr::AbstractOperatorRepresentation{S}; tol ::Real=sqrt(eps(Float64))) where S
+function sparse_parallel(opr::AbstractOperatorRepresentation{S}; tol::Real=sqrt(eps(Float64))) where S
   m, n = size(opr)
 
   colsize = zeros(Int, n)
@@ -194,7 +199,7 @@ function sparse_parallel(opr::AbstractOperatorRepresentation{S}; tol ::Real=sqrt
 end
 
 
-function get_row(opr ::AbstractOperatorRepresentation{S}, irow::Integer) where S
+function get_row(opr::AbstractOperatorRepresentation{S}, irow::Integer) where S
   Z = zero(S)
   dim = size(opr, 2)
   items = Dict{Int, S}()
@@ -208,7 +213,7 @@ function get_row(opr ::AbstractOperatorRepresentation{S}, irow::Integer) where S
 end
 
 
-function get_column(opr ::AbstractOperatorRepresentation{S}, icol::Integer) where S
+function get_column(opr::AbstractOperatorRepresentation{S}, icol::Integer) where S
   Z = zero(S)
   dim = size(opr, 1)
   items = Dict{Int, S}()
@@ -223,19 +228,19 @@ end
 
 
 import Base.getindex
-@inline function getindex(oprep ::AbstractOperatorRepresentation{S}, ::Colon, icol::Integer) where S
+@inline function getindex(oprep::AbstractOperatorRepresentation{S}, ::Colon, icol::Integer) where S
   return get_column(oprep, icol)
 end
 
-@inline function getindex(oprep ::AbstractOperatorRepresentation{S}, irow::Integer, ::Colon) where S
+@inline function getindex(oprep::AbstractOperatorRepresentation{S}, irow::Integer, ::Colon) where S
   return get_row(oprep, irow)
 end
 
-@inline function getindex(oprep ::AbstractOperatorRepresentation{S}, ::Colon, ::Colon) where S
+@inline function getindex(oprep::AbstractOperatorRepresentation{S}, ::Colon, ::Colon) where S
   return sparse(oprep)
 end
 
-@inline function getindex(oprep ::AbstractOperatorRepresentation{S}, irow::Integer, icol::Integer) where S
+@inline function getindex(oprep::AbstractOperatorRepresentation{S}, irow::Integer, icol::Integer) where S
   return get_element(oprep, irow, icol)
 end
 
@@ -248,9 +253,9 @@ column vector `state` and *add* it to the column vector `out`.
 Return sum of errors and sum of error-squared.
 Call [`apply_serial!`](@ref) if `Threads.nthreads() == 1`, and [`apply_parallel!`](@ref) otherwise.
 """
-function apply!(out ::AbstractVector{S1},
-                opr ::AbstractOperatorRepresentation{S},
-                state ::AbstractVector{S2}
+function apply!(out::AbstractVector{S1},
+                opr::AbstractOperatorRepresentation{S},
+                state::AbstractVector{S2}
                ) where {S, S1<:Number, S2<:Number}
   return Threads.nthreads() == 1 ?
              apply_serial!(out, opr, state) :
@@ -266,9 +271,9 @@ row vector `state` and *add* it to the row vector `out`.
 Return sum of errors and sum of error-squared.
 Call [`apply_serial!`](@ref) if `Threads.nthreads() == 1`, and [`apply_parallel!`](@ref) otherwise.
 """
-function apply!(out ::AbstractVector{S1},
-                state ::AbstractVector{S2},
-                opr ::AbstractOperatorRepresentation{S}
+function apply!(out::AbstractVector{S1},
+                state::AbstractVector{S2},
+                opr::AbstractOperatorRepresentation{S}
                ) where {HSR, S, O, S1<:Number, S2<:Number}
   return Threads.nthreads() == 1 ?
              apply_serial!(out, state, opr) :
@@ -284,9 +289,9 @@ column vector `state` and *add* it to the column vector `out`.
 Return sum of errors and sum of error-squared.
 Single-threaded version.
 """
-function apply_serial!(out ::AbstractVector{S1},
-                       opr ::AbstractOperatorRepresentation{S},
-                       state ::AbstractVector{S2}
+function apply_serial!(out::AbstractVector{S1},
+                       opr::AbstractOperatorRepresentation{S},
+                       state::AbstractVector{S2}
                       ) where {S, S1<:Number, S2<:Number}
   # w_r += sum_r  A_rc v_c
   nrows, ncols = size(opr)
@@ -311,9 +316,9 @@ row vector `state` and *add* it to the row vector `out`.
 Return sum of errors and sum of error-squared.
 Single-threaded version.
 """
-function apply_serial!(out ::AbstractVector{S1},
-                       state ::AbstractVector{S2},
-                       opr ::AbstractOperatorRepresentation{S}
+function apply_serial!(out::AbstractVector{S1},
+                       state::AbstractVector{S2},
+                       opr::AbstractOperatorRepresentation{S}
                       ) where {S, S1<:Number, S2<:Number}
   # w_c += sum_r v_r A_rc
   nrows, ncols = size(opr)
@@ -338,9 +343,9 @@ column vector `state` and *add* it to the column vector `out`.
 Return sum of errors and sum of error-squared.
 Multi-threaded version.
 """
-function apply_parallel!(out ::AbstractVector{S1},
-                         opr ::AbstractOperatorRepresentation{S},
-                         state ::AbstractVector{S2}
+function apply_parallel!(out::AbstractVector{S1},
+                         opr::AbstractOperatorRepresentation{S},
+                         state::AbstractVector{S2}
                          ) where {S, S1<:Number, S2<:Number}
   # w_r += sum_r  A_rc v_c
   nrows, ncols = size(opr)
@@ -367,9 +372,9 @@ row vector `state` and *add* it to the row vector `out`.
 Return sum of errors and sum of error-squared.
 Multi-threaded version.
 """
-function apply_parallel!(out ::AbstractVector{S1},
-                         state ::AbstractVector{S2},
-                         opr ::AbstractOperatorRepresentation{S}
+function apply_parallel!(out::AbstractVector{S1},
+                         state::AbstractVector{S2},
+                         opr::AbstractOperatorRepresentation{S}
                          ) where {S, S1<:Number, S2<:Number}
   # w(c) += sum_(r) v(r) A(r,c)
   nrows, ncols = size(opr)

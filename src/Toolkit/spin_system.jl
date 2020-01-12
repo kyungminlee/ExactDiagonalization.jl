@@ -1,18 +1,18 @@
 using ExactDiagonalization
 
-function spin_system(n_sites ::Integer, S::Integer)
+function spin_system(n_sites::Integer, S::Integer)
   return spin_system(n_sites, S//1)
 end
 
 """
-    spin_system(n_sites ::Integer, S::Rational=1//2)
+    spin_system(n_sites, S=1//2)
 
 Create a Hilbert space of spin 1/2 system of `n_sites`
 
 # Returns
 - `(hilbert_space, pauli)`
 """
-function spin_system(n_sites ::Integer, S::Rational=1//2)
+function spin_system(n_sites::Integer, S::Rational=1//2)
   if (S <= 0)
     throw(ArgumentError("S needs to positive"))
   elseif !(denominator(S) == 1 || denominator(S) == 2)
@@ -23,7 +23,7 @@ function spin_system(n_sites ::Integer, S::Rational=1//2)
   twoS = Int(S*2)
   Ssq = 0.25 * twoS * (twoS+2)
   Sr = float(S)
-  function spin(isite ::Integer, j::Symbol)
+  function spin(isite::Integer, j::Symbol)
     # m = S - k
     if j == :+
       return sum(pure_operator(hilbert_space, isite, k, k+1, sqrt(Ssq - (Sr-k)*(Sr-k+1)) ) for k in 1:twoS)

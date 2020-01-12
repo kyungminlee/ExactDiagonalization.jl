@@ -6,10 +6,10 @@ export simplify
 
 Simplify the given operator.
 """
-simplify(op ::NullOperator; tol::Real=0.0) = op
+simplify(op::NullOperator; tol::Real=0.0) = op
 
 
-function simplify(op ::PureOperator{S, BR}; tol ::Real=Base.rtoldefault(S)) where {S<:Real, BR}
+function simplify(op::PureOperator{S, BR}; tol::Real=Base.rtoldefault(S)) where {S<:Real, BR}
   if isapprox(op.amplitude, zero(S); atol=tol)
     return NullOperator()
   else
@@ -18,7 +18,7 @@ function simplify(op ::PureOperator{S, BR}; tol ::Real=Base.rtoldefault(S)) wher
 end
 
 
-function simplify(op ::PureOperator{Complex{S}, BR}; tol ::Real=Base.rtoldefault(S)) where {S<:Real, BR}
+function simplify(op::PureOperator{Complex{S}, BR}; tol::Real=Base.rtoldefault(S)) where {S<:Real, BR}
   if isapprox(abs(op.amplitude), zero(S); atol=tol)
     return NullOperator()
   end
@@ -29,18 +29,18 @@ function simplify(op ::PureOperator{Complex{S}, BR}; tol ::Real=Base.rtoldefault
 end
 
 
-function simplify(so ::SumOperator{S, BR}; tol ::Real=Base.rtoldefault(real(S))) where {S, BR}
-  terms ::Vector{PureOperator{S, BR}} = filter((x) -> !isa(x, NullOperator), simplify.(so.terms))
+function simplify(so::SumOperator{S, BR}; tol::Real=Base.rtoldefault(real(S))) where {S, BR}
+  terms::Vector{PureOperator{S, BR}} = filter((x) -> !isa(x, NullOperator), simplify.(so.terms))
 
   isempty(terms) && return NullOperator()
 
   sort!(terms; lt=isless)
   new_terms = PureOperator{S, BR}[]
 
-  bm ::BR = terms[1].bitmask
-  br ::BR = terms[1].bitrow
-  bc ::BR = terms[1].bitcol
-  am ::S  = terms[1].amplitude
+  bm::BR = terms[1].bitmask
+  br::BR = terms[1].bitrow
+  bc::BR = terms[1].bitcol
+  am::S  = terms[1].amplitude
 
   for term in terms[2:end]
     if (bm == term.bitmask) && (br == term.bitrow) && (bc == term.bitcol)

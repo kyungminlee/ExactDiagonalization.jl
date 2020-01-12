@@ -11,9 +11,9 @@ Symmetry-reduce the HilbertSpaceRepresentation using translation group.
 
 """
 function symmetry_reduce(
-    hsr ::HilbertSpaceRepresentation{QN, BR, DT},
-    trans_group ::TranslationGroup,
-    fractional_momentum ::AbstractVector{<:Rational},
+    hsr::HilbertSpaceRepresentation{QN, BR, DT},
+    trans_group::TranslationGroup,
+    fractional_momentum::AbstractVector{<:Rational},
     complex_type::Type{ComplexType}=ComplexF64;
     tol::Real=sqrt(eps(Float64))) where {QN, BR, DT, ComplexType<:Complex}
   symred = Threads.nthreads() == 1 ? symmetry_reduce_serial : symmetry_reduce_parallel
@@ -28,9 +28,9 @@ Symmetry-reduce the HilbertSpaceRepresentation using translation group (single t
 
 """
 function symmetry_reduce_serial(
-    hsr ::HilbertSpaceRepresentation{QN, BR, DT},
-    trans_group ::TranslationGroup,
-    fractional_momentum ::AbstractVector{<:Rational},
+    hsr::HilbertSpaceRepresentation{QN, BR, DT},
+    trans_group::TranslationGroup,
+    fractional_momentum::AbstractVector{<:Rational},
     complex_type::Type{ComplexType}=ComplexF64;
     tol::FloatType=sqrt(eps(Float64))
     ) where {QN, BR, DT, ComplexType<:Complex, FloatType<:Real}
@@ -38,7 +38,7 @@ function symmetry_reduce_serial(
   HSR = HilbertSpaceRepresentation{QN, BR, DT}
 
   ik = let
-    match(k ::Vector{Rational{Int}}) ::Bool = k == fractional_momentum
+    match(k::Vector{Rational{Int}})::Bool = k == fractional_momentum
     findfirst(match, trans_group.fractional_momenta)
   end
 
@@ -137,9 +137,9 @@ Symmetry-reduce the HilbertSpaceRepresentation using translation group (multi-th
 
 """
 function symmetry_reduce_parallel(
-    hsr ::HilbertSpaceRepresentation{QN, BR, DT},
-    trans_group ::TranslationGroup,
-    fractional_momentum ::AbstractVector{<:Rational},
+    hsr::HilbertSpaceRepresentation{QN, BR, DT},
+    trans_group::TranslationGroup,
+    fractional_momentum::AbstractVector{<:Rational},
     complex_type::Type{ComplexType}=ComplexF64;
     tol::Real=sqrt(eps(Float64))
     ) where {QN, BR, DT, ComplexType<:Complex}
@@ -148,7 +148,7 @@ function symmetry_reduce_parallel(
 
   @debug "BEGIN symmetry_reduce_parallel"
   ik = let
-    match(k ::Vector{Rational{Int}}) ::Bool  = k == fractional_momentum
+    match(k::Vector{Rational{Int}})::Bool  = k == fractional_momentum
     findfirst(match, trans_group.fractional_momenta)
   end
 

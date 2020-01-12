@@ -15,9 +15,9 @@ represent_dict(::HilbertSpace)
 ```
 You can also explicitly supply a list of basis vectors
 ```@docs
-represent(::HilbertSpace, ::Vector{UInt})
-represent_array(::HilbertSpace, ::Vector{UInt})
-represent_dict(::HilbertSpace, ::Vector{UInt})
+represent(::HilbertSpace,::Vector{UInt})
+represent_array(::HilbertSpace,::Vector{UInt})
+represent_dict(::HilbertSpace,::Vector{UInt})
 ```
 
 ## OperatorRepresentation
@@ -26,5 +26,5 @@ An [`OperatorRepresentation`](@ref) is a representation of an operator in the gi
 Hilbert space representation.
 
 ```@docs
-represent(::HilbertSpaceRepresentation, ::AbstractOperator)
+represent(::HilbertSpaceRepresentation,::AbstractOperator)
 ```
