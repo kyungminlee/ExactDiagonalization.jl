@@ -1,4 +1,3 @@
-export GenericSiteType
 export State, Site
 export bitwidth, get_state, dimension
 export qntype
@@ -7,11 +6,7 @@ export get_quantum_number
 export compress
 export get_state_index
 
-using StaticArrays
-
-struct GenericSiteType <: AbstractSiteType end
-
-qntype(arg ::T) where T = qntype(T)
+qntype(arg::T) where T = qntype(T)
 
 
 """
@@ -21,22 +16,21 @@ State with quantum number type `QN`.
 
 # Examples
 ```jldoctest
-julia> using ExactDiagonalization, StaticArrays
+julia> using ExactDiagonalization
 
-julia> up = State{Int}("Up", 1)
-State{Int64}("Up", 1)
+julia> up = State("Up", 1)
+State{Tuple{Int64}}("Up", 1)
 
-julia> State("Dn", SVector{2, Int}([-1, 1]))
-State{SArray{Tuple{2},Int64,1,2}}("Dn", [-1, 1])
+julia> State("Dn", (-1, 1))
+State{Tuple{Int64, Int64}}("Dn", (-1, 1))
 ```
 """
 struct State{QN<:Tuple{Vararg{<:AbstractQuantumNumber}}}
   name ::String
   quantum_number ::QN
-  State(name ::AbstractString) = new{Tuple{}}(name, ())
-  State(name ::AbstractString, quantum_number::Integer) = new{Tuple{Int}}(name, (quantum_number,))
-  State(name ::AbstractString, quantum_number ::QN) where {QN<:Tuple{Vararg{<:AbstractQuantumNumber}}} = new{QN}(name, quantum_number)
-  State{QN}(name ::AbstractString, quantum_number ::QN) where {QN<:Tuple{Vararg{<:AbstractQuantumNumber}}} = new{QN}(name, quantum_number)
+  State(name::AbstractString) = new{Tuple{}}(name, ())
+  State(name::AbstractString, quantum_number::Integer) = new{Tuple{Int}}(name, (quantum_number,))
+  State(name::AbstractString, quantum_number::QN) where {QN<:Tuple{Vararg{<:AbstractQuantumNumber}}} = new{QN}(name, quantum_number)
 end
 
 
@@ -64,17 +58,12 @@ A site with quantum number type `QN`.
 ```jldoctest
 julia> using ExactDiagonalization
 
-julia> up = State{Int}("Up", 1); dn = State("Dn", -1);
-
-julia> Site([up, dn])
-Site{Int64}(State{Int64}[State{Int64}("Up", 1), State{Int64}("Dn", -1)], GenericSiteType)
+julia> site = Site([State("Up", 1), State("Dn", -1)]);
 ```
 """
 struct Site{QN<:Tuple{Vararg{<:AbstractQuantumNumber}}} <: AbstractHilbertSpace
   states ::Vector{State{QN}}
-
-  Site(states ::AbstractArray{State{QN}, 1}) where QN = new{QN}(states)
-  Site{QN}(states ::AbstractArray{State{QN}, 1}) where QN = new{QN}(states)
+  Site(states::AbstractVector{State{QN}}) where QN = new{QN}(states)
 end
 
 
@@ -87,7 +76,7 @@ qntype(::Type{Site{QN}}) where QN = QN
 
 
 import Base.==
-function ==(lhs ::Site{Q1}, rhs ::Site{Q2}) where {Q1, Q2}
+function ==(lhs::Site{Q1}, rhs::Site{Q2}) where {Q1, Q2}
   return (lhs.states == rhs.states)
 end
 
@@ -97,7 +86,7 @@ end
 
 Number of bits necessary to represent the states of the given site.
 """
-bitwidth(site ::Site) = Int(ceil(log2(length(site.states))))
+bitwidth(site::Site) = Int(ceil(log2(length(site.states))))
 
 
 """
@@ -105,7 +94,7 @@ bitwidth(site ::Site) = Int(ceil(log2(length(site.states))))
 
 Hilbert space dimension of a given site (= number of states).
 """
-dimension(site ::Site) = length(site.states)
+dimension(site::Site) = length(site.states)
 
 
 """
@@ -124,7 +113,7 @@ end
 Get binary representation of the state specified by `state_index`.
 Check bounds `1 <= state_index <= dimension(site)`, and returns binary representation of `state_index-1`.
 """
-@inline function compress(site ::Site, state_index ::Integer, binary_type::Type{BR}=UInt) where {BR<:Unsigned}
+@inline function compress(site::Site, state_index::Integer, binary_type::Type{BR}=UInt) where {BR<:Unsigned}
   @boundscheck 1 <= state_index <= dimension(site) || throw(BoundsError("attempt to access a $(dimension(site))-state site at index $state_index"))
   return BR(state_index-1)
 end
@@ -147,7 +136,7 @@ end
 
 Gets a list of possible quantum numbers as a sorted vector of QN.
 """
-function quantum_number_sectors(site ::Site{QN})::Vector{QN} where QN
+function quantum_number_sectors(site::Site{QN})::Vector{QN} where QN
   return sort(collect(Set([state.quantum_number for state in site.states])))
 end
 
@@ -157,7 +146,7 @@ end
 
 Gets the quantum number of state specified by state_index.
 """
-function get_quantum_number(site ::Site{QN}, state_index ::Integer)::QN where QN
+function get_quantum_number(site::Site{QN}, state_index::Integer)::QN where QN
   return site.states[state_index].quantum_number
 end
 
