@@ -1,14 +1,14 @@
 export AbstractParticle
-export Fermion
-export HardcoreBoson
-export Boson
+export Fermion, HardcoreBoson, Boson
 
 export getspeciessymb
 export maxoccupancy
 export exchangesign
 
+
 abstract type AbstractParticle end
-struct Fermion{Species} <: AbstractParticle end
+
+struct Fermion{Species} <: AbstractParticle end # Species is Symbol
 struct HardcoreBoson{Species} <: AbstractParticle end
 struct Boson{Species, Max} <: AbstractParticle end
 
