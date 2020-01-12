@@ -26,8 +26,6 @@ struct HilbertSpace{QN<:Tuple{Vararg{<:AbstractQuantumNumber}}} <: AbstractHilbe
   bitwidths ::Vector{Int}
   bitoffsets ::Vector{Int}
 
-  HilbertSpace{QN}() where QN = new{QN}(Site{QN}[], Int[], Int[0])
-
   function HilbertSpace(sites::AbstractArray{Site{QN}, 1}) where QN
     bitwidths = map(bitwidth, sites)
     bitoffsets = Int[0, cumsum(bitwidths)...]

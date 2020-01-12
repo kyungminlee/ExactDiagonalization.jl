@@ -84,11 +84,8 @@ end
   @testset "spinhalf" begin
     QN = Tuple{Int}
     up = State("Up", 1)
-    dn = State("Dn",(-1,))
+    dn = State("Dn", (-1,))
     spin_site = Site([up, dn])
-    @test HilbertSpace{QN}().sites == []
-    @test HilbertSpace{QN}().bitwidths == []
-    @test HilbertSpace{QN}().bitoffsets == [0]
     hs = HilbertSpace([spin_site, spin_site, spin_site, spin_site])
     hs2 = HilbertSpace{QN}([spin_site, spin_site, spin_site, spin_site])
     @test hs == hs2
