@@ -2,7 +2,7 @@ export symmetry_apply
 export is_invariant
 
 import TightBindingLattice.AbstractSymmetryOperation
-import TightBindingLattice.AbstractSymmetryGroup
+import TightBindingLattice.AbstractSymmetry
 
 
 ## AbstractSymmetryOperation
@@ -16,7 +16,7 @@ function is_invariant(hss::HilbertSpaceSector{QN}, symop::AbstractSymmetryOperat
   return is_invariant(hss.parent, symop, args...; kwargs...)
 end
 
-function is_invariant(hss::HilbertSpaceSector{QN}, symgroup::AbstractSymmetryGroup, args...; kwargs...) where {QN}
+function is_invariant(hss::HilbertSpaceSector{QN}, symgroup::AbstractSymmetry, args...; kwargs...) where {QN}
   return is_invariant(hss.parent, symgroup, args...; kwargs...)
 end
 
@@ -58,6 +58,6 @@ function is_invariant(hs::HilbertSpace{QN}, symop::AbstractSymmetryOperation, op
   return simplify(op - symmetry_apply(hs, symop, op)) == NullOperator()
 end
 
-function is_invariant(hs::HilbertSpace{QN}, symgroup::AbstractSymmetryGroup, op::AbstractOperator) where {QN}
+function is_invariant(hs::HilbertSpace{QN}, symgroup::AbstractSymmetry, op::AbstractOperator) where {QN}
   return all(is_invariant(hs, g, op) for g in symgroup.generators)
 end

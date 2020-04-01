@@ -2,7 +2,7 @@ export ReducedHilbertSpaceRepresentation
 export bintype
 export symmetry_reduce, symmetry_unreduce
 
-import TightBindingLattice.TranslationGroup
+import TightBindingLattice.TranslationSymmetry
 
 
 """
@@ -14,7 +14,8 @@ Currently only supports Translation group (i.e. Abelian group).
 """
 struct ReducedHilbertSpaceRepresentation{HSR<:HilbertSpaceRepresentation, BR, C<:Complex} <:AbstractHilbertSpaceRepresentation{C}
   parent::HSR
-  translation_group::TranslationGroup
+  #translation_group::TranslationGroup
+  translation_symmetry::TranslationSymmetry
   basis_list::Vector{BR}
   basis_mapping_index::Vector{Int} # has size of parent dimension. each index item contains index at reduced basis, or -1 if not included
   basis_mapping_amplitude::Vector{C}
