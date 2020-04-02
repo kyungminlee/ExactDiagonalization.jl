@@ -4,12 +4,6 @@ using ExactDiagonalization
 using TightBindingLattice
 using MinimalPerfectHash
 
-up = State("Up", 1);
-dn = State("Dn",-1);
-#Magnon = HardcoreBoson{:Magnon}
-#spin_site = Site([up, dn], ParticleSiteType{Magnon});
-spin_site = Site([up, dn]);
-
 n_sites = 7;
 (hs, σ) = ExactDiagonalization.Toolkit.spin_half_system(n_sites)
 
