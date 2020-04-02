@@ -1,6 +1,53 @@
 export symmetry_reduce, symmetry_unreduce
 
 
+"""
+    symmetry_reduce(hsr, lattice, symmetry_irrep_component, complex_type=ComplexF64, tol=sqrt(eps(Float64)))
+
+Symmetry-reduce the HilbertSpaceRepresentation using translation group.
+
+"""
+function symmetry_reduce(
+        hsr::HilbertSpaceRepresentation{QN, BR, DT},
+        lattice::Lattice,
+        ssic::AbstractSymmetryIrrepComponent,
+        complex_type::Type{ComplexType}=ComplexF64;
+        tol::Real=Base.rtoldefault(Float64)) where {QN, BR, DT, ComplexType<:Complex}
+    symred = Threads.nthreads() == 1 ? symmetry_reduce_serial : symmetry_reduce_parallel
+    return symred(hsr, lattice, ssic, ComplexType; tol=tol)
+end
+
+"""
+    symmetry_reduce(rhsr, large_vector)
+
+Reduce a large vector into the reduced hilbert space representation.
+Simply throw away components that don't fit.
+"""
+function symmetry_reduce(
+    rhsr::ReducedHilbertSpaceRepresentation{HSR, BR, C},
+    large_vector::AbstractVector{Si}
+  ) where {HSR, BR, C, Si<:Number}
+  if length(large_vector) != dimension(rhsr.parent)
+    throw(DimensionMismatch("Dimension of the input vector should match the larger representation"))
+  end
+  So = promote_type(C, Si)
+  small_vector = zeros(So, dimension(rhsr))
+
+  # basis mapping
+  # (i_p | i_r | ampl) indicates : U_(p, r) = ampl
+  for (i_p, i_r) in enumerate(rhsr.basis_mapping_index)
+    if i_r > 0
+      ampl = rhsr.basis_mapping_amplitude[i_p]
+      # H_r = U† H U
+      small_vector[i_r] += conj(ampl) * large_vector[i_p]
+    end
+  end
+  return small_vector
+end
+
+
+
+
 raw"""
     symmetry_unreduce
 
@@ -34,33 +81,4 @@ function symmetry_unreduce(
     end
   end
   return large_vector
-end
-
-
-"""
-    symmetry_reduce(rhsr, large_vector)
-
-Reduce a large vector into the reduced hilbert space representation.
-Simply throw away components that don't fit.
-"""
-function symmetry_reduce(
-    rhsr::ReducedHilbertSpaceRepresentation{HSR, BR, C},
-    large_vector::AbstractVector{Si}
-  ) where {HSR, BR, C, Si<:Number}
-  if length(large_vector) != dimension(rhsr.parent)
-    throw(DimensionMismatch("Dimension of the input vector should match the larger representation"))
-  end
-  So = promote_type(C, Si)
-  small_vector = zeros(So, dimension(rhsr))
-
-  # basis mapping
-  # (i_p | i_r | ampl) indicates : U_(p, r) = ampl
-  for (i_p, i_r) in enumerate(rhsr.basis_mapping_index)
-    if i_r > 0
-      ampl = rhsr.basis_mapping_amplitude[i_p]
-      # H_r = U† H U
-      small_vector[i_r] += conj(ampl) * large_vector[i_p]
-    end
-  end
-  return small_vector
 end

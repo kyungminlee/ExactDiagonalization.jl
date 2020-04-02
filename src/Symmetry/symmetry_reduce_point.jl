@@ -1,20 +1,4 @@
-export symmetry_reduce, symmetry_reduce_serial, symmetry_reduce_parallel
-
-
-"""
-    symmetry_reduce(hsr, trans_group, frac_momentum, complex_type=ComplexF64, tol=sqrt(eps(Float64)))
-
-Symmetry-reduce the HilbertSpaceRepresentation using translation group.
-
-"""
-function symmetry_reduce(
-        hsr::HilbertSpaceRepresentation{QN, BR, DT},
-        tsic::PointSymmetryIrrepComponent,
-        complex_type::Type{ComplexType}=ComplexF64;
-        tol::Real=sqrt(eps(Float64))) where {QN, BR, DT, ComplexType<:Complex}
-    symred = Threads.nthreads() == 1 ? symmetry_reduce_serial : symmetry_reduce_parallel
-    return symred(hsr, lattice, tsic, ComplexType; tol=tol)
-end
+export symmetry_reduce_serial, symmetry_reduce_parallel
 
 
 """
@@ -60,31 +44,20 @@ function symmetry_reduce_serial(
         visited[ivec_p] && continue
         bvec = hsr.basis_list[ivec_p]
 
-        compatible = true
         basis_states[1] = bvec
         for i in 2:group_size
             (symop, ampl) = symops_and_amplitudes[i]
             isapprox(ampl, 0; atol=tol) && continue
             bvec_prime = symmetry_apply(hsr.hilbert_space, symop, bvec)
-            # if bvec_prime < bvec
-            #     compatible = false
-            #     break
-            # end
             basis_states[i] = bvec_prime
         end # for i
-        (!compatible) && continue
 
         empty!(basis_amplitudes)
         for i in 1:group_size
             (_, ampl) = symops_and_amplitudes[i]
             bvec_prime = basis_states[i]
             basis_amplitudes[bvec_prime] = get(basis_amplitudes, bvec_prime, zeroC) + ampl
-            # No need to add amplitudes.
-            # if bvec_prime is the same, ampl is the same, and similarly for all other elements
         end
-        #@show bvec
-        #@show basis_states
-        #@show basis_amplitudes
         choptol!(basis_amplitudes, tol)
 
         !haskey(basis_amplitudes, bvec) && continue
@@ -92,7 +65,7 @@ function symmetry_reduce_serial(
 
         push!(reduced_basis_list, bvec)
 
-        inv_norm = 1 / sqrt(sum(abs2.(values(basis_amplitudes))))
+        inv_norm = one(Float64) / sqrt(sum(abs2.(values(basis_amplitudes))))
 
         for (bvec_prime, amplitude) in basis_amplitudes
             ivec_p_prime = hsr.basis_lookup[bvec_prime]
@@ -123,8 +96,6 @@ function symmetry_reduce_serial(
 end
 
 
-
-#=
 """
     symmetry_reduce_parallel(hsr, trans_group, frac_momentum, complex_type=ComplexF64, tol=sqrt(eps(Float64)))
 
@@ -152,7 +123,7 @@ function symmetry_reduce_parallel(
     fill!(basis_mapping_representative, -1)
     basis_mapping_amplitude = zeros(ComplexType, n_basis)
 
-    group_size = group_order(tsic)
+    group_size = group_order(psic)
 
     nthreads = Threads.nthreads()
     size_estimate = n_basis ÷ max(1, group_size - 1)
@@ -186,17 +157,13 @@ function symmetry_reduce_parallel(
         end
     end
 
-    sym = tsic.symmetry
-    tsym_irrep_index = tsic.irrep_index
-    orthogonal_momentum = tsym.orthogonal_coordinates[tsym_irrep_index]
-    orthogonal_shape = tsym.orthogonal_shape
+    sym = psic.symmetry
+    psym_irrep_index = psic.irrep_index
 
-    # whether the element is in the kernel of the representation
-    is_identity = [iscompatible(orthogonal_momentum, orthogonal_shape, t)
-                   for t in tsym.orthogonal_coordinates]
-    symops_and_amplitudes = [(x, conj(y)) for (x, y) in get_irrep_iterator(lattice, tsic)]
+    symops_and_amplitudes = [(x, conj(y)) for (x, y) in get_irrep_iterator(lattice, psic)]
     @assert length(symops_and_amplitudes) == group_size
 
+    zeroC = zero(ComplexF64)
     @debug "Starting reduction (parallel)"
     Threads.@threads for itemp in 1:n_basis
         ivec_p = reorder[itemp]
@@ -208,31 +175,31 @@ function symmetry_reduce_parallel(
         # A basis binary representation is incompatible with the reduced Hilbert space if
         # (1) it is not the smallest among the its star, or
         # (2) its star is smaller than the representation
-        compatible = true
+        local_basis_states[id, 1] = bvec
         for i in 2:group_size
-            (symop, _) = symops_and_amplitudes[i]
+            (symop, ampl) = symops_and_amplitudes[i]
+            isapprox(ampl, 0; atol=tol) && continue
             bvec_prime = symmetry_apply(hsr.hilbert_space, symop, bvec)
-            if bvec_prime < bvec
-                compatible = false
-                break
-            elseif bvec_prime == bvec && !is_identity[i]
-                compatible = false
-                break
-            end
             local_basis_states[id, i] = bvec_prime
         end # for i
-        (!compatible) && continue
-        local_basis_states[id, 1] = bvec
-
-        push!(local_reduced_basis_list[id], bvec)
 
         empty!(local_basis_amplitudes[id])
         for i in 1:group_size
-            (symop, ampl) = symops_and_amplitudes[i]
+            (_, ampl) = symops_and_amplitudes[i]
             bvec_prime = local_basis_states[id, i]
-            local_basis_amplitudes[id][bvec_prime] = ampl # Same bvec_prime, same p.
+            local_basis_amplitudes[id][bvec_prime] = get(local_basis_amplitudes[id], bvec_prime, zeroC) + ampl
         end
-        inv_norm = 1.0 / sqrt(float(length(local_basis_amplitudes[id])))
+        choptol!(local_basis_amplitudes[id], tol)
+
+        !haskey(local_basis_amplitudes[id], bvec) && continue
+        minimum(keys(local_basis_amplitudes[id])) != bvec && continue
+
+        push!(local_reduced_basis_list[id], bvec)
+
+        inv_norm = one(Float64) / sqrt(sum(abs2.(values(local_basis_amplitudes[id]))))
+
+        # inv_norm = 1.0 / sqrt(float(length(local_basis_amplitudes[id])))
+
         for (bvec_prime, amplitude) in local_basis_amplitudes[id]
             ivec_p_prime = hsr.basis_lookup[bvec_prime]
             visited[ivec_p_prime] = 0x1
@@ -275,8 +242,7 @@ function symmetry_reduce_parallel(
     @debug "Collected basis lookup (offdiagonal)"
 
     @debug "END symmetry_reduce_parallel"
-    return ReducedHilbertSpaceRepresentation{HSR, TranslationSymmetryIrrepComponent, BR, ComplexType}(
-                hsr, lattice, tsic, reduced_basis_list,
+    return ReducedHilbertSpaceRepresentation{HSR, PointSymmetryIrrepComponent, BR, ComplexType}(
+                hsr, lattice, psic, reduced_basis_list,
                 basis_mapping_index, basis_mapping_amplitude)
 end
-=#

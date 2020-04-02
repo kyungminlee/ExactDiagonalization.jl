@@ -1,20 +1,6 @@
-export symmetry_reduce, symmetry_reduce_serial, symmetry_reduce_parallel
+export symmetry_reduce_serial, symmetry_reduce_parallel
 
 
-"""
-    symmetry_reduce(hsr, trans_group, frac_momentum, complex_type=ComplexF64, tol=sqrt(eps(Float64)))
-
-Symmetry-reduce the HilbertSpaceRepresentation using translation group.
-
-"""
-function symmetry_reduce(
-        hsr::HilbertSpaceRepresentation{QN, BR, DT},
-        ssic::SymmorphicSpaceSymmetryIrrepComponent,
-        complex_type::Type{ComplexType}=ComplexF64;
-        tol::Real=sqrt(eps(Float64))) where {QN, BR, DT, ComplexType<:Complex}
-    symred = Threads.nthreads() == 1 ? symmetry_reduce_serial : symmetry_reduce_parallel
-    return symred(hsr, lattice, ssic, ComplexType; tol=tol)
-end
 
 
 """
@@ -64,42 +50,39 @@ function symmetry_reduce_serial(
         visited[ivec_p] && continue
         bvec = hsr.basis_list[ivec_p]
 
-        compatible = true
-        basis_states[1,1] = bvec
-        for it in 1:tsym_group_size, ip in 1:psym_group_size
-            (it, ip) == (1,1) && continue
+        # basis_states[1,1] = bvec
+        #  TODO: think about order tsym first or psym first
+        for it in 1:tsym_group_size
             (tsym_symop, tsym_ampl) = tsym_symops_and_amplitudes[it]
-            isapprox(tsym_ampl, 0; atol=tol) && continue
-            (psym_symop, psym_ampl) = psym_symops_and_amplitudes[ip]
-            isapprox(psym_ampl, 0; atol=tol) && continue
-
-            #TODO think about order
-            bvec_prime = symmetry_apply(hsr.hilbert_space, psym_symop,
-                            symmetry_apply(hsr.hilbert_space, tsym_symop, bvec))
-            # if bvec_prime < bvec
-            #     compatible = false
-            #     break
-            # end
-            basis_states[it, ip] = bvec_prime
-        end # for i
-        (!compatible) && continue
+            # isapprox(tsym_ampl, 0; atol=tol) && continue
+            bvec_prime_t = symmetry_apply(hsr.hilbert_space, tsym_symop, bvec)
+            for ip in 1:psym_group_size
+                # (it, ip) == (1,1) && continue
+                (psym_symop, psym_ampl) = psym_symops_and_amplitudes[ip]
+                # isapprox(psym_ampl, 0; atol=tol) && continue
+                bvec_prime = symmetry_apply(hsr.hilbert_space, psym_symop, bvec_prime_t)
+                basis_states[it, ip] = bvec_prime
+            end # for ip
+        end # for it
 
         empty!(basis_amplitudes)
-        for it in 1:tsym_group_size, ip in 1:psym_group_size
+        for it in 1:tsym_group_size
             (_, tsym_ampl) = tsym_symops_and_amplitudes[it]
-            (_, psym_ampl) = psym_symops_and_amplitudes[ip]
-            bvec_prime = basis_states[it, ip]
-            #TODO think about order
-            ampl = tsym_ampl * psym_ampl
-            basis_amplitudes[bvec_prime] = get(basis_amplitudes, bvec_prime, zeroC) + ampl
-            # No need to add amplitudes.
-            # if bvec_prime is the same, ampl is the same, and similarly for all other elements
+            isapprox(tsym_ampl, 0; atol=tol) && continue
+            for ip in 1:psym_group_size
+                (_, psym_ampl) = psym_symops_and_amplitudes[ip]
+                isapprox(psym_ampl, 0; atol=tol) && continue
+                bvec_prime = basis_states[it, ip]
+                ampl = tsym_ampl * psym_ampl
+                basis_amplitudes[bvec_prime] = get(basis_amplitudes, bvec_prime, zeroC) + ampl
+            end
         end
         choptol!(basis_amplitudes, tol)
         !haskey(basis_amplitudes, bvec) && continue
         minimum(keys(basis_amplitudes)) != bvec && continue
+
         push!(reduced_basis_list, bvec)
-        inv_norm = 1 / sqrt(sum(abs2.(values(basis_amplitudes))))
+        inv_norm = one(Float64) / sqrt(sum(abs2.(values(basis_amplitudes))))
         for (bvec_prime, amplitude) in basis_amplitudes
             ivec_p_prime = hsr.basis_lookup[bvec_prime]
             visited[ivec_p_prime] = true
@@ -130,7 +113,7 @@ end
 
 
 
-#=
+
 """
     symmetry_reduce_parallel(hsr, trans_group, frac_momentum, complex_type=ComplexF64, tol=sqrt(eps(Float64)))
 
@@ -140,7 +123,7 @@ Symmetry-reduce the HilbertSpaceRepresentation using translation group (multi-th
 function symmetry_reduce_parallel(
         hsr::HilbertSpaceRepresentation{QN, BR, DT},
         lattice::Lattice,
-        psic::PointSymmetryIrrepComponent,
+        ssic::SymmorphicSpaceSymmetryIrrepComponent,
         complex_type::Type{ComplexType}=ComplexF64;
         tol::Real=Base.rtoldefault(Float64)
         ) where {QN, BR, DT, ComplexType<:Complex}
@@ -158,12 +141,14 @@ function symmetry_reduce_parallel(
     fill!(basis_mapping_representative, -1)
     basis_mapping_amplitude = zeros(ComplexType, n_basis)
 
-    group_size = group_order(tsic)
+    tsym_group_size = group_order(ssic.translation)
+    psym_group_size = group_order(ssic.point)
+    group_size = tsym_group_size * psym_group_size
 
-    nthreads = Threads.nthreads()
     size_estimate = n_basis ÷ max(1, group_size - 1)
     @debug "Estimate for the reduced Hilbert space dimension: $size_estimate"
 
+    nthreads = Threads.nthreads()
     local_reduced_basis_list = Vector{Vector{BR}}(undef, nthreads)
     for i in 1:nthreads
         local_reduced_basis_list[i] = BR[]
@@ -172,7 +157,7 @@ function symmetry_reduce_parallel(
 
     visited = zeros(UInt8, n_basis) # use UInt8 rather than Bool for thread safety
 
-    local_basis_states = Matrix{BR}(undef, (nthreads, group_size))
+    local_basis_states = Array{BR, 3}(undef, (nthreads, tsym_group_size, psym_group_size))
     local_basis_amplitudes = Vector{Dict{BR, ComplexType}}(undef, nthreads)
     for id in 1:nthreads
         local_basis_amplitudes[id] = Dict{BR, ComplexType}()
@@ -192,18 +177,22 @@ function symmetry_reduce_parallel(
         end
     end
 
-    sym = tsic.symmetry
-    tsym_irrep_index = tsic.irrep_index
-    orthogonal_momentum = tsym.orthogonal_coordinates[tsym_irrep_index]
-    orthogonal_shape = tsym.orthogonal_shape
+    # tsic = ssic.translation
+    # tsym = tsic.symmetry
+    # tsym_irrep_index = tsic.irrep_index
+    # # whether the element is in the kernel of the representation
+    # orthogonal_momentum = tsym.orthogonal_coordinates[tsym_irrep_index]
+    # orthogonal_shape = tsym.orthogonal_shape
+    # is_identity = [iscompatible(orthogonal_momentum, orthogonal_shape, t)
+    #                for t in tsym.orthogonal_coordinates]
+    tsym_symops_and_amplitudes = [(x, conj(y)) for (x, y) in get_irrep_iterator(lattice, ssic.translation)]
+    psym_symops_and_amplitudes = [(x, conj(y)) for (x, y) in get_irrep_iterator(lattice, ssic.point)]
 
-    # whether the element is in the kernel of the representation
-    is_identity = [iscompatible(orthogonal_momentum, orthogonal_shape, t)
-                   for t in tsym.orthogonal_coordinates]
-    symops_and_amplitudes = [(x, conj(y)) for (x, y) in get_irrep_iterator(lattice, tsic)]
-    @assert length(symops_and_amplitudes) == group_size
+    @assert length(tsym_symops_and_amplitudes) == tsym_group_size
+    @assert length(psym_symops_and_amplitudes) == psym_group_size
 
     @debug "Starting reduction (parallel)"
+    zeroC = zero(ComplexF64)
     Threads.@threads for itemp in 1:n_basis
         ivec_p = reorder[itemp]
         (visited[ivec_p] != 0x0) && continue
@@ -214,31 +203,38 @@ function symmetry_reduce_parallel(
         # A basis binary representation is incompatible with the reduced Hilbert space if
         # (1) it is not the smallest among the its star, or
         # (2) its star is smaller than the representation
-        compatible = true
-        for i in 2:group_size
-            (symop, _) = symops_and_amplitudes[i]
-            bvec_prime = symmetry_apply(hsr.hilbert_space, symop, bvec)
-            if bvec_prime < bvec
-                compatible = false
-                break
-            elseif bvec_prime == bvec && !is_identity[i]
-                compatible = false
-                break
-            end
-            local_basis_states[id, i] = bvec_prime
-        end # for i
-        (!compatible) && continue
-        local_basis_states[id, 1] = bvec
-
-        push!(local_reduced_basis_list[id], bvec)
+        local_basis_states[id, 1, 1] = bvec
+        for it in 1:tsym_group_size
+            (tsym_symop, tsym_ampl) = tsym_symops_and_amplitudes[it]
+            # isapprox(tsym_ampl, 0; atol=tol) && continue
+            bvec_prime_t = symmetry_apply(hsr.hilbert_space, tsym_symop, bvec)
+            for ip in 1:psym_group_size
+                # (it, ip) == (1, 1) && continue
+                (psym_symop, psym_ampl) = psym_symops_and_amplitudes[ip]
+                # isapprox(psym_ampl, 0; atol=tol) && continue
+                bvec_prime = symmetry_apply(hsr.hilbert_space, psym_symop, bvec_prime_t)
+                local_basis_states[id, it, ip] = bvec_prime
+            end # for ip
+        end # for it
 
         empty!(local_basis_amplitudes[id])
-        for i in 1:group_size
-            (symop, ampl) = symops_and_amplitudes[i]
-            bvec_prime = local_basis_states[id, i]
-            local_basis_amplitudes[id][bvec_prime] = ampl # Same bvec_prime, same p.
+        for it in 1:tsym_group_size
+            (_, tsym_ampl) = tsym_symops_and_amplitudes[it]
+            isapprox(tsym_ampl, 0; atol=tol) && continue
+            for ip in 1:psym_group_size
+                (_, psym_ampl) = psym_symops_and_amplitudes[ip]
+                isapprox(psym_ampl, 0; atol=tol) && continue
+                bvec_prime = local_basis_states[id, it, ip]
+                ampl = tsym_ampl * psym_ampl
+                local_basis_amplitudes[id][bvec_prime] = get(local_basis_amplitudes[id], bvec_prime, zeroC) + ampl
+            end
         end
-        inv_norm = 1.0 / sqrt(float(length(local_basis_amplitudes[id])))
+        choptol!(local_basis_amplitudes[id], tol)
+        !haskey(local_basis_amplitudes[id], bvec) && continue
+        minimum(keys(local_basis_amplitudes[id])) != bvec && continue
+
+        push!(local_reduced_basis_list[id], bvec)
+        inv_norm = one(Float64) / sqrt(sum(abs2.(values(local_basis_amplitudes[id]))))
         for (bvec_prime, amplitude) in local_basis_amplitudes[id]
             ivec_p_prime = hsr.basis_lookup[bvec_prime]
             visited[ivec_p_prime] = 0x1
@@ -281,8 +277,7 @@ function symmetry_reduce_parallel(
     @debug "Collected basis lookup (offdiagonal)"
 
     @debug "END symmetry_reduce_parallel"
-    return ReducedHilbertSpaceRepresentation{HSR, TranslationSymmetryIrrepComponent, BR, ComplexType}(
-                hsr, lattice, tsic, reduced_basis_list,
+    return ReducedHilbertSpaceRepresentation{HSR, SymmorphicSpaceSymmetryIrrepComponent, BR, ComplexType}(
+                hsr, lattice, ssic, reduced_basis_list,
                 basis_mapping_index, basis_mapping_amplitude)
 end
-=#

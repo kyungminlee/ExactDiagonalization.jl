@@ -1,20 +1,4 @@
-export symmetry_reduce, symmetry_reduce_serial, symmetry_reduce_parallel
-
-"""
-    symmetry_reduce(hsr, trans_group, frac_momentum, complex_type=ComplexF64, tol=sqrt(eps(Float64)))
-
-Symmetry-reduce the HilbertSpaceRepresentation using translation group.
-
-"""
-function symmetry_reduce(
-        hsr::HilbertSpaceRepresentation{QN, BR, DT},
-        lattice::Lattice,
-        tsic::TranslationSymmetryIrrepComponent,
-        complex_type::Type{ComplexType}=ComplexF64;
-        tol::Real=sqrt(eps(Float64))) where {QN, BR, DT, ComplexType<:Complex}
-    symred = Threads.nthreads() == 1 ? symmetry_reduce_serial : symmetry_reduce_parallel
-    return symred(hsr, lattice, tsic, ComplexType; tol=tol)
-end
+export symmetry_reduce_serial, symmetry_reduce_parallel
 
 
 """
