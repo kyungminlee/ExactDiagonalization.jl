@@ -24,9 +24,9 @@ Reduce a large vector into the reduced hilbert space representation.
 Simply throw away components that don't fit.
 """
 function symmetry_reduce(
-    rhsr::ReducedHilbertSpaceRepresentation{HSR, BR, C},
+    rhsr::ReducedHilbertSpaceRepresentation{HSR, SIC, BR, C},
     large_vector::AbstractVector{Si}
-  ) where {HSR, BR, C, Si<:Number}
+  ) where {HSR, SIC, BR, C, Si<:Number}
   if length(large_vector) != dimension(rhsr.parent)
     throw(DimensionMismatch("Dimension of the input vector should match the larger representation"))
   end
@@ -65,9 +65,9 @@ raw"""
 ```
 """
 function symmetry_unreduce(
-    rhsr::ReducedHilbertSpaceRepresentation{HSR, BR, C},
+    rhsr::ReducedHilbertSpaceRepresentation{HSR, SIC, BR, C},
     small_vector::AbstractVector{Si}
-  ) where {HSR, BR, C, Si<:Number}
+  ) where {HSR, SIC, BR, C, Si<:Number}
   if length(small_vector) != dimension(rhsr)
     throw(DimensionMismatch("Dimension of the input vector should match the reduced representation"))
   end
