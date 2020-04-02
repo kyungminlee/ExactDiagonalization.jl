@@ -9,25 +9,31 @@ using ExactDiagonalization.Toolkit: pauli_matrix
 
 @testset "RedRep4" begin
   tol = sqrt(eps(Float64))
-  QN = Int
+
+  n = 4
+  unitcell = make_unitcell(1.0; OrbitalType=String)
+  addorbital!(unitcell, "Spin", FractCoord([0], [0.0]))
+  lattice = make_lattice(unitcell, n)
 
   # Test State and Site
   up = State("Up", 1)
   dn = State("Dn",-1)
   spin_site = Site([up, dn])
-  n = 4
+
   hs = HilbertSpace(repeat([spin_site], n))
   σ = Dict( (isite, j) => pauli_matrix(hs, isite, j) for isite in 1:n, j in [:x, :y, :z, :+, :-])
   j1 = sum(σ[i, j] * σ[mod(i, n) + 1 , j] for i in 1:n, j in [:x, :y, :z])
   j2 = sum(σ[i, j] * σ[mod(i+1, n) + 1 , j] for i in 1:n, j in [:x, :y, :z])
 
   hsr = represent(HilbertSpaceSector(hs, 0))
-  translation_group = TranslationGroup([Permutation([2,3,4,1])])
-  @test is_invariant(hs, translation_group, j1)
-  @test is_invariant(HilbertSpaceSector(hs, 0), translation_group, j1)
+  tsym = TranslationSymmetry(lattice)
+  # translation_group = TranslationGroup([Permutation([2,3,4,1])])
+  # @test is_invariant(hs, translation_group, j1)
+  # @test is_invariant(HilbertSpaceSector(hs, 0), translation_group, j1)
 
   @testset "RHSR" begin
-    rhsr = symmetry_reduce(hsr, translation_group, [0//1])
+    #rhsr = symmetry_reduce(hsr, translation_group, [0//1])
+    rhsr = symmetry_reduce(hsr, lattice, TranslationSymmetryIrrepComponent(tsym, 1, 1))
     @test scalartype(rhsr) === ComplexF64
     @test scalartype(typeof(rhsr)) === ComplexF64
     @test valtype(rhsr) === ComplexF64
@@ -44,7 +50,8 @@ using ExactDiagonalization.Toolkit: pauli_matrix
   @test hsr.basis_list == [0b0011, 0b0101, 0b0110, 0b1001, 0b1010, 0b1100]
 
   @testset "ROR" begin
-    rhsr = symmetry_reduce(hsr, translation_group, [0//1])
+    #rhsr = symmetry_reduce(hsr, translation_group, [0//1])
+    rhsr = symmetry_reduce(hsr, lattice, TranslationSymmetryIrrepComponent(tsym, 1, 1))
     @test dimension(rhsr) == 2
     @test rhsr.basis_list == UInt[0b0011, 0b0101]
     dim = dimension(rhsr)
@@ -184,8 +191,9 @@ using ExactDiagonalization.Toolkit: pauli_matrix
     @test isapprox(j1_mat, adjoint(j1_mat); atol=tol)
     eigenvalues1 = eigvals(Hermitian(j1_mat))
     eigenvalues2 = Float64[]
-    for k in translation_group.fractional_momenta
-      rhsr = symmetry_reduce(hsr, translation_group, k)
+    for tsym_irrep_index in 1:num_irreps(tsym)
+      rhsr = symmetry_reduce(hsr, lattice, TranslationSymmetryIrrepComponent(tsym, tsym_irrep_index))
+
       j1_redrep = represent(rhsr, j1)
       j1_redmat = Matrix(j1_redrep)
       @test isapprox(j1_redmat, adjoint(j1_redmat); atol=tol)
@@ -200,17 +208,22 @@ end # testset RedOp4
 
 @testset "RedOp7" begin
   # testing complex phase
+  n = 7
+  unitcell = make_unitcell(1.0; OrbitalType=String)
+  addorbital!(unitcell, "Spin", FractCoord([0], [0.0]))
+  lattice = make_lattice(unitcell, n)
+
   tol = sqrt(eps(Float64))
   spin_site = Site([State("Up", 1), State("Dn",-1)])
-  n = 7
+
   hs = HilbertSpace(repeat([spin_site], n))
   σ = Dict( (isite, j) => pauli_matrix(hs, isite, j) for isite in 1:n, j in [:x, :y, :z, :+, :-])
   j1 = sum(σ[i, j] * σ[mod(i, n) + 1 , j] for i in 1:n, j in [:x, :y, :z])
 
   hsr = represent(HilbertSpaceSector(hs, 0))
-  translation_group = TranslationGroup([Permutation([2,3,4,5,6,7,1])])
-  @test is_invariant(hs, translation_group, j1)
-  @test is_invariant(HilbertSpaceSector(hs, 0), translation_group, j1)
+  # translation_group = TranslationGroup([Permutation([2,3,4,5,6,7,1])])
+  # @test is_invariant(hs, translation_group, j1)
+  # @test is_invariant(HilbertSpaceSector(hs, 0), translation_group, j1)
 
   j1_rep = represent(hsr, j1)
   mat_size = size(j1_rep)
