@@ -39,13 +39,12 @@ j1 = simplify(j1)
 
 ## Full Solution
 
-
+# # Full solution too costly
 # hsr = represent(hs)
 # j1_rep = represent(hsr, j1)
 # m = Matrix(j1_rep)
 # alleigenvalues1 = eigvals(Hermitian(m))
 # @show length(alleigenvalues1)
-
 
 alleigenvalues1 = nothing
 
@@ -68,6 +67,7 @@ let
             #j1_redrep = represent(rhssr, j1)
             #m =  Matrix(j1_redrep)
             dimension(rhssr) == 0 && continue
+            println("- QN: $qn\ttsym: $tsym_irrep_index/$(num_irreps(tsym))\tdimension: $(dimension(rhssr))")
             # println("    momentum: $(tsym.hypercube.coordinates[tsym_irrep_index])")
             # println("    hilbert dimension: $(dimension(rhssr))")
             m = Matrix(represent(rhssr, j1))
@@ -105,6 +105,7 @@ if false
                 rhssr = symmetry_reduce_serial(hssr, lattice, psic)
                 rhssr2 = symmetry_reduce_parallel(hssr, lattice, psic)
                 dimension(rhssr) == 0 && continue
+                println("- QN: $qn\tpsym: $psym_irrep_index/$(num_irreps(psym))\t$psym_irrep_compo/$(irrep_dimension(psym, psym_irrep_index))\tdimension:$(dimension(rhssr))")
                 # println("      psym irrep component: $(psym_irrep_compo)")
                 # println("      hilbert dimension: $(dimension(rhssr))")
                 #
@@ -155,6 +156,14 @@ let
                     rhssr = symmetry_reduce_serial(hssr, lattice, ssic)
                     rhssr2 = symmetry_reduce_parallel(hssr, lattice, ssic)
                     dimension(rhssr) == 0 && continue
+
+
+                    print("- QN: $qn")
+                    print("\ttsym: $tsym_irrep_index/$(num_irreps(tsym))")
+                    print("\tpsym: $(psym_little.hermann_mauguinn)")
+                    print("\t$psym_irrep_index/$(num_irreps(psym_little))")
+                    print("\tdimension:$(dimension(rhssr))")
+                    println()
                     # println("        psym_irrepo_compo: $(psym_irrep_compo)")
                     # println("        hilbert dimension: $(dimension(rhssr))")
                     m = Matrix(represent(rhssr, j1))
