@@ -52,6 +52,8 @@ function symmetry_reduce_serial(
 
         # basis_states[1,1] = bvec
         #  TODO: think about order tsym first or psym first
+        #  I think translation needs to be done first, since we are considering
+        #  the Bloch states and applying point operations to the Bloch states.
         for it in 1:tsym_group_size
             (tsym_symop, tsym_ampl) = tsym_symops_and_amplitudes[it]
             # isapprox(tsym_ampl, 0; atol=tol) && continue
