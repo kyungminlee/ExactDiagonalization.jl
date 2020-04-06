@@ -16,8 +16,8 @@ function is_invariant(hss::HilbertSpaceSector{QN}, symop::AbstractSymmetryOperat
   return is_invariant(hss.parent, symop, args...; kwargs...)
 end
 
-function is_invariant(hss::HilbertSpaceSector{QN}, symgroup::AbstractSymmetry, args...; kwargs...) where {QN}
-  return is_invariant(hss.parent, symgroup, args...; kwargs...)
+function is_invariant(hss::HilbertSpaceSector{QN}, lattice::Lattice, symgroup::AbstractSymmetry, args...; kwargs...) where {QN}
+  return is_invariant(hss.parent, lattice, symgroup, args...; kwargs...)
 end
 
 
@@ -58,6 +58,6 @@ function is_invariant(hs::HilbertSpace{QN}, symop::AbstractSymmetryOperation, op
   return simplify(op - symmetry_apply(hs, symop, op)) == NullOperator()
 end
 
-function is_invariant(hs::HilbertSpace{QN}, symgroup::AbstractSymmetry, op::AbstractOperator) where {QN}
+function is_invariant(hs::HilbertSpace{QN}, lattice::Lattice, symgroup::AbstractSymmetry, op::AbstractOperator) where {QN}
   return all(is_invariant(hs, g, op) for g in symgroup.generators)
 end
