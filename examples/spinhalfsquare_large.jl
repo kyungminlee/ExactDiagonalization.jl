@@ -50,7 +50,7 @@ alleigenvalues1 = nothing
 
 ## Using translation symmetry only
 println("## Translation Symmetry Only")
-let
+if true
     global alleigenvalues1
 
     alleigenvalues2 = Float64[]
@@ -160,6 +160,7 @@ let
 
                     print("- QN: $qn")
                     print("\ttsym: $tsym_irrep_index/$(num_irreps(tsym))")
+                    print("\tk: $(tsym.hypercube.coordinates[tsym_irrep_index])")
                     print("\tpsym: $(psym_little.hermann_mauguinn)")
                     print("\t$psym_irrep_index/$(num_irreps(psym_little))")
                     print("\tdimension:$(dimension(rhssr))")
