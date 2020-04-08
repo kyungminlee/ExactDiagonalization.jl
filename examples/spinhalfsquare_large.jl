@@ -132,7 +132,7 @@ end
 
 ## Use both
 
-println("## Symmorphic Space Symmetry")
+println("## Translation AND Point Symmetry")
 let
     alleigenvalues2 = Float64[]
     alleigenvalues3 = Float64[]
@@ -183,4 +183,38 @@ let
     @show norm(alleigenvalues1 - alleigenvalues2)
     @show norm(alleigenvalues1 - alleigenvalues3)
     #@show alleigenvalues3
+end
+
+let
+    println("## Symmorphic Space Symmetry")
+    alleigenvalues2 = Float64[]
+    alleigenvalues3 = Float64[]
+    for qn in quantum_number_sectors(hs)
+        hss = HilbertSpaceSector(hs, qn)
+        hssr = represent_dict(hss);
+        # println("  quantum number: $qn")
+        # println("  number of tsym_irreps: $(num_irreps(tsym))")
+        for ssic in get_irrep_components(lattice, tsym, psym)
+            rhssr = symmetry_reduce_serial(hssr, lattice, ssic)
+            rhssr2 = symmetry_reduce_parallel(hssr, lattice, ssic)
+            dimension(rhssr) == 0 && continue
+            print("- QN: $qn")
+            print("\ttsym: $(ssic.translation.irrep_index)/$(num_irreps(tsym))")
+            print("\tpsym: $(ssic.point.symmetry.hermann_mauguinn)")
+            print("\t$(ssic.point.irrep_index)/$(num_irreps(ssic.point.symmetry))")
+            print("\tdimension:$(dimension(rhssr))")
+            println()
+            m = Matrix(represent(rhssr, j1))
+            m2 = Matrix(represent(rhssr2, j1))
+            append!(alleigenvalues2, eigvals(Hermitian(m)))
+            append!(alleigenvalues3, eigvals(Hermitian(m2)))
+        end # for tsym_irrep_index
+    end
+    sort!(alleigenvalues2)
+    sort!(alleigenvalues3)
+
+    @show length(alleigenvalues2)
+    @show length(alleigenvalues3)
+    @show norm(alleigenvalues1 - alleigenvalues2)
+    @show norm(alleigenvalues1 - alleigenvalues3)
 end
