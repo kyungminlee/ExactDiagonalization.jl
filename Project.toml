@@ -1,7 +1,7 @@
 name = "ExactDiagonalization"
 uuid = "cf149b0a-e8f7-4f00-9ab4-03e4f5ec5cff"
 authors = ["Kyungmin Lee <kyungmin.lee.42@gmail.com>"]
-version = "0.9.2"
+version = "0.10.0"
 
 [deps]
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
@@ -17,3 +17,7 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
 test = ["Test", "Suppressor"]
+
+[compat]
+julia = "1.4"
+TightBindingLattice = "0.3"
