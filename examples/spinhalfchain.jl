@@ -4,18 +4,13 @@ using ExactDiagonalization
 using TightBindingLattice
 using MinimalPerfectHash
 
-up = State("Up", 1);
-dn = State("Dn",-1);
-#Magnon = HardcoreBoson{:Magnon}
-#spin_site = Site([up, dn], ParticleSiteType{Magnon});
-spin_site = Site([up, dn]);
-
-n_sites = 8;
+n_sites = 7;
 (hs, σ) = ExactDiagonalization.Toolkit.spin_half_system(n_sites)
-#hs = HilbertSpace([spin_site for i in 1:n_sites]);
-hss = HilbertSpaceSector(hs, 0)
 
-hsr = represent_dict(hss);
+unitcell = make_unitcell(1.0; OrbitalType=String)
+addorbital!(unitcell, "Spin", FractCoord([0], [0.0]))
+lattice = make_lattice(unitcell, n_sites)
+tsym = TranslationSymmetry(lattice)
 
 Sx = sum(σ(i,:x) for i in 1:n_sites)
 Sy = sum(σ(i,:y) for i in 1:n_sites)
@@ -23,13 +18,71 @@ Sz = sum(σ(i,:z) for i in 1:n_sites)
 
 spin_squared = simplify( Sx^2 + Sy^2 + Sz^2 )
 j1 = sum(σ(i, j) * σ(mod(i, n_sites)+1 , j) for i in 1:n_sites for j in [:x, :y, :z]);
+@show j1
 
+for qn in quantum_number_sectors(hs)
+hss = HilbertSpaceSector(hs, qn)
+hsr = represent_dict(hss);
+
+let j1_rep = represent(represent(hs), j1)
+    @show eigvals(Hermitian(Matrix(j1_rep)))
+end
+
+let
+    rhsr = symmetry_reduce_serial(hsr, lattice, tsym, 2)
+    @show tsym.orthogonal_coordinates[2]
+    j1_redrep = represent(rhsr, j1)
+    m =  Matrix(j1_redrep)
+    println("m = ")
+    display(m)
+end
+exit()
+
+
+
+for tsym_irrep_index in 1:num_irreps(tsym)
+    # @show tsym_irrep_index
+    rhsr = symmetry_reduce_serial(hsr, lattice, tsym, tsym_irrep_index)
+    # @show rhsr
+    # @show rhsr.parent
+    # @show rhsr.basis_list
+    # @show rhsr.basis_mapping_index
+    # @show rhsr.basis_mapping_amplitude
+    # # println()
+    j1_redrep = represent(rhsr, j1)
+    # @show typeof(j1_redrep), j1_redrep
+    m =  Matrix(j1_redrep)
+    @show eigvals(Hermitian(m))
+end
+
+psym = project(PointSymmetryDatabase.get(2), [1 0 0;])  # inversion symmetry
+
+@show psym.hermann_mauguinn
+
+@show iscompatible(tsym, psym)
+for tsym_irrep_index in 1:num_irreps(tsym)
+    psym_little = little_symmetry(tsym, tsym_irrep_index, psym)
+    @assert iscompatible(tsym, tsym_irrep_index, psym_little)
+    @show psym_little.hermann_mauguinn
+
+
+end
+
+
+
+
+#=
 translation_group = TranslationGroup([Permutation([ mod(i, n_sites)+1 for i in 1:n_sites])])
 ks = translation_group.fractional_momenta
 rhsr = symmetry_reduce(hsr, translation_group, ks[1])
 
 j1_redrep = represent(rhsr, j1)
 j1_redrep_sparse = sparse(j1_redrep)
+=#
+
+
+
+
 #
 # using BenchmarkTools
 # using Arpack

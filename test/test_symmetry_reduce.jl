@@ -6,40 +6,46 @@ using TightBindingLattice
 using ExactDiagonalization.Toolkit: pauli_matrix
 
 @testset "symmetry_reduce" begin
+
+  n_sites = 4;
+
+  unitcell = make_unitcell(1.0; OrbitalType=String)
+  addorbital!(unitcell, "Spin", FractCoord([0], [0.0]))
+  lattice = make_lattice(unitcell, n_sites)
+
   QN = Tuple{Int}
   up = State("Up", 1);
   dn = State("Dn",-1);
   spin_site = Site([up, dn]);
 
-  n_sites = 4;
   hs = HilbertSpace([spin_site for i in 1:n_sites]);
   hss = HilbertSpaceSector(hs, 0)
   hsr = represent(hss);
 
-  translation_group = TranslationGroup([Permutation([2,3,4,1])])
+  #translation_group = TranslationGroup([Permutation([2,3,4,1])])
+  tsym = TranslationSymmetry(lattice)
 
   for symred in [symmetry_reduce, symmetry_reduce_serial, symmetry_reduce_parallel]
-    rhsr = symred(hsr, translation_group, [0//1])
+    rhsr = symred(hsr, lattice, TranslationSymmetryIrrepComponent(tsym, 1))
     @test rhsr.basis_list == UInt[0b0011, 0b0101]
     @test rhsr.parent === hsr
 
-    rhsr = symred(hsr, translation_group, [1//4])
+    rhsr = symred(hsr, lattice, TranslationSymmetryIrrepComponent(tsym, 2))
     @test rhsr.basis_list == UInt[0b0011]
     @test rhsr.parent === hsr
 
-    rhsr = symred(hsr, translation_group, [2//4])
+    rhsr = symred(hsr, lattice, TranslationSymmetryIrrepComponent(tsym, 3))
     @test rhsr.basis_list == UInt[0b0011, 0b0101]
     @test rhsr.parent === hsr
 
-    rhsr = symred(hsr, translation_group, [3//4])
+    rhsr = symred(hsr, lattice, TranslationSymmetryIrrepComponent(tsym, 4))
     @test rhsr.basis_list == UInt[0b0011]
     @test rhsr.parent === hsr
-
-    @test_throws ArgumentError symred(hsr, translation_group, [1//5])
 
     tol = sqrt(eps(Float64))
-    for k in translation_group.fractional_momenta
-      rhsr = symred(hsr, translation_group, k)
+    for tsym_irrep_index in 1:num_irreps(tsym)
+      tsic = TranslationSymmetryIrrepComponent(tsym, tsym_irrep_index)
+      rhsr = symred(hsr, lattice, tsic)
       for (i_p, b) in enumerate(hsr.basis_list)
         if b in rhsr.basis_list
           @test 1 <= rhsr.basis_mapping_index[i_p] <= dimension(rhsr)
@@ -65,20 +71,29 @@ using ExactDiagonalization.Toolkit: pauli_matrix
 
   @testset "convention" begin
     # want  |ψ(k)⟩ = ∑ exp(+ikx) |ψ(x)⟩
+
+    n_sites = 7;
+    unitcell = make_unitcell(1.0; OrbitalType=String)
+    addorbital!(unitcell, "Spin", FractCoord([0], [0.0]))
+    lattice = make_lattice(unitcell, n_sites)
+
     QN = Tuple{Int}
     up = State("Up", 1);
     dn = State("Dn",-1);
     spin_site = Site([up, dn]);
-    n_sites = 7;
+
     hs = HilbertSpace([spin_site for i in 1:n_sites]);
 
     let
       hss = HilbertSpaceSector(hs, 5)
       hsr = represent(hss)
       p = Permutation([2,3,4,5,6,7,1])
-      translation_group = TranslationGroup(p)
+      #translation_group = TranslationGroup(p)
       @test symmetry_apply(hs, p, 0b0000001) == 0b0000010
-      rhsr = symmetry_reduce(hsr, translation_group, [1//7])
+
+      tsym = TranslationSymmetry(lattice)
+      tsic = TranslationSymmetryIrrepComponent(tsym, 2, 1)
+      rhsr = symmetry_reduce(hsr, lattice, tsic)
       @test hsr.basis_list == UInt[0b0000001, 0b0000010, 0b0000100, 0b0001000, 0b0010000, 0b0100000, 0b1000000]
       @test rhsr.basis_list == UInt[0b0000001]
       ψk = symmetry_unreduce(rhsr, [1.0])
@@ -89,9 +104,12 @@ using ExactDiagonalization.Toolkit: pauli_matrix
       hss = HilbertSpaceSector(hs, -5)
       hsr = represent(hss)
       p = Permutation([2,3,4,5,6,7,1])
-      translation_group = TranslationGroup(p)
       @test symmetry_apply(hs, p, 0b0000001) == 0b0000010
-      rhsr = symmetry_reduce(hsr, translation_group, [1//7])
+
+      tsym = TranslationSymmetry(lattice)
+      tsic = TranslationSymmetryIrrepComponent(tsym, 2, 1)
+      rhsr = symmetry_reduce(hsr, lattice, tsic)
+
       # opposite order
       @test hsr.basis_list == UInt[0b0111111, 0b1011111, 0b1101111, 0b1110111, 0b1111011, 0b1111101, 0b1111110]
       @test rhsr.basis_list == UInt[0b0111111]

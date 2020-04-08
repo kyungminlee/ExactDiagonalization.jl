@@ -6,12 +6,18 @@ using ExactDiagonalization.Toolkit: pauli_matrix
 
 @testset "prettyprintln" begin
   @testset "spinhalf" begin
-    QN = Int
-    up = State("Up", QN( 1))
-    dn = State("Dn", QN(-1))
+
+    n_sites = 4
+    unitcell = make_unitcell(1.0; OrbitalType=String)
+    addorbital!(unitcell, "Spin", FractCoord([0], [0.0]))
+    lattice = make_lattice(unitcell, n_sites)
+    tsym = TranslationSymmetry(lattice)
+
+    up = State("Up",  1)
+    dn = State("Dn", -1)
     spin_site = Site([up, dn])
     hs = HilbertSpace([spin_site, spin_site, spin_site, spin_site])
-    n_sites = 4
+
     σ(i::Integer, j::Symbol) = pauli_matrix(hs, i, j)
 
     buf = IOBuffer()
@@ -72,9 +78,7 @@ using ExactDiagonalization.Toolkit: pauli_matrix
                           "| 1111",
                           ""], "\n")
 
-    translation_group = TranslationGroup([Permutation([ mod(i, n_sites)+1 for i in 1:n_sites])])
-    ks = translation_group.fractional_momenta
-    rhsr = symmetry_reduce(hsr, translation_group, ks[1])
+    rhsr = symmetry_reduce(hsr, lattice, TranslationSymmetryIrrepComponent(tsym, 1))
     result = @capture_out prettyprintln(rhsr)
     @test result == join(["ReducedHilbertSpaceRepresentation",
                           "| basis_list",
