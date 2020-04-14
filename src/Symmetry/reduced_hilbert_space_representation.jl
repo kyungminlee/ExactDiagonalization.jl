@@ -16,7 +16,6 @@ struct ReducedHilbertSpaceRepresentation{HSR<:HilbertSpaceRepresentation,
                                          SIC<:AbstractSymmetryIrrepComponent,
                                          BR, C<:Complex} <:AbstractHilbertSpaceRepresentation{C}
   parent::HSR
-  lattice::Lattice
   symmetry_irrep_component::SIC
   basis_list::Vector{BR}
   basis_mapping_index::Vector{Int} # has size of parent dimension. each index item contains index at reduced basis, or -1 if not included
