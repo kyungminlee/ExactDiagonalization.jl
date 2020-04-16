@@ -1,5 +1,5 @@
 export symmetry_apply
-export is_invariant
+export isinvariant
 
 import TightBindingLattice.AbstractSymmetryOperationEmbedding
 import TightBindingLattice.SymmetryEmbedding
@@ -11,12 +11,12 @@ function symmetry_apply(hss::HilbertSpaceSector{QN}, symop::AbstractSymmetryOper
   return symmetry_apply(hss.parent, symop, args...; kwargs...)
 end
 
-function is_invariant(hss::HilbertSpaceSector{QN}, symop::AbstractSymmetryOperationEmbedding, args...; kwargs...) where {QN}
-  return is_invariant(hss.parent, symop, args...; kwargs...)
+function isinvariant(hss::HilbertSpaceSector{QN}, symop::AbstractSymmetryOperationEmbedding, args...; kwargs...) where {QN}
+  return isinvariant(hss.parent, symop, args...; kwargs...)
 end
 
-function is_invariant(hss::HilbertSpaceSector{QN}, symbed::SymmetryEmbedding, args...; kwargs...) where {QN}
-  return is_invariant(hss.parent, symbed, args...; kwargs...)
+function isinvariant(hss::HilbertSpaceSector{QN}, symbed::SymmetryEmbedding, args...; kwargs...) where {QN}
+  return isinvariant(hss.parent, symbed, args...; kwargs...)
 end
 
 
@@ -53,10 +53,10 @@ end
 
 
 ## isinvariant
-function is_invariant(hs::HilbertSpace{QN}, symop::AbstractSymmetryOperationEmbedding, op::AbstractOperator) where {QN}
+function isinvariant(hs::HilbertSpace{QN}, symop::AbstractSymmetryOperationEmbedding, op::AbstractOperator) where {QN}
   return simplify(op - symmetry_apply(hs, symop, op)) == NullOperator()
 end
 
-function is_invariant(hs::HilbertSpace{QN}, symbed::SymmetryEmbedding, op::AbstractOperator) where {QN}
-  return all(is_invariant(hs, g, op) for g in generator_elements(symbed))
+function isinvariant(hs::HilbertSpace{QN}, symbed::SymmetryEmbedding, op::AbstractOperator) where {QN}
+  return all(isinvariant(hs, g, op) for g in generator_elements(symbed))
 end

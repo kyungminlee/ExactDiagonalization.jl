@@ -29,8 +29,8 @@ using ExactDiagonalization.Toolkit: pauli_matrix
   tsym = TranslationSymmetry(lattice)
   tsymbed = embed(lattice, tsym)
   # translation_group = TranslationGroup([Permutation([2,3,4,1])])
-  # @test is_invariant(hs, translation_group, j1)
-  # @test is_invariant(HilbertSpaceSector(hs, 0), translation_group, j1)
+  # @test isinvariant(hs, translation_group, j1)
+  # @test isinvariant(HilbertSpaceSector(hs, 0), translation_group, j1)
 
   @testset "RHSR" begin
     #rhsr = symmetry_reduce(hsr, translation_group, [0//1])
@@ -223,8 +223,8 @@ end # testset RedOp4
 
   hsr = represent(HilbertSpaceSector(hs, 0))
   # translation_group = TranslationGroup([Permutation([2,3,4,5,6,7,1])])
-  # @test is_invariant(hs, translation_group, j1)
-  # @test is_invariant(HilbertSpaceSector(hs, 0), translation_group, j1)
+  # @test isinvariant(hs, translation_group, j1)
+  # @test isinvariant(HilbertSpaceSector(hs, 0), translation_group, j1)
 
   j1_rep = represent(hsr, j1)
   mat_size = size(j1_rep)
