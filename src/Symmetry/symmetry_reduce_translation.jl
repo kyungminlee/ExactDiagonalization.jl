@@ -42,7 +42,7 @@ function symmetry_reduce_serial(
     orthogonal_shape = tsym.orthogonal_shape
 
     # whether the element is in the kernel of the representation
-    is_identity = [iscompatible(orthogonal_momentum, orthogonal_shape, t)
+    is_identity = [isbragg(orthogonal_shape, orthogonal_momentum, t)
                    for t in tsym.orthogonal_coordinates]
     symops_and_amplitudes = [(x, conj(y)) for (x, y) in get_irrep_iterator(tsic)]
     @assert length(symops_and_amplitudes) == group_size
@@ -175,7 +175,7 @@ function symmetry_reduce_parallel(
     orthogonal_shape = tsym.orthogonal_shape
 
     # whether the element is in the kernel of the representation
-    is_identity = [iscompatible(orthogonal_momentum, orthogonal_shape, t)
+    is_identity = [isbragg(orthogonal_shape, orthogonal_momentum, t)
                    for t in tsym.orthogonal_coordinates]
     symops_and_amplitudes = [(x, conj(y)) for (x, y) in get_irrep_iterator(tsic)]
     @assert length(symops_and_amplitudes) == group_size

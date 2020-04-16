@@ -27,13 +27,14 @@ using ExactDiagonalization.Toolkit: pauli_matrix
 
   hsr = represent(HilbertSpaceSector(hs, 0))
   tsym = TranslationSymmetry(lattice)
+  tsymbed = embed(lattice, tsym)
   # translation_group = TranslationGroup([Permutation([2,3,4,1])])
   # @test is_invariant(hs, translation_group, j1)
   # @test is_invariant(HilbertSpaceSector(hs, 0), translation_group, j1)
 
   @testset "RHSR" begin
     #rhsr = symmetry_reduce(hsr, translation_group, [0//1])
-    rhsr = symmetry_reduce(hsr, lattice, TranslationSymmetryIrrepComponent(tsym, 1, 1))
+    rhsr = symmetry_reduce(hsr, IrrepComponent(tsymbed, 1, 1))
     @test scalartype(rhsr) === ComplexF64
     @test scalartype(typeof(rhsr)) === ComplexF64
     @test valtype(rhsr) === ComplexF64
@@ -51,7 +52,7 @@ using ExactDiagonalization.Toolkit: pauli_matrix
 
   @testset "ROR" begin
     #rhsr = symmetry_reduce(hsr, translation_group, [0//1])
-    rhsr = symmetry_reduce(hsr, lattice, TranslationSymmetryIrrepComponent(tsym, 1, 1))
+    rhsr = symmetry_reduce(hsr, IrrepComponent(tsymbed, 1, 1))
     @test dimension(rhsr) == 2
     @test rhsr.basis_list == UInt[0b0011, 0b0101]
     dim = dimension(rhsr)
@@ -192,7 +193,7 @@ using ExactDiagonalization.Toolkit: pauli_matrix
     eigenvalues1 = eigvals(Hermitian(j1_mat))
     eigenvalues2 = Float64[]
     for tsym_irrep_index in 1:num_irreps(tsym)
-      rhsr = symmetry_reduce(hsr, lattice, TranslationSymmetryIrrepComponent(tsym, tsym_irrep_index))
+      rhsr = symmetry_reduce(hsr, IrrepComponent(tsymbed, tsym_irrep_index))
 
       j1_redrep = represent(rhsr, j1)
       j1_redmat = Matrix(j1_redrep)

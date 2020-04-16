@@ -22,30 +22,31 @@ using ExactDiagonalization.Toolkit: pauli_matrix
   hss = HilbertSpaceSector(hs, 0)
   hsr = represent(hss);
 
-  #translation_group = TranslationGroup([Permutation([2,3,4,1])])
+  #translation_group = TranslationGroup([SitePermutation([2,3,4,1])])
   tsym = TranslationSymmetry(lattice)
+  tsymbed = embed(lattice, tsym)
 
   for symred in [symmetry_reduce, symmetry_reduce_serial, symmetry_reduce_parallel]
-    rhsr = symred(hsr, lattice, TranslationSymmetryIrrepComponent(tsym, 1))
+    rhsr = symred(hsr, IrrepComponent(tsymbed, 1))
     @test rhsr.basis_list == UInt[0b0011, 0b0101]
     @test rhsr.parent === hsr
 
-    rhsr = symred(hsr, lattice, TranslationSymmetryIrrepComponent(tsym, 2))
+    rhsr = symred(hsr, IrrepComponent(tsymbed, 2))
     @test rhsr.basis_list == UInt[0b0011]
     @test rhsr.parent === hsr
 
-    rhsr = symred(hsr, lattice, TranslationSymmetryIrrepComponent(tsym, 3))
+    rhsr = symred(hsr, IrrepComponent(tsymbed, 3))
     @test rhsr.basis_list == UInt[0b0011, 0b0101]
     @test rhsr.parent === hsr
 
-    rhsr = symred(hsr, lattice, TranslationSymmetryIrrepComponent(tsym, 4))
+    rhsr = symred(hsr, IrrepComponent(tsymbed, 4))
     @test rhsr.basis_list == UInt[0b0011]
     @test rhsr.parent === hsr
 
     tol = sqrt(eps(Float64))
-    for tsym_irrep_index in 1:num_irreps(tsym)
-      tsic = TranslationSymmetryIrrepComponent(tsym, tsym_irrep_index)
-      rhsr = symred(hsr, lattice, tsic)
+    for tsym_irrep_index in 1:num_irreps(tsymbed)
+      tsic = IrrepComponent(tsymbed, tsym_irrep_index)
+      rhsr = symred(hsr, tsic)
       for (i_p, b) in enumerate(hsr.basis_list)
         if b in rhsr.basis_list
           @test 1 <= rhsr.basis_mapping_index[i_p] <= dimension(rhsr)
@@ -87,13 +88,14 @@ using ExactDiagonalization.Toolkit: pauli_matrix
     let
       hss = HilbertSpaceSector(hs, 5)
       hsr = represent(hss)
-      p = Permutation([2,3,4,5,6,7,1])
+      p = SitePermutation([2,3,4,5,6,7,1])
       #translation_group = TranslationGroup(p)
       @test symmetry_apply(hs, p, 0b0000001) == 0b0000010
 
       tsym = TranslationSymmetry(lattice)
-      tsic = TranslationSymmetryIrrepComponent(tsym, 2, 1)
-      rhsr = symmetry_reduce(hsr, lattice, tsic)
+      tsymbed = embed(lattice, tsym)
+      tsic = IrrepComponent(tsymbed, 2, 1)
+      rhsr = symmetry_reduce(hsr, tsic)
       @test hsr.basis_list == UInt[0b0000001, 0b0000010, 0b0000100, 0b0001000, 0b0010000, 0b0100000, 0b1000000]
       @test rhsr.basis_list == UInt[0b0000001]
       ψk = symmetry_unreduce(rhsr, [1.0])
@@ -103,12 +105,13 @@ using ExactDiagonalization.Toolkit: pauli_matrix
     let
       hss = HilbertSpaceSector(hs, -5)
       hsr = represent(hss)
-      p = Permutation([2,3,4,5,6,7,1])
+      p = SitePermutation([2,3,4,5,6,7,1])
       @test symmetry_apply(hs, p, 0b0000001) == 0b0000010
 
       tsym = TranslationSymmetry(lattice)
-      tsic = TranslationSymmetryIrrepComponent(tsym, 2, 1)
-      rhsr = symmetry_reduce(hsr, lattice, tsic)
+      tsymbed = embed(lattice, tsym)
+      tsic = IrrepComponent(tsymbed, 2, 1)
+      rhsr = symmetry_reduce(hsr, tsic)
 
       # opposite order
       @test hsr.basis_list == UInt[0b0111111, 0b1011111, 0b1101111, 0b1110111, 0b1111011, 0b1111101, 0b1111110]

@@ -1,32 +1,31 @@
 export symmetry_apply
 export is_invariant
 
-import TightBindingLattice.AbstractSymmetryOperation
-import TightBindingLattice.AbstractSymmetry
+import TightBindingLattice.AbstractSymmetryOperationEmbedding
+import TightBindingLattice.SymmetryEmbedding
 
-
-## AbstractSymmetryOperation
+## AbstractSymmetryOperationEmbedding
 
 ### HilbertSpaceSector
-function symmetry_apply(hss::HilbertSpaceSector{QN}, symop::AbstractSymmetryOperation, args...; kwargs...) where {QN}
+function symmetry_apply(hss::HilbertSpaceSector{QN}, symop::AbstractSymmetryOperationEmbedding, args...; kwargs...) where {QN}
   return symmetry_apply(hss.parent, symop, args...; kwargs...)
 end
 
-function is_invariant(hss::HilbertSpaceSector{QN}, symop::AbstractSymmetryOperation, args...; kwargs...) where {QN}
+function is_invariant(hss::HilbertSpaceSector{QN}, symop::AbstractSymmetryOperationEmbedding, args...; kwargs...) where {QN}
   return is_invariant(hss.parent, symop, args...; kwargs...)
 end
 
-function is_invariant(hss::HilbertSpaceSector{QN}, lattice::Lattice, symgroup::AbstractSymmetry, args...; kwargs...) where {QN}
-  return is_invariant(hss.parent, lattice, symgroup, args...; kwargs...)
+function is_invariant(hss::HilbertSpaceSector{QN}, symbed::SymmetryEmbedding, args...; kwargs...) where {QN}
+  return is_invariant(hss.parent, symbed, args...; kwargs...)
 end
 
 
 ### generic symmetry operations for NullOperator and SumOperator
-function symmetry_apply(hs::HilbertSpace{QN}, symop::AbstractSymmetryOperation, op::NullOperator) where {QN}
+function symmetry_apply(hs::HilbertSpace{QN}, symop::AbstractSymmetryOperationEmbedding, op::NullOperator) where {QN}
   return op
 end
 
-function symmetry_apply(hs::HilbertSpace{QN}, symop::AbstractSymmetryOperation, op::SumOperator{S, BR}) where {QN, S<:Number, BR<:Unsigned}
+function symmetry_apply(hs::HilbertSpace{QN}, symop::AbstractSymmetryOperationEmbedding, op::SumOperator{S, BR}) where {QN, S<:Number, BR<:Unsigned}
   terms = collect(symmetry_apply(hs, symop, t) for t in op.terms)
   return SumOperator{S, BR}(terms)
 end
@@ -54,10 +53,10 @@ end
 
 
 ## isinvariant
-function is_invariant(hs::HilbertSpace{QN}, symop::AbstractSymmetryOperation, op::AbstractOperator) where {QN}
+function is_invariant(hs::HilbertSpace{QN}, symop::AbstractSymmetryOperationEmbedding, op::AbstractOperator) where {QN}
   return simplify(op - symmetry_apply(hs, symop, op)) == NullOperator()
 end
 
-function is_invariant(hs::HilbertSpace{QN}, lattice::Lattice, symgroup::AbstractSymmetry, op::AbstractOperator) where {QN}
-  return all(is_invariant(hs, g, op) for g in symgroup.generators)
+function is_invariant(hs::HilbertSpace{QN}, symbed::SymmetryEmbedding, op::AbstractOperator) where {QN}
+  return all(is_invariant(hs, g, op) for g in generator_elements(symbed))
 end

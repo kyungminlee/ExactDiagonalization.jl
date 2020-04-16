@@ -13,7 +13,7 @@ function symmetry_reduce(
         complex_type::Type{ComplexType}=ComplexF64;
         tol::Real=Base.rtoldefault(Float64)) where {QN, BR, DT, ComplexType<:Complex}
     symred = Threads.nthreads() == 1 ? symmetry_reduce_serial : symmetry_reduce_parallel
-    return symred(hsr, lattice, ssic, ComplexType; tol=tol)
+    return symred(hsr, ssic, ComplexType; tol=tol)
 end
 
 """
