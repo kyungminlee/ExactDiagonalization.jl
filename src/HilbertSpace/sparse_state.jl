@@ -28,7 +28,7 @@ mutable struct SparseState{Scalar<:Number, BR}
     return new{Scalar, BR}(Dict{BR, Scalar}(binrep => one(Scalar)))
   end
 
-  function SparseState{Scalar, BR}(components::Pair{BR2, <:Number}...) where {Scalar, BR, BR2<:Unsigned}
+  function SparseState{Scalar, BR}(components::Pair...) where {Scalar, BR}
     return new{Scalar, BR}(Dict{BR, Scalar}(components))
   end
 
