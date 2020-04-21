@@ -96,8 +96,31 @@ using ExactDiagonalization
     @test t3 * t2 == 3 * t2 == t3 * 2 == t0 == 0 == +t0 == -t3
   end
 
-end
+  @testset "tuple" begin
+    ED = ExactDiagonalization
+    t1 = (1.0, 2, 3.0 + 4im)
+    T1 = typeof(t1)
+    @test ED.tupleone(T1)  === (1.0, 1, 1.0 + 0.0im)
+    @test ED.tupleone(T1)  ==  (1.0, 1, 1.0 + 0.0im)
+    @test ED.tuplezero(T1) === (0.0, 0, 0.0 + 0.0im)
+    @test ED.tuplezero(T1) ==  (0.0, 0, 0.0 + 0.0im)
+    @test ED.tupleone(T1)  !== (1, 1, 1)
+    @test ED.tupleone(T1)  ==  (1, 1, 1)
+    @test ED.tuplezero(T1) !== (0, 0, 0)
+    @test ED.tuplezero(T1) ==  (0, 0, 0)
 
+    @test ED.tupleone(t1)  === (1.0, 1, 1.0 + 0.0im)
+    @test ED.tupleone(t1)  ==  (1.0, 1, 1.0 + 0.0im)
+    @test ED.tuplezero(t1) === (0.0, 0, 0.0 + 0.0im)
+    @test ED.tuplezero(t1) ==  (0.0, 0, 0.0 + 0.0im)
+    @test ED.tupleone(t1)  !== (1, 1, 1)
+    @test ED.tupleone(t1)  ==  (1, 1, 1)
+    @test ED.tuplezero(t1) !== (0, 0, 0)
+    @test ED.tuplezero(t1) ==  (0, 0, 0)
+
+    @test ED.tupleadd((1.0, 2, 3.0 + 4im), (5.0, 6, 7.0 + 8.0im)) === (6.0, 8, 10.0 + 12.0im)
+  end
+end
 
 
 @testset "FrozenSortedArray" begin
