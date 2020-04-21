@@ -17,6 +17,10 @@ import Base.+, Base.-, Base.*
 (+)(lhs::IntegerModulo{N}, rhs::Integer) where N = IntegerModulo{N}(lhs.value + rhs)
 (+)(lhs::Integer, rhs::IntegerModulo{N}) where N = IntegerModulo{N}(lhs + rhs.value)
 
+(-)(lhs::IntegerModulo{N}, rhs::IntegerModulo{N}) where N = IntegerModulo{N}(lhs.value - rhs.value)
+(-)(lhs::IntegerModulo{N}, rhs::Integer) where N = IntegerModulo{N}(lhs.value - rhs)
+(-)(lhs::Integer, rhs::IntegerModulo{N}) where N = IntegerModulo{N}(lhs - rhs.value)
+
 (*)(lhs::IntegerModulo{N}, rhs::IntegerModulo{N}) where N = IntegerModulo{N}(lhs.value * rhs.value)
 (*)(lhs::IntegerModulo{N}, rhs::Integer) where N = IntegerModulo{N}(lhs.value * rhs)
 (*)(lhs::Integer, rhs::IntegerModulo{N}) where N = IntegerModulo{N}(lhs * rhs.value)
