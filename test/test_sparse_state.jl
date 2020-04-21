@@ -172,7 +172,15 @@ using StaticArrays
   end # unary
 
   @testset "binary" begin
-    @testset "scalar" begin
+    @testset "scalar-integer" begin
+      ψ1 = SparseState{Int, UInt}(UInt(0b0000001) => 2)
+      @test (ψ1 * 4).components == Dict(UInt(0b0000001) => 8)
+      @test (4 * ψ1).components == Dict(UInt(0b0000001) => 8)
+      @test (ψ1 / 4).components == Dict(UInt(0b0000001) => 0.5)
+      @test (4 \ ψ1).components == Dict(UInt(0b0000001) => 0.5)
+      @test (ψ1 // 4).components == Dict(UInt(0b0000001) => 1//2)
+    end
+    @testset "scalar-float" begin
       ψ1 = SparseState{Float64, UInt}(UInt(0b0000001) => 2.0)
 
       @test (ψ1 * 3).components == Dict(UInt(0x001) => 6.0)
