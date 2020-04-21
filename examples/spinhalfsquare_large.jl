@@ -1,8 +1,10 @@
+using Test
 using SparseArrays
 using LinearAlgebra
 using ExactDiagonalization
 using TightBindingLattice
 using MinimalPerfectHash
+using Printf
 
 @show  Threads.nthreads()
 
@@ -15,9 +17,10 @@ addorbital!(unitcell, "Spin", FractCoord([0, 0], [0.0, 0.0]))
 lattice = make_lattice(unitcell, [n1 0; 0 n2])
 tsym = TranslationSymmetry(lattice)
 psym = project(PointSymmetryDatabase.get(13), [1 0 0; 0 1 0])  # inversion symmetry
+
 tsymbed = embed(lattice, tsym)
 psymbed = embed(lattice, psym)
-
+ssymbed = tsymbed ⋊ psymbed
 
 ## Setup Hilbert Space
 (hs, σ) = ExactDiagonalization.Toolkit.spin_half_system(n_sites)
@@ -38,20 +41,123 @@ for i1 in 1:n1, i2 in 1:n2
 end
 j1 = simplify(j1)
 
-#j1 = sum(σ(i, j) * σ(mod(i, n_sites)+1 , j) for i in 1:n_sites for j in [:x, :y, :z]);
+@show isinvariant(hs, tsymbed, j1)
+@show isinvariant(hs, psymbed, j1)
+
+@show isinvariant(hs, ssymbed, j1)
+
+# println("## Symmetry analysis")
+# println("number of tsym irreps: $(num_irreps(tsym))")
+# for tsic in get_irrep_components(tsymbed)
+#     psymbed_little = little_symmetry(tsic, psymbed)
+# println("- momentum: $(tsym.fractional_momenta[tsic.irrep_index])")
+# println("  little_group: $(symmetry(psymbed_little).hermann_mauguinn)")
+# println("  number of psym irreps: $(num_irreps(psymbed_little))")
+# println("  psym_irrep_components: ",
+#               join(["[$(psic.irrep_index), $(psic.irrep_component)]"
+#                     for psic in get_irrep_components(psymbed_little)], ", "))
+# end
+
+
+# function foo(ssymbed)
+#     parent = Dict()
+#     for ssic in get_irrep_components(ssymbed)
+#         i1 = (ssic.normal.irrep_index, 0)
+#         i2 = (ssic.normal.irrep_index, ssic.rest.irrep_index)
+#         parent[i2] = i1
+#     end
+
+#     nodes = sort(unique(union(collect(keys(parent)), collect(values(parent)))))
+#     node_lookup = Dict(k => "node$i" for (i, k) in enumerate(nodes))
+
+#     for node in nodes
+#         if !haskey(parent, node)
+#             c = node_lookup[node]
+#             println("$c -> node0")
+#         end
+#     end
+
+#     for (k, v) in parent
+#         c = node_lookup[k]
+#         p = node_lookup[v]
+#         println("$c -> $p")
+#     end
+# end
+
+# function breakup(ssymbed)
+
+#     foo = Dict()
+
+#     nodes = []
+#     for ssic in get_irrep_components(ssymbed)
+#         ssic.normal.irrep_index
+#         ssic.normal.irrep_component
+#         k1 = (ssic.normal.irrep_index, ssic.normal.irrep_component)
+        
+#         if k1 ∉ nodes
+#             push!(nodes, k1)
+#         end
+#         if !haskey(foo, k1)
+#             foo[k1] = Dict("irrep_index" => k1[1], "irrep_component" => k1[2], 
+#                            "little_group" => symmetry(ssic.rest.symmetry).hermann_mauguinn,
+#                            "children"=> [])
+#         end
+#         push!(foo[k1]["children"], 
+#                 Dict("irrep_index" => ssic.rest.irrep_index,
+#                      "irrep_component" => ssic.rest.irrep_component))
+
+        
+#     end
+#     bar = [foo[k] for k in nodes]
+#     return bar
+# end
+
+# using JSON
+
+# println(JSON.json(breakup(ssymbed)))
+# exit()
+
+
+
+function myshow(io::IO, ssic::SymmorphicIrrepComponent)
+    tsymbed = ssic.normal.symmetry
+    psymbed = ssic.rest.symmetry
+    tsym = symmetry(tsymbed)
+    psym = symmetry(psymbed)
+
+    kf = tsym.fractional_momenta[ssic.normal.irrep_index]
+    k = tsymbed.lattice.unitcell.reducedreciprocallatticevectors * kf
+    @printf(io, "%8d%8d", ssic.normal.irrep_index, num_irreps(tsym))
+    @printf(io, "%16s%8s%8d", k, psym.hermann_mauguinn, num_irreps(psym))
+    @printf(io, "%8d%8d\n", ssic.rest.irrep_index, ssic.rest.irrep_component)
+end
+
+@printf(stdout, "%8s%8s%16s%8s%8s\t%s\n", "ITI", "NTI", "momentum", "LG", "NPI", "IPI/CPI")
+for ssic in get_irrep_components(ssymbed)
+    myshow(stdout, ssic)
+end
+
+
+
+
+exit()
 
 ## Full Solution
 
-# # Full solution too costly
-# hsr = represent(hs)
-# j1_rep = represent(hsr, j1)
-# m = Matrix(j1_rep)
-# alleigenvalues1 = eigvals(Hermitian(m))
-# @show length(alleigenvalues1)
+# Full solution too costly
+if false
+    hsr = represent(hs)
+    m = Matrix(represent(hsr, j1))
+    alleigenvalues1 = eigvals(Hermitian(m))
+    @show length(alleigenvalues1)
+else
+    alleigenvalues1 = nothing
+end
 
-alleigenvalues1 = nothing
+
 
 ## Using translation symmetry only
+
 println("## Translation Symmetry Only")
 if true
     global alleigenvalues1
@@ -61,19 +167,10 @@ if true
     for qn in quantum_number_sectors(hs)
         hss = HilbertSpaceSector(hs, qn)
         hssr = represent_dict(hss)
-        # println("  quantum number: $qn")
-        # println("  number of irreps: $(num_irreps(tsym))")
         for tsic in get_irrep_components(tsymbed)
-        #for tsym_irrep_index in 1:num_irreps(tsym)
-            #tsic = TranslationSymmetryIrrepComponent(tsym, tsym_irrep_index, 1)
             rhssr = symmetry_reduce_serial(hssr, tsic)
             rhssr2 = symmetry_reduce_parallel(hssr, tsic)
-            #j1_redrep = represent(rhssr, j1)
-            #m =  Matrix(j1_redrep)
             dimension(rhssr) == 0 && continue
-            # println("- QN: $qn\ttsym: $tsym_irrep_index/$(num_irreps(tsym))\tdimension: $(dimension(rhssr))")
-            # println("    momentum: $(tsym.hypercube.coordinates[tsym_irrep_index])")
-            # println("    hilbert dimension: $(dimension(rhssr))")
             m = Matrix(represent(rhssr, j1))
             m2 = Matrix(represent(rhssr2, j1))
             append!(alleigenvalues2, eigvals(Hermitian(m)))
@@ -99,25 +196,10 @@ if false
     for qn in quantum_number_sectors(hs)
         hss = HilbertSpaceSector(hs, qn)
         hssr = represent_dict(hss);
-        # println("  quantum number: $qn")
-        # println("  number of irreps: $(num_irreps(psym))")
-        # for psym_irrep_index in 1:num_irreps(psym)
         for psic in get_irrep_components(psymbed)
-            # println("    psym irrep: $(psym.irreps[psym_irrep_index].name)")
-            # println("    psym irrep dimension: $(irrep_dimension(psym, psym_irrep_index))")
-            # for psym_irrep_compo in 1:irrep_dimension(psym, psym_irrep_index)
-                # psic = PointSymmetryIrrepComponent(psym, psym_irrep_index, psym_irrep_compo)
                 rhssr = symmetry_reduce_serial(hssr, psic)
                 rhssr2 = symmetry_reduce_parallel(hssr, psic)
                 dimension(rhssr) == 0 && continue
-                # println("- QN: $qn\tpsym: $psym_irrep_index/$(num_irreps(psym))\t$psym_irrep_compo/$(irrep_dimension(psym, psym_irrep_index))\tdimension:$(dimension(rhssr))")
-                # println("      psym irrep component: $(psym_irrep_compo)")
-                # println("      hilbert dimension: $(dimension(rhssr))")
-                #
-                # for bvec in rhssr.basis_list
-                #     println(string(bvec, base=2, pad=9))
-                # end
-                # println()
                 m = Matrix(represent(rhssr, j1))
                 m2 = Matrix(represent(rhssr2, j1))
                 append!(alleigenvalues2, eigvals(Hermitian(m)))
@@ -137,49 +219,24 @@ end
 
 ## Use both
 
-println("## Translation AND Point Symmetry")
 let
+    println("## Translation AND Point Symmetry")
     alleigenvalues2 = Float64[]
     alleigenvalues3 = Float64[]
     for qn in quantum_number_sectors(hs)
         hss = HilbertSpaceSector(hs, qn)
         hssr = represent_dict(hss);
-        # println("  quantum number: $qn")
-        # println("  number of tsym_irreps: $(num_irreps(tsym))")
-        # for tsym_irrep_index in 1:num_irreps(tsym)
-        #     tsic = TranslationSymmetryIrrepComponent(tsym, tsym_irrep_index, 1)
-        #     psym_little = little_symmetry(tsic, psym)
-        #     # println("    momentum: $(tsym.hypercube.coordinates[tsym_irrep_index])")
-        #     # println("    little_group: $(psym_little.hermann_mauguinn)")
-        #     # println("    number of irreps: $(num_irreps(psym_little))")
-        #     for psym_irrep_index in 1:num_irreps(psym_little)
-        #         # println("      psym_irrep_index: $psym_irrep_index")
-        #         # println("      irrep dimension: $(irrep_dimension(psym_little, psym_irrep_index))")
-        #         for psym_irrep_compo in 1:irrep_dimension(psym_little, psym_irrep_index)
-        # for ssic in get_irrep_components(tsymbed, psymbed)
         for tsic in get_irrep_components(tsymbed)
             psymbed_little = little_symmetry(tsic, psymbed)
             for psic in get_irrep_components(psymbed_little)
-                    #psic = PointSymmetryIrrepComponent(psym_little, psym_irrep_index, psym_irrep_compo)
-                    ssic = SymmorphicIrrepComponent(tsic, psic)
-                    rhssr = symmetry_reduce_serial(hssr, ssic)
-                    rhssr2 = symmetry_reduce_parallel(hssr, ssic)
-                    dimension(rhssr) == 0 && continue
-
-                    # print("- QN: $qn")
-                    # print("\ttsym: $tsym_irrep_index/$(num_irreps(tsym))")
-                    # print("\tk: $(tsym.hypercube.coordinates[tsym_irrep_index])")
-                    # print("\tpsym: $(psym_little.hermann_mauguinn)")
-                    # print("\t$psym_irrep_index/$(num_irreps(psym_little))")
-                    # print("\tdimension:$(dimension(rhssr))")
-                    # println()
-                    # println("        psym_irrepo_compo: $(psym_irrep_compo)")
-                    # println("        hilbert dimension: $(dimension(rhssr))")
-                    m = Matrix(represent(rhssr, j1))
-                    m2 = Matrix(represent(rhssr2, j1))
-                    append!(alleigenvalues2, eigvals(Hermitian(m)))
-                    append!(alleigenvalues3, eigvals(Hermitian(m2)))
-                # end
+                ssic = SymmorphicIrrepComponent(tsic, psic)
+                rhssr = symmetry_reduce_serial(hssr, ssic)
+                rhssr2 = symmetry_reduce_parallel(hssr, ssic)
+                dimension(rhssr) == 0 && continue
+                m = Matrix(represent(rhssr, j1))
+                m2 = Matrix(represent(rhssr2, j1))
+                append!(alleigenvalues2, eigvals(Hermitian(m)))
+                append!(alleigenvalues3, eigvals(Hermitian(m2)))
             end
         end
     end
@@ -190,28 +247,21 @@ let
     @show length(alleigenvalues3)
     @show norm(alleigenvalues1 - alleigenvalues2)
     @show norm(alleigenvalues1 - alleigenvalues3)
-    #@show alleigenvalues3
 end
 
+ssymbed = tsymbed ⋊ psymbed
+
+println("## Symmorphic Space Symmetry (S = T ⋊ P)")
 let
-    println("## Symmorphic Space Symmetry (S = T ⋊ P)")
     alleigenvalues2 = Float64[]
     alleigenvalues3 = Float64[]
     for qn in quantum_number_sectors(hs)
         hss = HilbertSpaceSector(hs, qn)
         hssr = represent_dict(hss);
-        # println("  quantum number: $qn")
-        # println("  number of tsym_irreps: $(num_irreps(tsym))")
-        for ssic in get_irrep_components(tsymbed, psymbed)
+        for ssic in get_irrep_components(ssymbed)
             rhssr = symmetry_reduce_serial(hssr, ssic)
             rhssr2 = symmetry_reduce_parallel(hssr, ssic)
             dimension(rhssr) == 0 && continue
-            # print("- QN: $qn")
-            # print("\ttsym: $(ssic.translation.irrep_index)/$(num_irreps(tsym))")
-            # print("\tpsym: $(ssic.point.symmetry.hermann_mauguinn)")
-            # print("\t$(ssic.point.irrep_index)/$(num_irreps(ssic.point.symmetry))")
-            # print("\tdimension:$(dimension(rhssr))")
-            # println()
             m = Matrix(represent(rhssr, j1))
             m2 = Matrix(represent(rhssr2, j1))
             append!(alleigenvalues2, eigvals(Hermitian(m)))
