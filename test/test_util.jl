@@ -88,8 +88,12 @@ using ExactDiagonalization
     @test t0 == 0
     @test t3 == 0
     @test t1 == 1
-    @show IntegerModulo{3}(0) != IntegerModulo{4}(0)
-    #IntegerModulo{3}(0)
+    @test IntegerModulo{3}(0) != IntegerModulo{4}(0)
+
+    @test t1 + t2 == 1 + t2 == t1 + 2 == t0 == 0 == +t0 == -t3
+    @test t1 - t2 == 1 - t2 == t1 - 2 == t2 == 2 == +t2 == -t1
+    @test t2 * t2 == 2 * t2 == t2 * 2 == t1 == 1 == +t1 == -t2
+    @test t3 * t2 == 3 * t2 == t3 * 2 == t0 == 0 == +t0 == -t3
   end
 
 end
