@@ -97,6 +97,8 @@ using ExactDiagonalization.Toolkit: pauli_matrix
 
       @test opr1 / 2 == represent(hsr, op1 / 2)
       @test 2 \ opr1 == represent(hsr, 2 \ op1)
+      @test opr1 // 2 == represent(hsr, op1 // 2)
+      @test valtype(opr1//2) <: Rational{<:Integer}
 
       hs3 = HilbertSpace([spinsite, spinsite])
       op3 = pure_operator(hs3, 1, 1, 1)
