@@ -57,11 +57,17 @@ using ExactDiagonalization
     )
 
     @testset "SingleSite" begin
-      for S in [1//2, 1//1, 3//2, 2//1]
+      @test_throws ArgumentError ExactDiagonalization.Toolkit.spin_system(1, -3)
+      @test_throws ArgumentError ExactDiagonalization.Toolkit.spin_system(1, 1//3)
+      let
+        (hs, spin) = ExactDiagonalization.Toolkit.spin_system(1, 1//2)
+        @test_throws ArgumentError spin(1, :q)
+      end
+      for S in Any[1//2, 1, 1//1, 3//2, 2//1, 2]
         (hs, spin) = ExactDiagonalization.Toolkit.spin_system(1, S)
         hsr = represent(hs)
         for μ in [:x, :y, :z, :+, :-]
-          @test isapprox(spin_matrices[S][μ], Matrix(represent(hsr, spin(1, μ))))
+          @test isapprox(spin_matrices[Rational(S)][μ], Matrix(represent(hsr, spin(1, μ))))
         end
       end # for S
     end # SingleSite
