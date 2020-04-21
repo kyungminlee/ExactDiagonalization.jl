@@ -2,19 +2,18 @@ export symmetry_reduce, symmetry_unreduce
 
 
 """
-    symmetry_reduce(hsr, lattice, symmetry_irrep_component, complex_type=ComplexF64, tol=sqrt(eps(Float64)))
+    symmetry_reduce(hsr, lattice, symmetry_irrep_component, complex_type=ComplexF64, tol=√ϵ)
 
 Symmetry-reduce the HilbertSpaceRepresentation using translation group.
 
 """
 function symmetry_reduce(
         hsr::HilbertSpaceRepresentation{QN, BR, DT},
-        lattice::Lattice,
         ssic::AbstractSymmetryIrrepComponent,
         complex_type::Type{ComplexType}=ComplexF64;
         tol::Real=Base.rtoldefault(Float64)) where {QN, BR, DT, ComplexType<:Complex}
     symred = Threads.nthreads() == 1 ? symmetry_reduce_serial : symmetry_reduce_parallel
-    return symred(hsr, lattice, ssic, ComplexType; tol=tol)
+    return symred(hsr, ssic, ComplexType; tol=tol)
 end
 
 """

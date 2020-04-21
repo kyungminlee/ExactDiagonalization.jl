@@ -8,7 +8,7 @@ using SparseArrays
 using ExactDiagonalization.Toolkit: pauli_matrix
 
 @testset "RedRep4" begin
-  tol = sqrt(eps(Float64))
+  tol = Base.rtoldefault(Float64)
 
   n = 4
   unitcell = make_unitcell(1.0; OrbitalType=String)
@@ -27,13 +27,14 @@ using ExactDiagonalization.Toolkit: pauli_matrix
 
   hsr = represent(HilbertSpaceSector(hs, 0))
   tsym = TranslationSymmetry(lattice)
+  tsymbed = embed(lattice, tsym)
   # translation_group = TranslationGroup([Permutation([2,3,4,1])])
-  # @test is_invariant(hs, translation_group, j1)
-  # @test is_invariant(HilbertSpaceSector(hs, 0), translation_group, j1)
+  # @test isinvariant(hs, translation_group, j1)
+  # @test isinvariant(HilbertSpaceSector(hs, 0), translation_group, j1)
 
   @testset "RHSR" begin
     #rhsr = symmetry_reduce(hsr, translation_group, [0//1])
-    rhsr = symmetry_reduce(hsr, lattice, TranslationSymmetryIrrepComponent(tsym, 1, 1))
+    rhsr = symmetry_reduce(hsr, IrrepComponent(tsymbed, 1, 1))
     @test scalartype(rhsr) === ComplexF64
     @test scalartype(typeof(rhsr)) === ComplexF64
     @test valtype(rhsr) === ComplexF64
@@ -51,7 +52,7 @@ using ExactDiagonalization.Toolkit: pauli_matrix
 
   @testset "ROR" begin
     #rhsr = symmetry_reduce(hsr, translation_group, [0//1])
-    rhsr = symmetry_reduce(hsr, lattice, TranslationSymmetryIrrepComponent(tsym, 1, 1))
+    rhsr = symmetry_reduce(hsr, IrrepComponent(tsymbed, 1, 1))
     @test dimension(rhsr) == 2
     @test rhsr.basis_list == UInt[0b0011, 0b0101]
     dim = dimension(rhsr)
@@ -192,7 +193,7 @@ using ExactDiagonalization.Toolkit: pauli_matrix
     eigenvalues1 = eigvals(Hermitian(j1_mat))
     eigenvalues2 = Float64[]
     for tsym_irrep_index in 1:num_irreps(tsym)
-      rhsr = symmetry_reduce(hsr, lattice, TranslationSymmetryIrrepComponent(tsym, tsym_irrep_index))
+      rhsr = symmetry_reduce(hsr, IrrepComponent(tsymbed, tsym_irrep_index))
 
       j1_redrep = represent(rhsr, j1)
       j1_redmat = Matrix(j1_redrep)
@@ -213,7 +214,7 @@ end # testset RedOp4
   addorbital!(unitcell, "Spin", FractCoord([0], [0.0]))
   lattice = make_lattice(unitcell, n)
 
-  tol = sqrt(eps(Float64))
+  tol = Base.rtoldefault(Float64)
   spin_site = Site([State("Up", 1), State("Dn",-1)])
 
   hs = HilbertSpace(repeat([spin_site], n))
@@ -222,8 +223,8 @@ end # testset RedOp4
 
   hsr = represent(HilbertSpaceSector(hs, 0))
   # translation_group = TranslationGroup([Permutation([2,3,4,5,6,7,1])])
-  # @test is_invariant(hs, translation_group, j1)
-  # @test is_invariant(HilbertSpaceSector(hs, 0), translation_group, j1)
+  # @test isinvariant(hs, translation_group, j1)
+  # @test isinvariant(HilbertSpaceSector(hs, 0), translation_group, j1)
 
   j1_rep = represent(hsr, j1)
   mat_size = size(j1_rep)

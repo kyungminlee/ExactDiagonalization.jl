@@ -28,7 +28,7 @@ mutable struct SparseState{Scalar<:Number, BR}
     return new{Scalar, BR}(Dict{BR, Scalar}(binrep => one(Scalar)))
   end
 
-  function SparseState{Scalar, BR}(components::Pair{BR2, <:Number}...) where {Scalar, BR, BR2<:Unsigned}
+  function SparseState{Scalar, BR}(components::Pair...) where {Scalar, BR}
     return new{Scalar, BR}(Dict{BR, Scalar}(components))
   end
 
@@ -71,7 +71,10 @@ end
 
 
 import Base.isapprox
-function isapprox(lhs::SparseState{S1, BR}, rhs::SparseState{S2, BR}; atol=sqrt(eps(Float64)), rtol=sqrt(eps(Float64))) where {S1, S2, BR}
+function isapprox(lhs::SparseState{S1, BR},
+                  rhs::SparseState{S2, BR};
+                  atol::Real=Base.rtoldefault(Float64),
+                  rtol::Real=Base.rtoldefault(Float64)) where {S1, S2, BR}
   all_keys = union(keys(lhs.components), keys(rhs.components))
   for k in all_keys
     lv = get(lhs.components, k, zero(S1))

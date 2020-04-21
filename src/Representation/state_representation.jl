@@ -24,7 +24,7 @@ function SparseState(hsrep::HilbertSpaceRepresentation{HS, BR, DT},
                      state_rep::AbstractVector{S},
                      tol::Real=Base.rtoldefault(Float64)) where {HS, BR, DT, S<:Number}
   if dimension(hsrep) != length(state_rep)
-    throw(ArgumentError("dimension of the Hilbert space representation ($(dimension(hsrep))) "*
+    throw(DimensionMismatch("dimension of the Hilbert space representation ($(dimension(hsrep))) "*
                         "does not match the length of the vector ($(length(state_rep)))"))
   end
   out = SparseState{S, BR}()

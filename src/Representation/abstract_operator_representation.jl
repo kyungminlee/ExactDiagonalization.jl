@@ -134,13 +134,13 @@ end
 
 
 import SparseArrays.sparse
-function SparseArrays.sparse(opr::AbstractOperatorRepresentation{S}; tol::Real=sqrt(eps(Float64))) where S
+function SparseArrays.sparse(opr::AbstractOperatorRepresentation{S}; tol::Real=Base.rtoldefault(Float64)) where S
   sp = Threads.nthreads() == 1 ? sparse_serial : sparse_parallel
   return sp(opr; tol=tol)
 end
 
 
-function sparse_serial(opr::AbstractOperatorRepresentation{S}; tol::Real=sqrt(eps(Float64))) where S
+function sparse_serial(opr::AbstractOperatorRepresentation{S}; tol::Real=Base.rtoldefault(Float64)) where S
   m, n = size(opr)
   colptr = zeros(Int, n+1)
   rowval = Int[]
@@ -164,7 +164,7 @@ function sparse_serial(opr::AbstractOperatorRepresentation{S}; tol::Real=sqrt(ep
 end
 
 
-function sparse_parallel(opr::AbstractOperatorRepresentation{S}; tol::Real=sqrt(eps(Float64))) where S
+function sparse_parallel(opr::AbstractOperatorRepresentation{S}; tol::Real=Base.rtoldefault(Float64)) where S
   m, n = size(opr)
 
   colsize = zeros(Int, n)
@@ -208,7 +208,7 @@ function get_row(opr::AbstractOperatorRepresentation{S}, irow::Integer) where S
       items[icol] = get(items, icol, Z) + val
     end
   end
-  choptol!(items, sqrt(eps(Float64)))
+  choptol!(items, Base.rtoldefault(Float64))
   return sparsevec(items, dim)
 end
 
@@ -222,7 +222,7 @@ function get_column(opr::AbstractOperatorRepresentation{S}, icol::Integer) where
       items[irow] = get(items, irow, Z) + val
     end
   end
-  choptol!(items, sqrt(eps(Float64)))
+  choptol!(items, Base.rtoldefault(Float64))
   return sparsevec(items, dim)
 end
 

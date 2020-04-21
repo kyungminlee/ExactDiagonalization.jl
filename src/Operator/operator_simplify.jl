@@ -81,7 +81,7 @@ function simplify(so::SumOperator{S, BR}; tol::Real=Base.rtoldefault(real(S))) w
 end
 
 
-# function simplify_combine(so ::SumOperator{S, BR}; tol::Real=sqrt(eps(Float64))) where {S, BR}
+# function simplify_combine(so ::SumOperator{S, BR}; tol::Real=Base.rtoldefault(Float64)) where {S, BR}
 #   bw = sizeof(BR)*8
 #   diagonal_terms = [t for t in so.terms if t.bitrow == t.bitcol]
 #   offdiagonal_terms = [t for t in so.terms if t.bitrow != t.bitcol]

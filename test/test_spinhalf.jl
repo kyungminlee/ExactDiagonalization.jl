@@ -10,8 +10,8 @@ using ExactDiagonalization
   dn = State("Dn",-1)
   spin_site = Site([up, dn])
 
-  @test up.quantum_number == 1
-  @test dn.quantum_number == -1
+  @test up.quantum_number == (1,)
+  @test dn.quantum_number == (-1,)
   @test bitwidth(spin_site) == 1
   @test get_state(spin_site, 0b0) == up
   @test get_state(spin_site, 0b1) == dn
@@ -33,7 +33,7 @@ using ExactDiagonalization
   @test hs == hs2
 
   # Test HilbertSpaceRepresentation
-  hsr = represent(hs; BR=UInt64)
+  hsr = represent(hs, UInt64)
   @test dimension(hsr) == 2^n
   @test hsr.basis_list == collect(UInt64(0):UInt64(2^n-1))
   @test all(hsr.basis_lookup[basis] == ibasis for (ibasis, basis) in enumerate(hsr.basis_list))

@@ -76,8 +76,51 @@ using ExactDiagonalization
     end
   end
 
-end
 
+  @testset "IntegerModulo" begin
+    T = IntegerModulo{3}
+    t0 = T(0)
+    t1 = T(1)
+    t2 = T(2)
+    t3 = T(3)
+    @test t0 != t1
+    @test t0 == t3
+    @test t0 == 0
+    @test t3 == 0
+    @test t1 == 1
+    @test IntegerModulo{3}(0) != IntegerModulo{4}(0)
+
+    @test t1 + t2 == 1 + t2 == t1 + 2 == t0 == 0 == +t0 == -t3
+    @test t1 - t2 == 1 - t2 == t1 - 2 == t2 == 2 == +t2 == -t1
+    @test t2 * t2 == 2 * t2 == t2 * 2 == t1 == 1 == +t1 == -t2
+    @test t3 * t2 == 3 * t2 == t3 * 2 == t0 == 0 == +t0 == -t3
+  end
+
+  @testset "tuple" begin
+    ED = ExactDiagonalization
+    t1 = (1.0, 2, 3.0 + 4im)
+    T1 = typeof(t1)
+    @test ED.tupleone(T1)  === (1.0, 1, 1.0 + 0.0im)
+    @test ED.tupleone(T1)  ==  (1.0, 1, 1.0 + 0.0im)
+    @test ED.tuplezero(T1) === (0.0, 0, 0.0 + 0.0im)
+    @test ED.tuplezero(T1) ==  (0.0, 0, 0.0 + 0.0im)
+    @test ED.tupleone(T1)  !== (1, 1, 1)
+    @test ED.tupleone(T1)  ==  (1, 1, 1)
+    @test ED.tuplezero(T1) !== (0, 0, 0)
+    @test ED.tuplezero(T1) ==  (0, 0, 0)
+
+    @test ED.tupleone(t1)  === (1.0, 1, 1.0 + 0.0im)
+    @test ED.tupleone(t1)  ==  (1.0, 1, 1.0 + 0.0im)
+    @test ED.tuplezero(t1) === (0.0, 0, 0.0 + 0.0im)
+    @test ED.tuplezero(t1) ==  (0.0, 0, 0.0 + 0.0im)
+    @test ED.tupleone(t1)  !== (1, 1, 1)
+    @test ED.tupleone(t1)  ==  (1, 1, 1)
+    @test ED.tuplezero(t1) !== (0, 0, 0)
+    @test ED.tuplezero(t1) ==  (0, 0, 0)
+
+    @test ED.tupleadd((1.0, 2, 3.0 + 4im), (5.0, 6, 7.0 + 8.0im)) === (6.0, 8, 10.0 + 12.0im)
+  end
+end
 
 
 @testset "FrozenSortedArray" begin

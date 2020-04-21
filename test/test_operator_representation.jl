@@ -97,6 +97,8 @@ using ExactDiagonalization.Toolkit: pauli_matrix
 
       @test opr1 / 2 == represent(hsr, op1 / 2)
       @test 2 \ opr1 == represent(hsr, 2 \ op1)
+      @test opr1 // 2 == represent(hsr, op1 // 2)
+      @test valtype(opr1//2) <: Rational{<:Integer}
 
       hs3 = HilbertSpace([spinsite, spinsite])
       op3 = pure_operator(hs3, 1, 1, 1)
@@ -265,12 +267,11 @@ using ExactDiagonalization.Toolkit: pauli_matrix
         state = 2im*ones(ComplexF64, dim_small)
 
         out1 = zeros(ComplexF64, dim_small)
-        tol = sqrt(eps(Float64))
+        tol = Base.rtoldefault(Float64)
 
         for APP! in [apply!, apply_serial!, apply_parallel!]
           out1[:] .= zero(ComplexF64)
           e1, e2 = APP!(out1, opr, state)
-          tol = sqrt(eps(Float64))
           #@test isapprox(e1, 12im; atol=tol)
           #@test isapprox(e2, 24.0; atol=tol)
           @test all(isapprox.(out1, 0; atol=tol))

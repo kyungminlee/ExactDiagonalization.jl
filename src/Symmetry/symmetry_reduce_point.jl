@@ -2,15 +2,14 @@ export symmetry_reduce_serial, symmetry_reduce_parallel
 
 
 """
-    symmetry_reduce_serial(hsr, trans_group, frac_momentum, complex_type=ComplexF64, tol=sqrt(eps(Float64)))
+    symmetry_reduce_serial(hsr, trans_group, frac_momentum, complex_type=ComplexF64, tol=√ϵ)
 
 Symmetry-reduce the HilbertSpaceRepresentation using translation group (single threaded).
 
 """
 function symmetry_reduce_serial(
         hsr::HilbertSpaceRepresentation{QN, BR, DT},
-        lattice::Lattice,
-        psic::PointSymmetryIrrepComponent,
+        psic::IrrepComponent{SymmetryEmbedding{PointSymmetry}},
         complex_type::Type{ComplexType}=ComplexF64;
         tol::Real=Base.rtoldefault(Float64)
         ) where {QN, BR, DT, ComplexType<:Complex}
@@ -36,7 +35,7 @@ function symmetry_reduce_serial(
     basis_amplitudes = Dict{BR, ComplexType}()
     sizehint!(basis_amplitudes, group_size + group_size ÷ 2)
 
-    symops_and_amplitudes = [(x, conj(y)) for (x, y) in get_irrep_iterator(lattice, psic)]
+    symops_and_amplitudes = [(x, conj(y)) for (x, y) in get_irrep_iterator(psic)]
     @assert length(symops_and_amplitudes) == group_size
 
     zeroC = zero(ComplexF64)
@@ -90,22 +89,21 @@ function symmetry_reduce_serial(
         basis_mapping_index[ivec_p_prime] = ivec_r
     end
 
-    return ReducedHilbertSpaceRepresentation{HSR, PointSymmetryIrrepComponent, BR, ComplexType}(
-                hsr, lattice, psic, reduced_basis_list,
+    return ReducedHilbertSpaceRepresentation{HSR, IrrepComponent{SymmetryEmbedding{PointSymmetry}}, BR, ComplexType}(
+                hsr, psic, reduced_basis_list,
                 basis_mapping_index, basis_mapping_amplitude)
 end
 
 
 """
-    symmetry_reduce_parallel(hsr, trans_group, frac_momentum, complex_type=ComplexF64, tol=sqrt(eps(Float64)))
+    symmetry_reduce_parallel(hsr, trans_group, frac_momentum, complex_type=ComplexF64, tol=√ϵ)
 
 Symmetry-reduce the HilbertSpaceRepresentation using translation group (multi-threaded).
 
 """
 function symmetry_reduce_parallel(
         hsr::HilbertSpaceRepresentation{QN, BR, DT},
-        lattice::Lattice,
-        psic::PointSymmetryIrrepComponent,
+        psic::IrrepComponent{SymmetryEmbedding{PointSymmetry}},
         complex_type::Type{ComplexType}=ComplexF64;
         tol::Real=Base.rtoldefault(Float64)
         ) where {QN, BR, DT, ComplexType<:Complex}
@@ -157,10 +155,11 @@ function symmetry_reduce_parallel(
         end
     end
 
-    sym = psic.symmetry
+    symbed = psic.symmetry
+    sym = symmetry(symbed)
     psym_irrep_index = psic.irrep_index
 
-    symops_and_amplitudes = [(x, conj(y)) for (x, y) in get_irrep_iterator(lattice, psic)]
+    symops_and_amplitudes = [(x, conj(y)) for (x, y) in get_irrep_iterator(psic)]
     @assert length(symops_and_amplitudes) == group_size
 
     zeroC = zero(ComplexF64)
@@ -242,7 +241,7 @@ function symmetry_reduce_parallel(
     @debug "Collected basis lookup (offdiagonal)"
 
     @debug "END symmetry_reduce_parallel"
-    return ReducedHilbertSpaceRepresentation{HSR, PointSymmetryIrrepComponent, BR, ComplexType}(
-                hsr, lattice, psic, reduced_basis_list,
+    return ReducedHilbertSpaceRepresentation{HSR, IrrepComponent{SymmetryEmbedding{PointSymmetry}}, BR, ComplexType}(
+                hsr, psic, reduced_basis_list,
                 basis_mapping_index, basis_mapping_amplitude)
 end

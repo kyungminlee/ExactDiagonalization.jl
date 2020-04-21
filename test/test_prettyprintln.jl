@@ -12,6 +12,7 @@ using ExactDiagonalization.Toolkit: pauli_matrix
     addorbital!(unitcell, "Spin", FractCoord([0], [0.0]))
     lattice = make_lattice(unitcell, n_sites)
     tsym = TranslationSymmetry(lattice)
+    tsymbed = embed(lattice, tsym)
 
     up = State("Up",  1)
     dn = State("Dn", -1)
@@ -78,7 +79,7 @@ using ExactDiagonalization.Toolkit: pauli_matrix
                           "| 1111",
                           ""], "\n")
 
-    rhsr = symmetry_reduce(hsr, lattice, TranslationSymmetryIrrepComponent(tsym, 1))
+    rhsr = symmetry_reduce(hsr, IrrepComponent(tsymbed, 1))
     result = @capture_out prettyprintln(rhsr)
     @test result == join(["ReducedHilbertSpaceRepresentation",
                           "| basis_list",

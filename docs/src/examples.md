@@ -7,8 +7,9 @@ using SparseArrays
 using LinearAlgebra
 using Arpack
 using Plots
-using ExactDiagonalization
+
 using TightBindingLattice
+using ExactDiagonalization
 
 println("# S=1/2 Heisenberg Chain")
 n_sites = 8;
@@ -38,17 +39,24 @@ end
 println("## Sz=0, each momentum sectors")
 hs_sector = HilbertSpaceSector(hs, 0)
 hs_rep = represent_dict(hs_sector) # Use Dict{UInt, Int} for basis lookup
-translation_group = TranslationGroup([Permutation([ mod(i, n_sites)+1 for i in 1:n_sites])])
-ks = translation_group.fractional_momenta
-for (ik, k) in enumerate(ks)
-  hs_redrep = symmetry_reduce(hs_rep, translation_group, k)
+
+unitcell = make_unitcell(1.0; OrbitalType=String)
+addorbital!(unitcell, "Spin", FractCoord([0], [0.0]))
+lattice = make_lattice(unitcell, 8)
+tsymbed = translation_symmetry_embedding(lattice)
+
+#translation_group = TranslationGroup([Permutation([ mod(i, n_sites)+1 for i in 1:n_sites])])
+ks = symmetry(tsymbed).fractional_momenta
+
+for tsic in get_irrep_components(tsymbed)
+  k = ks[tsic.irrep_index]
+  hs_redrep = symmetry_reduce(hs_rep, tsic)
   j1_redrep = represent(hs_redrep, j1)
-  #j1_redrep_sparse = sparse(j1_redrep)   # Make a sparse matrix
   j1_redrep_dense = Matrix(j1_redrep)   # Make a dense matrix
   eigenvalues = eigvals(Hermitian(j1_redrep_dense))
   println("E(k=", join(string.(k), ","), ") : ", eigenvalues[1:5])
   scatter!(plt,
-           ones(size(eigenvalues)).*ik, eigenvalues,
+           ones(size(eigenvalues)).*tsic.irrep_index, eigenvalues,
            markershape=:hline,
            markersize=10,
            markerstrokecolor=:blue,

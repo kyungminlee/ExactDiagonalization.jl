@@ -40,9 +40,18 @@ using StaticArrays
     @test nop * 2.0 == nop
     @test nop * (2.0 + 1.0im) == nop
 
+    @test nop / 2 == nop
+    @test nop // 2 == nop
+    @test nop / 2.0 == nop
+    @test nop / (2.0 + 1.0im) == nop
+
     @test 2 * nop == nop
     @test 2.0 * nop == nop
     @test (2.0 + 1.0im) * nop == nop
+
+    @test 2 \ nop == nop
+    @test 2.0 \ nop == nop
+    @test (2.0 + 1.0im) \ nop == nop
 
     @test nop^6 == nop
   end

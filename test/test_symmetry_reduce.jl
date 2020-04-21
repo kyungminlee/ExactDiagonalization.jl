@@ -22,30 +22,36 @@ using ExactDiagonalization.Toolkit: pauli_matrix
   hss = HilbertSpaceSector(hs, 0)
   hsr = represent(hss);
 
-  #translation_group = TranslationGroup([Permutation([2,3,4,1])])
+  #translation_group = TranslationGroup([SitePermutation([2,3,4,1])])
   tsym = TranslationSymmetry(lattice)
+  psym = project(PointSymmetryDatabase.find("-1"), [1 0 0;])
+
+  tsymbed = embed(lattice, tsym)
+  psymbed = embed(lattice, psym)
+  ssymbed = tsymbed ⋊ psymbed
 
   for symred in [symmetry_reduce, symmetry_reduce_serial, symmetry_reduce_parallel]
-    rhsr = symred(hsr, lattice, TranslationSymmetryIrrepComponent(tsym, 1))
+    rhsr = symred(hsr, IrrepComponent(tsymbed, 1))
     @test rhsr.basis_list == UInt[0b0011, 0b0101]
     @test rhsr.parent === hsr
 
-    rhsr = symred(hsr, lattice, TranslationSymmetryIrrepComponent(tsym, 2))
+    rhsr = symred(hsr, IrrepComponent(tsymbed, 2))
     @test rhsr.basis_list == UInt[0b0011]
     @test rhsr.parent === hsr
 
-    rhsr = symred(hsr, lattice, TranslationSymmetryIrrepComponent(tsym, 3))
+    rhsr = symred(hsr, IrrepComponent(tsymbed, 3))
     @test rhsr.basis_list == UInt[0b0011, 0b0101]
     @test rhsr.parent === hsr
 
-    rhsr = symred(hsr, lattice, TranslationSymmetryIrrepComponent(tsym, 4))
+    rhsr = symred(hsr, IrrepComponent(tsymbed, 4))
     @test rhsr.basis_list == UInt[0b0011]
     @test rhsr.parent === hsr
 
-    tol = sqrt(eps(Float64))
-    for tsym_irrep_index in 1:num_irreps(tsym)
-      tsic = TranslationSymmetryIrrepComponent(tsym, tsym_irrep_index)
-      rhsr = symred(hsr, lattice, tsic)
+    tol = Base.rtoldefault(Float64)
+    count_translation = 0
+    for tsic in get_irrep_components(tsymbed)
+      rhsr = symred(hsr, tsic)
+      count_translation += dimension(rhsr)
       for (i_p, b) in enumerate(hsr.basis_list)
         if b in rhsr.basis_list
           @test 1 <= rhsr.basis_mapping_index[i_p] <= dimension(rhsr)
@@ -67,6 +73,67 @@ using ExactDiagonalization.Toolkit: pauli_matrix
       sv2 = symmetry_reduce(rhsr, lv)
       @test isapprox(sv, sv2; atol=tol)
     end
+
+    #                               0011,   0101,   0110,   1001,   1010,   1100
+    #                               1001    0101    1100    0011    1010    0110
+    rhsr = symred(hsr, IrrepComponent(psymbed, 1))
+    @test rhsr.basis_list == UInt[0b0011, 0b0101, 0b0110, 0b1010]
+    rhsr = symred(hsr, IrrepComponent(psymbed, 2))
+    @test rhsr.basis_list == UInt[0b0011, 0b0110]
+
+    count_point = 0
+    for psic in get_irrep_components(psymbed)
+      rhsr = symred(hsr, psic)
+      count_point += dimension(rhsr)
+      for (i_p, b) in enumerate(hsr.basis_list)
+        if b in rhsr.basis_list
+          @test 1 <= rhsr.basis_mapping_index[i_p] <= dimension(rhsr)
+          @test rhsr.basis_list[rhsr.basis_mapping_index[i_p]] == b
+          @test isapprox(imag(rhsr.basis_mapping_amplitude[i_p]), 0; atol=tol)
+        end
+      end
+      for (i_p, i_r) in enumerate(rhsr.basis_mapping_index)
+        if i_r == -1
+          @test ! (rhsr.parent.basis_list[i_p] in rhsr.basis_list)
+        end
+      end
+    end # for psic
+
+    # space symmetry
+    let ssic = first(get_irrep_components(ssymbed))
+      rhsr = symred(hsr, ssic)
+      @test rhsr.basis_list == UInt[0b0011, 0b0101]
+    end
+    let ssic = SymmorphicIrrepComponent(IrrepComponent(tsymbed, 1, 1),
+                                        IrrepComponent(psymbed, 1, 1))
+      rhsr = symred(hsr, ssic)
+      @test rhsr.basis_list == UInt[0b0011, 0b0101]
+    end
+    let ssic = SymmorphicIrrepComponent(IrrepComponent(tsymbed, 1, 1),
+                                        IrrepComponent(psymbed, 2, 1))
+      rhsr = symred(hsr, ssic)
+      @test rhsr.basis_list == UInt[]
+    end
+
+    count_space = 0
+    for ssic in get_irrep_components(ssymbed)
+      rhsr = symred(hsr, ssic)
+      count_space += dimension(rhsr)
+      for (i_p, b) in enumerate(hsr.basis_list)
+        if b in rhsr.basis_list
+          @test 1 <= rhsr.basis_mapping_index[i_p] <= dimension(rhsr)
+          @test rhsr.basis_list[rhsr.basis_mapping_index[i_p]] == b
+          @test isapprox(imag(rhsr.basis_mapping_amplitude[i_p]), 0; atol=tol)
+        end
+      end
+      for (i_p, i_r) in enumerate(rhsr.basis_mapping_index)
+        if i_r == -1
+          @test ! (rhsr.parent.basis_list[i_p] in rhsr.basis_list)
+        end
+      end
+    end # for ssic
+
+    @test count_translation == count_point == count_space
   end
 
   @testset "convention" begin
@@ -87,34 +154,36 @@ using ExactDiagonalization.Toolkit: pauli_matrix
     let
       hss = HilbertSpaceSector(hs, 5)
       hsr = represent(hss)
-      p = Permutation([2,3,4,5,6,7,1])
+      p = SitePermutation([2,3,4,5,6,7,1])
       #translation_group = TranslationGroup(p)
       @test symmetry_apply(hs, p, 0b0000001) == 0b0000010
 
       tsym = TranslationSymmetry(lattice)
-      tsic = TranslationSymmetryIrrepComponent(tsym, 2, 1)
-      rhsr = symmetry_reduce(hsr, lattice, tsic)
+      tsymbed = embed(lattice, tsym)
+      tsic = IrrepComponent(tsymbed, 2, 1)
+      rhsr = symmetry_reduce(hsr, tsic)
       @test hsr.basis_list == UInt[0b0000001, 0b0000010, 0b0000100, 0b0001000, 0b0010000, 0b0100000, 0b1000000]
       @test rhsr.basis_list == UInt[0b0000001]
       ψk = symmetry_unreduce(rhsr, [1.0])
-      @test isapprox(ψk, [cis(2π * i/n_sites) / sqrt(n_sites) for i in 0:(n_sites-1)]; atol=sqrt(eps(Float64)))
+      @test isapprox(ψk, [cis(2π * i/n_sites) / sqrt(n_sites) for i in 0:(n_sites-1)]; atol=Base.rtoldefault(Float64))
     end
 
     let
       hss = HilbertSpaceSector(hs, -5)
       hsr = represent(hss)
-      p = Permutation([2,3,4,5,6,7,1])
+      p = SitePermutation([2,3,4,5,6,7,1])
       @test symmetry_apply(hs, p, 0b0000001) == 0b0000010
 
       tsym = TranslationSymmetry(lattice)
-      tsic = TranslationSymmetryIrrepComponent(tsym, 2, 1)
-      rhsr = symmetry_reduce(hsr, lattice, tsic)
+      tsymbed = embed(lattice, tsym)
+      tsic = IrrepComponent(tsymbed, 2, 1)
+      rhsr = symmetry_reduce(hsr, tsic)
 
       # opposite order
       @test hsr.basis_list == UInt[0b0111111, 0b1011111, 0b1101111, 0b1110111, 0b1111011, 0b1111101, 0b1111110]
       @test rhsr.basis_list == UInt[0b0111111]
       ψk = symmetry_unreduce(rhsr, [1.0])
-      @test isapprox(ψk, [cis(-2π * i/n_sites) / sqrt(n_sites) for i in 0:(n_sites-1)]; atol=sqrt(eps(Float64)))
+      @test isapprox(ψk, [cis(-2π * i/n_sites) / sqrt(n_sites) for i in 0:(n_sites-1)]; atol=Base.rtoldefault(Float64))
     end
 
   end
