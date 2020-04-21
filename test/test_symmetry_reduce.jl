@@ -80,6 +80,7 @@ using ExactDiagonalization.Toolkit: pauli_matrix
     @test rhsr.basis_list == UInt[0b0011, 0b0110]
 
     for psic in get_irrep_components(psymbed)
+      rhsr = symred(hsr, psic)
       for (i_p, b) in enumerate(hsr.basis_list)
         if b in rhsr.basis_list
           @test 1 <= rhsr.basis_mapping_index[i_p] <= dimension(rhsr)
