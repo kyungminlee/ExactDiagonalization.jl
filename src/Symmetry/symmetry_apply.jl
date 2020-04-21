@@ -60,3 +60,8 @@ end
 function isinvariant(hs::HilbertSpace{QN}, symbed::SymmetryEmbedding, op::AbstractOperator) where {QN}
   return all(isinvariant(hs, g, op) for g in generator_elements(symbed))
 end
+
+function isinvariant(hs::HilbertSpace{QN}, symbed::SymmorphicSymmetryEmbedding, op::AbstractOperator) where {QN}
+  return all(isinvariant(hs, g, op) for g in generator_elements(symbed.normal)) &&
+         all(isinvariant(hs, g, op) for g in generator_elements(symbed.rest))
+end
