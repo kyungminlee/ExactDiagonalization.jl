@@ -42,6 +42,7 @@ using ExactDiagonalization.Toolkit: pauli_matrix
   j1 = simplify(sum(σ[i, j] * σ[mod(i, 4) + 1 , j] for i in 1:4, j in [:x, :y, :z]))
 
   @test isinvariant(hs, transop, nop)
+  @test isinvariant(HilbertSpaceSector(hs, 0), transop, nop)
   @test !isinvariant(hs, transop, pop1)
   @test !isinvariant(HilbertSpaceSector(hs, 0), transop, pop1)
   @test !isinvariant(hs, transop, sop)
@@ -50,6 +51,7 @@ using ExactDiagonalization.Toolkit: pauli_matrix
   @test isinvariant(HilbertSpaceSector(hs, 0), transop, j1)
 
   @test isinvariant(hs, invop, nop)
+  @test isinvariant(HilbertSpaceSector(hs, 0), invop, nop)
   @test !isinvariant(hs, invop, pop1)
   @test !isinvariant(HilbertSpaceSector(hs, 0), invop, pop1)
   @test !isinvariant(hs, invop, sop)
@@ -60,6 +62,7 @@ using ExactDiagonalization.Toolkit: pauli_matrix
   tsymbed = translation_symmetry_embedding(lattice)
 
   @test isinvariant(hs, tsymbed, nop)
+  @test isinvariant(HilbertSpaceSector(hs, 0), tsymbed, nop)
   @test !isinvariant(hs, tsymbed, pop1)
   @test !isinvariant(HilbertSpaceSector(hs, 0), tsymbed, pop1)
   @test !isinvariant(hs, tsymbed, sop)
@@ -70,11 +73,22 @@ using ExactDiagonalization.Toolkit: pauli_matrix
   psymbed = embed(lattice, project(PointSymmetryDatabase.get(2), [1 0 0;]))
 
   @test isinvariant(hs, psymbed, nop)
+  @test isinvariant(HilbertSpaceSector(hs, 0), psymbed, nop)
   @test !isinvariant(hs, psymbed, pop1)
   @test !isinvariant(HilbertSpaceSector(hs, 0), psymbed, pop1)
   @test !isinvariant(hs, psymbed, sop)
   @test !isinvariant(HilbertSpaceSector(hs, 0), psymbed, sop)
   @test isinvariant(hs, psymbed, j1)
   @test isinvariant(HilbertSpaceSector(hs, 0), psymbed, j1)
+
+  ssymbed = tsymbed ⋊ psymbed
+  @test isinvariant(hs, ssymbed, nop)
+  @test isinvariant(HilbertSpaceSector(hs, 0), ssymbed, nop)
+  @test !isinvariant(hs, ssymbed, pop1)
+  @test !isinvariant(HilbertSpaceSector(hs, 0), ssymbed, pop1)
+  @test !isinvariant(hs, ssymbed, sop)
+  @test !isinvariant(HilbertSpaceSector(hs, 0), ssymbed, sop)
+  @test isinvariant(hs, ssymbed, j1)
+  @test isinvariant(HilbertSpaceSector(hs, 0), ssymbed, j1)
 
 end
