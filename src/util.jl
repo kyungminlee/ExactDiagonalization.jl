@@ -33,6 +33,8 @@ import Base.==
 tupleadd(l::T, r::T) where {T<:Tuple} = l .+ r
 tuplezero(l::Type{T}) where {T<:Tuple} = ((zero(S) for S in T.parameters)...,)
 tupleone(l::Type{T}) where {T<:Tuple} = ((one(S) for S in T.parameters)...,)
+tuplezero(l::T) where {T<:Tuple} = ((zero(S) for S in T.parameters)...,)
+tupleone(l::T) where {T<:Tuple} = ((one(S) for S in T.parameters)...,)
 
 function make_bitmask(msb::Integer,
                       binary_type::Type{BR}=UInt) where {BR<:Unsigned}
