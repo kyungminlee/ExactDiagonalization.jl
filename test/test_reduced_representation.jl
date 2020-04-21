@@ -8,7 +8,7 @@ using SparseArrays
 using ExactDiagonalization.Toolkit: pauli_matrix
 
 @testset "RedRep4" begin
-  tol = sqrt(eps(Float64))
+  tol = Base.rtoldefault(Float64)
 
   n = 4
   unitcell = make_unitcell(1.0; OrbitalType=String)
@@ -214,7 +214,7 @@ end # testset RedOp4
   addorbital!(unitcell, "Spin", FractCoord([0], [0.0]))
   lattice = make_lattice(unitcell, n)
 
-  tol = sqrt(eps(Float64))
+  tol = Base.rtoldefault(Float64)
   spin_site = Site([State("Up", 1), State("Dn",-1)])
 
   hs = HilbertSpace(repeat([spin_site], n))

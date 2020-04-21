@@ -4,7 +4,7 @@ export symmetry_reduce_serial, symmetry_reduce_parallel
 
 
 """
-    symmetry_reduce_serial(hsr, trans_group, frac_momentum, complex_type=ComplexF64, tol=sqrt(eps(Float64)))
+    symmetry_reduce_serial(hsr, trans_group, frac_momentum, complex_type=ComplexF64, tol=√ϵ)
 
 Symmetry-reduce the HilbertSpaceRepresentation using translation group (single threaded).
 
@@ -117,7 +117,7 @@ end
 
 
 """
-    symmetry_reduce_parallel(hsr, trans_group, frac_momentum, complex_type=ComplexF64, tol=sqrt(eps(Float64)))
+    symmetry_reduce_parallel(hsr, trans_group, frac_momentum, complex_type=ComplexF64, tol=√ϵ)
 
 Symmetry-reduce the HilbertSpaceRepresentation using translation group (multi-threaded).
 

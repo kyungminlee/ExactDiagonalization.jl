@@ -2,7 +2,7 @@ export symmetry_reduce, symmetry_unreduce
 
 
 """
-    symmetry_reduce(hsr, lattice, symmetry_irrep_component, complex_type=ComplexF64, tol=sqrt(eps(Float64)))
+    symmetry_reduce(hsr, lattice, symmetry_irrep_component, complex_type=ComplexF64, tol=√ϵ)
 
 Symmetry-reduce the HilbertSpaceRepresentation using translation group.
 

@@ -71,7 +71,10 @@ end
 
 
 import Base.isapprox
-function isapprox(lhs::SparseState{S1, BR}, rhs::SparseState{S2, BR}; atol=sqrt(eps(Float64)), rtol=sqrt(eps(Float64))) where {S1, S2, BR}
+function isapprox(lhs::SparseState{S1, BR},
+                  rhs::SparseState{S2, BR};
+                  atol::Real=Base.rtoldefault(Float64),
+                  rtol::Real=Base.rtoldefault(Float64)) where {S1, S2, BR}
   all_keys = union(keys(lhs.components), keys(rhs.components))
   for k in all_keys
     lv = get(lhs.components, k, zero(S1))

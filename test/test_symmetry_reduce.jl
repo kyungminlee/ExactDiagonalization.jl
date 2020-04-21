@@ -43,7 +43,7 @@ using ExactDiagonalization.Toolkit: pauli_matrix
     @test rhsr.basis_list == UInt[0b0011]
     @test rhsr.parent === hsr
 
-    tol = sqrt(eps(Float64))
+    tol = Base.rtoldefault(Float64)
     for tsym_irrep_index in 1:num_irreps(tsymbed)
       tsic = IrrepComponent(tsymbed, tsym_irrep_index)
       rhsr = symred(hsr, tsic)
@@ -99,7 +99,7 @@ using ExactDiagonalization.Toolkit: pauli_matrix
       @test hsr.basis_list == UInt[0b0000001, 0b0000010, 0b0000100, 0b0001000, 0b0010000, 0b0100000, 0b1000000]
       @test rhsr.basis_list == UInt[0b0000001]
       ψk = symmetry_unreduce(rhsr, [1.0])
-      @test isapprox(ψk, [cis(2π * i/n_sites) / sqrt(n_sites) for i in 0:(n_sites-1)]; atol=sqrt(eps(Float64)))
+      @test isapprox(ψk, [cis(2π * i/n_sites) / sqrt(n_sites) for i in 0:(n_sites-1)]; atol=Base.rtoldefault(Float64))
     end
 
     let
@@ -117,7 +117,7 @@ using ExactDiagonalization.Toolkit: pauli_matrix
       @test hsr.basis_list == UInt[0b0111111, 0b1011111, 0b1101111, 0b1110111, 0b1111011, 0b1111101, 0b1111110]
       @test rhsr.basis_list == UInt[0b0111111]
       ψk = symmetry_unreduce(rhsr, [1.0])
-      @test isapprox(ψk, [cis(-2π * i/n_sites) / sqrt(n_sites) for i in 0:(n_sites-1)]; atol=sqrt(eps(Float64)))
+      @test isapprox(ψk, [cis(-2π * i/n_sites) / sqrt(n_sites) for i in 0:(n_sites-1)]; atol=Base.rtoldefault(Float64))
     end
 
   end
