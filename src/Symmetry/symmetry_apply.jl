@@ -19,6 +19,10 @@ function isinvariant(hss::HilbertSpaceSector{QN}, symbed::SymmetryEmbedding, arg
   return isinvariant(hss.parent, symbed, args...; kwargs...)
 end
 
+function isinvariant(hss::HilbertSpaceSector{QN}, symbed::SymmorphicSymmetryEmbedding, args...; kwargs...) where {QN}
+  return isinvariant(hss.parent, symbed, args...; kwargs...)
+end
+
 
 ### generic symmetry operations for NullOperator and SumOperator
 function symmetry_apply(hs::HilbertSpace{QN}, symop::AbstractSymmetryOperationEmbedding, op::NullOperator) where {QN}
