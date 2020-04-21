@@ -93,6 +93,10 @@ using ExactDiagonalization
       psi2[9] = 1.0 + 10.0im
       psi2[11] = 2.0
       @test isapprox(psi1, psi2; atol=1E-8)
+
+      @test_throws ArgumentError ExactDiagonalization.Toolkit.product_state(hsr, [[1.0, 0.0], [0.0, 0.0]]) # too few
+      @test_throws ArgumentError ExactDiagonalization.Toolkit.product_state(hsr, [[1.0, 0.0], [0.0, 1.0], [0.0, 1.0], [0.0, 1.0], [0.0, 1.0]]) # too many
+      @test_throws ArgumentError ExactDiagonalization.Toolkit.product_state(hsr, [[1.0, 0.0], [0.0, 1.0], [0.0, 1.0, 0.0], [0.0, 1.0]])
     end
     @testset "sector-rep" begin
       hssr = represent(HilbertSpaceSector(hs, 0))
