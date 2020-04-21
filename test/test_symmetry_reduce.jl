@@ -24,7 +24,10 @@ using ExactDiagonalization.Toolkit: pauli_matrix
 
   #translation_group = TranslationGroup([SitePermutation([2,3,4,1])])
   tsym = TranslationSymmetry(lattice)
+  psym = project(PointSymmetryDatabase.find("-1"), [1 0 0;])
+
   tsymbed = embed(lattice, tsym)
+  psymbed = embed(lattice, psym)
 
   for symred in [symmetry_reduce, symmetry_reduce_serial, symmetry_reduce_parallel]
     rhsr = symred(hsr, IrrepComponent(tsymbed, 1))
@@ -68,6 +71,29 @@ using ExactDiagonalization.Toolkit: pauli_matrix
       sv2 = symmetry_reduce(rhsr, lv)
       @test isapprox(sv, sv2; atol=tol)
     end
+
+    #                               0011,   0101,   0110,   1001,   1010,   1100
+    #                               1001    0101    1100    0011    1010    0110
+    rhsr = symred(hsr, IrrepComponent(psymbed, 1))
+    @test rhsr.basis_list == UInt[0b0011, 0b0101, 0b0110, 0b1010]
+    rhsr = symred(hsr, IrrepComponent(psymbed, 2))
+    @test rhsr.basis_list == UInt[0b0011, 0b0110]
+
+    for psic in get_irrep_components(psymbed)
+      for (i_p, b) in enumerate(hsr.basis_list)
+        if b in rhsr.basis_list
+          @test 1 <= rhsr.basis_mapping_index[i_p] <= dimension(rhsr)
+          @test rhsr.basis_list[rhsr.basis_mapping_index[i_p]] == b
+          @test isapprox(imag(rhsr.basis_mapping_amplitude[i_p]), 0; atol=tol)
+        end
+      end
+      for (i_p, i_r) in enumerate(rhsr.basis_mapping_index)
+        if i_r == -1
+          @test ! (rhsr.parent.basis_list[i_p] in rhsr.basis_list)
+        end
+      end
+    end # for psic
+
   end
 
   @testset "convention" begin
