@@ -4,7 +4,7 @@ export make_bitmask
 export choptol!
 export merge_vec
 
-struct IntegerModulo{N} <: Integer
+struct IntegerModulo{N}
   value::Int
   IntegerModulo{N}(value::Integer) where N = new{N}(mod(value, N))
 end
@@ -21,6 +21,10 @@ import Base.+, Base.-, Base.*
 (*)(lhs::IntegerModulo{N}, rhs::Integer) where N = IntegerModulo{N}(lhs.value * rhs)
 (*)(lhs::Integer, rhs::IntegerModulo{N}) where N = IntegerModulo{N}(lhs * rhs.value)
 
+import Base.==
+(==)(lhs::IntegerModulo{N}, rhs::IntegerModulo{N}) where N = lhs.value == rhs.value
+(==)(lhs::IntegerModulo{N}, rhs::Integer) where N = lhs.value == rhs
+(==)(lhs::Integer, rhs::IntegerModulo{N}) where N = lhs == rhs.value
 
 tupleadd(l::T, r::T) where {T<:Tuple} = l .+ r
 tuplezero(l::Type{T}) where {T<:Tuple} = ((zero(S) for S in T.parameters)...,)
