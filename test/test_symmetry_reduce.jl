@@ -28,6 +28,7 @@ using ExactDiagonalization.Toolkit: pauli_matrix
 
   tsymbed = embed(lattice, tsym)
   psymbed = embed(lattice, psym)
+  ssymbed = tsymbed ⋊ psymbed
 
   for symred in [symmetry_reduce, symmetry_reduce_serial, symmetry_reduce_parallel]
     rhsr = symred(hsr, IrrepComponent(tsymbed, 1))
@@ -47,9 +48,10 @@ using ExactDiagonalization.Toolkit: pauli_matrix
     @test rhsr.parent === hsr
 
     tol = Base.rtoldefault(Float64)
-    for tsym_irrep_index in 1:num_irreps(tsymbed)
-      tsic = IrrepComponent(tsymbed, tsym_irrep_index)
+    count_translation = 0
+    for tsic in get_irrep_components(tsymbed)
       rhsr = symred(hsr, tsic)
+      count_translation += dimension(rhsr)
       for (i_p, b) in enumerate(hsr.basis_list)
         if b in rhsr.basis_list
           @test 1 <= rhsr.basis_mapping_index[i_p] <= dimension(rhsr)
@@ -79,8 +81,10 @@ using ExactDiagonalization.Toolkit: pauli_matrix
     rhsr = symred(hsr, IrrepComponent(psymbed, 2))
     @test rhsr.basis_list == UInt[0b0011, 0b0110]
 
+    count_point = 0
     for psic in get_irrep_components(psymbed)
       rhsr = symred(hsr, psic)
+      count_point += dimension(rhsr)
       for (i_p, b) in enumerate(hsr.basis_list)
         if b in rhsr.basis_list
           @test 1 <= rhsr.basis_mapping_index[i_p] <= dimension(rhsr)
@@ -95,6 +99,41 @@ using ExactDiagonalization.Toolkit: pauli_matrix
       end
     end # for psic
 
+    # space symmetry
+    let ssic = first(get_irrep_components(ssymbed))
+      rhsr = symred(hsr, ssic)
+      @test rhsr.basis_list == UInt[0b0011, 0b0101]
+    end
+    let ssic = SymmorphicIrrepComponent(IrrepComponent(tsymbed, 1, 1),
+                                        IrrepComponent(psymbed, 1, 1))
+      rhsr = symred(hsr, ssic)
+      @test rhsr.basis_list == UInt[0b0011, 0b0101]
+    end
+    let ssic = SymmorphicIrrepComponent(IrrepComponent(tsymbed, 1, 1),
+                                        IrrepComponent(psymbed, 2, 1))
+      rhsr = symred(hsr, ssic)
+      @test rhsr.basis_list == UInt[]
+    end
+
+    count_space = 0
+    for ssic in get_irrep_components(ssymbed)
+      rhsr = symred(hsr, ssic)
+      count_space += dimension(rhsr)
+      for (i_p, b) in enumerate(hsr.basis_list)
+        if b in rhsr.basis_list
+          @test 1 <= rhsr.basis_mapping_index[i_p] <= dimension(rhsr)
+          @test rhsr.basis_list[rhsr.basis_mapping_index[i_p]] == b
+          @test isapprox(imag(rhsr.basis_mapping_amplitude[i_p]), 0; atol=tol)
+        end
+      end
+      for (i_p, i_r) in enumerate(rhsr.basis_mapping_index)
+        if i_r == -1
+          @test ! (rhsr.parent.basis_list[i_p] in rhsr.basis_list)
+        end
+      end
+    end # for ssic
+
+    @test count_translation == count_point == count_space
   end
 
   @testset "convention" begin
