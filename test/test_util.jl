@@ -76,6 +76,22 @@ using ExactDiagonalization
     end
   end
 
+
+  @testset "IntegerModulo" begin
+    T = IntegerModulo{3}
+    t0 = T(0)
+    t1 = T(1)
+    t2 = T(2)
+    t3 = T(3)
+    @test t0 != t1
+    @test t0 == t3
+    @test t0 == 0
+    @test t3 == 0
+    @test t1 == 1
+    @show IntegerModulo{3}(0) != IntegerModulo{4}(0)
+    #IntegerModulo{3}(0)
+  end
+
 end
 
 
