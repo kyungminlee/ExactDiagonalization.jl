@@ -1,5 +1,3 @@
-using ExactDiagonalization
-
 function spin_system(n_sites::Integer, S::Integer)
   return spin_system(n_sites, S//1)
 end

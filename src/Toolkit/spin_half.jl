@@ -1,6 +1,3 @@
-using ExactDiagonalization
-
-
 """
     spin_half_system(n_sites)
 
