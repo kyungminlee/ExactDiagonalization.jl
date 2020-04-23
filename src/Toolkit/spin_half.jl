@@ -7,6 +7,9 @@ Create a Hilbert space of spin 1/2 system of `n_sites`
 - `(hilbert_space, pauli)`
 """
 function spin_half_system(n_sites::Integer, ::Type{BR}=UInt) where {BR<:Unsigned}
+  if n_sites > sizeof(BR) * 8
+    throw(ArgumentError("spin half system of $n_sites sites cannot be expressed using $BR"))
+  end
   up = State("Up", 1)
   dn = State("Dn", -1)
   spin_site = Site([up, dn])
