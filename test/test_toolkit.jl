@@ -86,8 +86,34 @@ using ExactDiagonalization
           @test isapprox(spin_matrices[Rational(S)][μ], Matrix(represent(hsr, spin(1, μ))))
         end
       end # for S
-    end # SingleSite
-  end
+    end # testset SingleSite
+
+    @testset "MultipleSiteCommutation" begin
+      levi_civita = zeros(Int, (3,3,3))
+      levi_civita[1,2,3] = 1
+      levi_civita[2,1,3] = -1
+      levi_civita[2,3,1] = 1
+      levi_civita[1,3,2] = -1
+      levi_civita[3,1,2] = 1
+      levi_civita[3,2,1] = -1
+      component_index = Dict(:x => 1, :y => 2, :z => 3)
+      for S in [1//2, 1, 1//1, 3//2, 2//1, 2]
+        n = 4
+        (hs, spin) = ExactDiagonalization.Toolkit.spin_system(n, S)
+        @test all(let
+                    op1 = simplify(spin(i, μ) * spin(j, ν) - spin(j, ν) * spin(i, μ))
+                    if i == j
+                      op2 = im * sum( levi_civita[iμ, iν, iρ] * spin(i, ρ) for (iρ, ρ) in enumerate([:x, :y, :z]) )
+                    else
+                      op2 = NullOperator()
+                    end
+                    simplify(op1 - op2) == NullOperator()
+                  end
+                    for i in 1:n for j in i:n
+                    for (iμ, μ) in enumerate([:x, :y, :z]), (iν, ν) in enumerate([:x, :y, :z]))
+      end # for S
+    end # testset MultipleSite
+  end # testset SpinSystem
 
   @testset "product_state" begin
     (hs, pauli) = ExactDiagonalization.Toolkit.spin_half_system(4)
