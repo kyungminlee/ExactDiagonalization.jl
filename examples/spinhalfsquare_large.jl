@@ -138,9 +138,7 @@ for ssic in get_irrep_components(ssymbed)
 end
 
 
-
-
-exit()
+# exit()
 
 ## Full Solution
 
