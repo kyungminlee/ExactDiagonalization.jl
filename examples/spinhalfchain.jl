@@ -57,13 +57,13 @@ end
 
 psym = project(PointSymmetryDatabase.get(2), [1 0 0;])  # inversion symmetry
 
-@show psym.hermann_mauguinn
+@show psym.hermann_mauguin
 
 @show iscompatible(tsym, psym)
 for tsym_irrep_index in 1:num_irreps(tsym)
     psym_little = little_symmetry(tsym, tsym_irrep_index, psym)
     @assert iscompatible(tsym, tsym_irrep_index, psym_little)
-    @show psym_little.hermann_mauguinn
+    @show psym_little.hermann_mauguin
 
 
 end

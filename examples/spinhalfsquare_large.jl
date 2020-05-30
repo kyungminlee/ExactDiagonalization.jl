@@ -51,7 +51,7 @@ j1 = simplify(j1)
 # for tsic in get_irrep_components(tsymbed)
 #     psymbed_little = little_symmetry(tsic, psymbed)
 # println("- momentum: $(tsym.fractional_momenta[tsic.irrep_index])")
-# println("  little_group: $(symmetry(psymbed_little).hermann_mauguinn)")
+# println("  little_group: $(symmetry(psymbed_little).hermann_mauguin)")
 # println("  number of psym irreps: $(num_irreps(psymbed_little))")
 # println("  psym_irrep_components: ",
 #               join(["[$(psic.irrep_index), $(psic.irrep_component)]"
@@ -99,7 +99,7 @@ j1 = simplify(j1)
 #         end
 #         if !haskey(foo, k1)
 #             foo[k1] = Dict("irrep_index" => k1[1], "irrep_component" => k1[2], 
-#                            "little_group" => symmetry(ssic.rest.symmetry).hermann_mauguinn,
+#                            "little_group" => symmetry(ssic.rest.symmetry).hermann_mauguin,
 #                            "children"=> [])
 #         end
 #         push!(foo[k1]["children"], 
@@ -128,7 +128,7 @@ function myshow(io::IO, ssic::SymmorphicIrrepComponent)
     kf = tsym.fractional_momenta[ssic.normal.irrep_index]
     k = tsymbed.lattice.unitcell.reducedreciprocallatticevectors * kf
     @printf(io, "%8d%8d", ssic.normal.irrep_index, num_irreps(tsym))
-    @printf(io, "%16s%8s%8d", k, psym.hermann_mauguinn, num_irreps(psym))
+    @printf(io, "%16s%8s%8d", k, psym.hermann_mauguin, num_irreps(psym))
     @printf(io, "%8d%8d\n", ssic.rest.irrep_index, ssic.rest.irrep_component)
 end
 
