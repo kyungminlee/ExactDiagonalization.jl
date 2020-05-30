@@ -10,7 +10,7 @@ Symmetry-reduce the HilbertSpaceRepresentation using translation group (single t
 function symmetry_reduce_serial(
         hsr::HilbertSpaceRepresentation{QN, BR, DT},
         tsic::IrrepComponent{SymmetryEmbedding{TranslationSymmetry}},
-        complex_type::Type{ComplexType}=ComplexF64;
+        ::Type{ComplexType}=ComplexF64;
         tol::Real=Base.rtoldefault(Float64)
         ) where {QN, BR, DT, ComplexType<:Complex}
 
@@ -22,8 +22,9 @@ function symmetry_reduce_serial(
     fill!(basis_mapping_representative, -1)
     basis_mapping_amplitude = zeros(ComplexType, n_basis)
 
+    symops_and_amplitudes = [(x, conj(y)) for (x, y) in get_irrep_iterator(tsic)]
     group_size = group_order(tsic)
-
+    @assert length(symops_and_amplitudes) == group_size
     size_estimate = n_basis ÷ max(1, group_size - 1)
 
     reduced_basis_list = BR[]
@@ -35,17 +36,8 @@ function symmetry_reduce_serial(
     basis_amplitudes = Dict{BR, ComplexType}()
     sizehint!(basis_amplitudes, group_size + group_size ÷ 2)
 
-    tsymbed = tsic.symmetry
-    tsym = tsymbed.symmetry
-    tsym_irrep_index = tsic.irrep_index
-    orthogonal_momentum = tsym.orthogonal_coordinates[tsym_irrep_index]
-    orthogonal_shape = tsym.orthogonal_shape
-
-    # whether the element is in the kernel of the representation
-    is_identity = [isbragg(orthogonal_shape, orthogonal_momentum, t)
-                   for t in tsym.orthogonal_coordinates]
-    symops_and_amplitudes = [(x, conj(y)) for (x, y) in get_irrep_iterator(tsic)]
-    @assert length(symops_and_amplitudes) == group_size
+    @assert all(isapprox(abs(y), one(abs(y))) for (_, y) in symops_and_amplitudes)
+    is_identity = [isapprox(y, one(y); atol=tol) for (_, y) in symops_and_amplitudes]
 
     for ivec_p in 1:n_basis
         visited[ivec_p] && continue
@@ -71,13 +63,13 @@ function symmetry_reduce_serial(
 
         empty!(basis_amplitudes)
         for i in 1:group_size
-            (symop, ampl) = symops_and_amplitudes[i]
+            (_, ampl) = symops_and_amplitudes[i]
             bvec_prime = basis_states[i]
             basis_amplitudes[bvec_prime] = ampl
             # No need to add amplitudes.
             # if bvec_prime is the same, ampl is the same, and similarly for all other elements
         end
-        inv_norm = 1.0 / sqrt(float(length(basis_amplitudes)))
+        inv_norm = inv(sqrt(float(length(basis_amplitudes))))
         for (bvec_prime, amplitude) in basis_amplitudes
             ivec_p_prime = hsr.basis_lookup[bvec_prime]
             visited[ivec_p_prime] = true
@@ -117,7 +109,7 @@ Symmetry-reduce the HilbertSpaceRepresentation using translation group (multi-th
 function symmetry_reduce_parallel(
         hsr::HilbertSpaceRepresentation{QN, BR, DT},
         tsic::IrrepComponent{SymmetryEmbedding{TranslationSymmetry}},
-        complex_type::Type{ComplexType}=ComplexF64;
+        ::Type{ComplexType}=ComplexF64;
         tol::Real=Base.rtoldefault(Float64)
         ) where {QN, BR, DT, ComplexType<:Complex}
 
@@ -134,7 +126,9 @@ function symmetry_reduce_parallel(
     fill!(basis_mapping_representative, -1)
     basis_mapping_amplitude = zeros(ComplexType, n_basis)
 
+    symops_and_amplitudes = [(x, conj(y)) for (x, y) in get_irrep_iterator(tsic)]
     group_size = group_order(tsic)
+    @assert length(symops_and_amplitudes) == group_size
 
     nthreads = Threads.nthreads()
     size_estimate = n_basis ÷ max(1, group_size - 1)
@@ -168,18 +162,9 @@ function symmetry_reduce_parallel(
         end
     end
 
-    tsymbed = tsic.symmetry
-    tsym = tsymbed.symmetry
-    tsym_irrep_index = tsic.irrep_index
-    orthogonal_momentum = tsym.orthogonal_coordinates[tsym_irrep_index]
-    orthogonal_shape = tsym.orthogonal_shape
-
-    # whether the element is in the kernel of the representation
-    is_identity = [isbragg(orthogonal_shape, orthogonal_momentum, t)
-                   for t in tsym.orthogonal_coordinates]
-    symops_and_amplitudes = [(x, conj(y)) for (x, y) in get_irrep_iterator(tsic)]
-    @assert length(symops_and_amplitudes) == group_size
-
+    @assert all(isapprox(abs(y), one(abs(y))) for (_, y) in symops_and_amplitudes)
+    is_identity = [isapprox(y, one(y); atol=tol) for (_, y) in symops_and_amplitudes]
+    
     @debug "Starting reduction (parallel)"
     Threads.@threads for itemp in 1:n_basis
         ivec_p = reorder[itemp]
@@ -211,11 +196,11 @@ function symmetry_reduce_parallel(
 
         empty!(local_basis_amplitudes[id])
         for i in 1:group_size
-            (symop, ampl) = symops_and_amplitudes[i]
+            (_, ampl) = symops_and_amplitudes[i]
             bvec_prime = local_basis_states[id, i]
             local_basis_amplitudes[id][bvec_prime] = ampl # Same bvec_prime, same p.
         end
-        inv_norm = 1.0 / sqrt(float(length(local_basis_amplitudes[id])))
+        inv_norm = inv(sqrt(float(length(local_basis_amplitudes[id]))))
         for (bvec_prime, amplitude) in local_basis_amplitudes[id]
             ivec_p_prime = hsr.basis_lookup[bvec_prime]
             visited[ivec_p_prime] = 0x1
