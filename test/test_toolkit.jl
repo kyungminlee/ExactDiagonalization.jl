@@ -3,26 +3,42 @@ using ExactDiagonalization
 
 @testset "Toolkit" begin
   @testset "SpinHalf" begin
-    n_sites = 4
-    up = State("Up", 1)
-    dn = State("Dn",-1)
-    spin_site = Site([up, dn])
+    @testset "small" begin
+      n_sites = 4
+      up = State("Up", 1)
+      dn = State("Dn",-1)
+      spin_site = Site([up, dn])
 
-    hs1 = HilbertSpace([spin_site for i in 1:n_sites])
-    (hs2, pauli) = ExactDiagonalization.Toolkit.spin_half_system(n_sites)
+      hs1 = HilbertSpace([spin_site for i in 1:n_sites])
+      (hs2, pauli) = ExactDiagonalization.Toolkit.spin_half_system(n_sites)
 
-    @test hs1 == hs2
-    for i_site in 1:n_sites
-      @test pauli(i_site, :x) == pure_operator(hs1, i_site, 1, 2, 1, UInt) + pure_operator(hs1, i_site, 2, 1, 1, UInt)
-      @test pauli(i_site, :y) == pure_operator(hs1, i_site, 1, 2, -im, UInt) + pure_operator(hs1, i_site, 2, 1, +im, UInt)
-      @test pauli(i_site, :z) == pure_operator(hs1, i_site, 1, 1, 1, UInt) + pure_operator(hs1, i_site, 2, 2, -1, UInt)
-      @test pauli(i_site, :+) == pure_operator(hs1, i_site, 1, 2, 1, UInt)
-      @test pauli(i_site, :-) == pure_operator(hs1, i_site, 2, 1, 1, UInt)
+      @test hs1 == hs2
+      for i_site in 1:n_sites
+        @test pauli(i_site, :x) == pure_operator(hs1, i_site, 1, 2, 1, UInt) + pure_operator(hs1, i_site, 2, 1, 1, UInt)
+        @test pauli(i_site, :y) == pure_operator(hs1, i_site, 1, 2, -im, UInt) + pure_operator(hs1, i_site, 2, 1, +im, UInt)
+        @test pauli(i_site, :z) == pure_operator(hs1, i_site, 1, 1, 1, UInt) + pure_operator(hs1, i_site, 2, 2, -1, UInt)
+        @test pauli(i_site, :+) == pure_operator(hs1, i_site, 1, 2, 1, UInt)
+        @test pauli(i_site, :-) == pure_operator(hs1, i_site, 2, 1, 1, UInt)
+      end
+      @test_throws ArgumentError pauli(1, :unknown)
     end
-    @test_throws ArgumentError pauli(1, :unknown)
+
+    @testset "binary type" begin
+      (hs1, pauli1) = ExactDiagonalization.Toolkit.spin_half_system(63)
+      @test_throws ArgumentError ExactDiagonalization.Toolkit.spin_half_system(128)
+      (hs2, pauli2) = ExactDiagonalization.Toolkit.spin_half_system(128, UInt128)
+      @test bintype(pauli1(1, :x)) == UInt64
+      @test bintype(pauli2(1, :x)) == UInt128
+    end
   end
 
   @testset "SpinSystem" begin
+    using ExactDiagonalization.Toolkit: spin_system
+    @testset "Constructor" begin
+      spin_system(33, 1//2)
+      @test_throws ArgumentError spin_system(33, 1)
+      spin_system(33, 1, UInt128)
+    end
     r2, r3, r6 = sqrt(2), sqrt(3), sqrt(6)
 
     spin_matrices = Dict(
@@ -70,8 +86,34 @@ using ExactDiagonalization
           @test isapprox(spin_matrices[Rational(S)][μ], Matrix(represent(hsr, spin(1, μ))))
         end
       end # for S
-    end # SingleSite
-  end
+    end # testset SingleSite
+
+    @testset "MultipleSiteCommutation" begin
+      levi_civita = zeros(Int, (3,3,3))
+      levi_civita[1,2,3] = 1
+      levi_civita[2,1,3] = -1
+      levi_civita[2,3,1] = 1
+      levi_civita[1,3,2] = -1
+      levi_civita[3,1,2] = 1
+      levi_civita[3,2,1] = -1
+      component_index = Dict(:x => 1, :y => 2, :z => 3)
+      for S in [1//2, 1, 1//1, 3//2, 2//1, 2]
+        n = 4
+        (hs, spin) = ExactDiagonalization.Toolkit.spin_system(n, S)
+        @test all(let
+                    op1 = simplify(spin(i, μ) * spin(j, ν) - spin(j, ν) * spin(i, μ))
+                    if i == j
+                      op2 = im * sum( levi_civita[iμ, iν, iρ] * spin(i, ρ) for (iρ, ρ) in enumerate([:x, :y, :z]) )
+                    else
+                      op2 = NullOperator()
+                    end
+                    simplify(op1 - op2) == NullOperator()
+                  end
+                    for i in 1:n for j in i:n
+                    for (iμ, μ) in enumerate([:x, :y, :z]), (iν, ν) in enumerate([:x, :y, :z]))
+      end # for S
+    end # testset MultipleSite
+  end # testset SpinSystem
 
   @testset "product_state" begin
     (hs, pauli) = ExactDiagonalization.Toolkit.spin_half_system(4)
