@@ -27,17 +27,22 @@ State{Tuple{Int64,Int64}}("Dn", (-1, 1))
 ```
 """
 struct State{QN<:Tuple{Vararg{<:AbstractQuantumNumber}}}
-  name::String
-  quantum_number::QN
-  State(name::AbstractString) = new{Tuple{}}(name, ())
-  State(name::AbstractString, quantum_number::Integer) = new{Tuple{Int}}(name, (quantum_number,))
-  State(name::AbstractString, quantum_number::QN) where {QN<:Tuple{Vararg{<:AbstractQuantumNumber}}} = new{QN}(name, quantum_number)
+    name::String
+    quantum_number::QN
+    State(name::AbstractString) = new{Tuple{}}(name, ())
+
+    function State(name::AbstractString, quantum_number::Integer)
+        return new{Tuple{Int}}(name, (quantum_number,))
+    end
+
+    function State(name::AbstractString, quantum_number::QN) where {QN<:Tuple{Vararg{<:AbstractQuantumNumber}}}
+        return new{QN}(name, quantum_number)
+    end
 end
 
 
-import Base.==
-function ==(lhs::State{Q}, rhs::State{Q}) where Q
-  return (lhs.name == rhs.name) && (lhs.quantum_number == rhs.quantum_number)
+function Base.:(==)(lhs::State{Q}, rhs::State{Q}) where Q
+    return (lhs.name == rhs.name) && (lhs.quantum_number == rhs.quantum_number)
 end
 
 
@@ -61,9 +66,9 @@ julia> using ExactDiagonalization
 julia> site = Site([State("Up", 1), State("Dn", -1)]);
 ```
 """
-struct Site{QN<:Tuple{Vararg{<:AbstractQuantumNumber}}} <: AbstractHilbertSpace
-  states::Vector{State{QN}}
-  Site(states::AbstractVector{State{QN}}) where QN = new{QN}(states)
+struct Site{QN<:Tuple{Vararg{<:AbstractQuantumNumber}}}<:AbstractHilbertSpace
+    states::Vector{State{QN}}
+    Site(states::AbstractVector{State{QN}}) where QN = new{QN}(states)
 end
 
 
@@ -75,9 +80,8 @@ Returns the quantum number type of the given site type.
 qntype(::Type{Site{QN}}) where QN = QN
 
 
-import Base.==
-function ==(lhs::Site{Q1}, rhs::Site{Q2}) where {Q1, Q2}
-  return (lhs.states == rhs.states)
+function Base.:(==)(lhs::Site{Q1}, rhs::Site{Q2}) where {Q1, Q2}
+    return lhs.states == rhs.states
 end
 
 
@@ -103,7 +107,7 @@ dimension(site::Site) = length(site.states)
 Returns the state of `site` represented by the bits `binrep`.
 """
 function get_state(site::Site, binrep::U) where {U<:Unsigned}
-  return site.states[Int(binrep+1)]
+    return site.states[Int(binrep+1)]
 end
 
 
@@ -114,8 +118,10 @@ Get binary representation of the state specified by `state_index`.
 Check bounds `1 <= state_index <= dimension(site)`, and returns binary representation of `state_index-1`.
 """
 @inline function compress(site::Site, state_index::Integer, binary_type::Type{BR}=UInt) where {BR<:Unsigned}
-  @boundscheck 1 <= state_index <= dimension(site) || throw(BoundsError("attempt to access a $(dimension(site))-state site at index $state_index"))
-  return BR(state_index-1)
+    @boundscheck if !(1 <= state_index <= dimension(site))
+        throw(BoundsError("attempt to access a $(dimension(site))-state site at index $state_index"))
+    end
+    return BR(state_index-1)
 end
 
 
@@ -125,9 +131,11 @@ end
 Gets the state index of the binary representation. Returns `Int(binrep+1)`.
 """
 @inline function get_state_index(site::Site, binrep::U) where {U<:Unsigned}
-  i = Int(binrep+1)
-  @boundscheck 1 <= i <= dimension(site) || throw(BoundsError("attempt to access a $(dimension(site))-state site at index $i"))
-  return i
+    i = Int(binrep+1)
+    @boundscheck if !(1 <= i <= dimension(site))
+        throw(BoundsError("attempt to access a $(dimension(site))-state site at index $i"))
+    end
+    return i
 end
 
 
@@ -137,7 +145,7 @@ end
 Gets a list of possible quantum numbers as a sorted vector of QN.
 """
 function quantum_number_sectors(site::Site{QN})::Vector{QN} where QN
-  return sort(collect(Set([state.quantum_number for state in site.states])))
+    return sort(collect(Set([state.quantum_number for state in site.states])))
 end
 
 
@@ -147,9 +155,8 @@ end
 Gets the quantum number of state specified by state_index.
 """
 function get_quantum_number(site::Site{QN}, state_index::Integer)::QN where QN
-  return site.states[state_index].quantum_number
+    return site.states[state_index].quantum_number
 end
 
 
-import Base.keys
-keys(site::Site) = Base.OneTo(dimension(site))
+Base.keys(site::Site) = Base.OneTo(dimension(site))

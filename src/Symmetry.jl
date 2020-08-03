@@ -1,7 +1,3 @@
-
-#include("Symmetry/abstract_symmetry.jl")
-# include("Symmetry/permutation.jl")
-# include("Symmetry/translation.jl")
 using TightBindingLattice
 
 include("Symmetry/symmetry_apply.jl")

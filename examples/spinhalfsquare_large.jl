@@ -12,8 +12,8 @@ using Printf
 n1, n2 = 4, 4
 n_sites = n1 * n2;
 
-unitcell = make_unitcell([1.0 0.0; 0.0 1.0]; OrbitalType=String)
-addorbital!(unitcell, "Spin", FractCoord([0, 0], [0.0, 0.0]))
+unitcell = make_unitcell([1.0 0.0; 0.0 1.0]; SiteType=String)
+addsite!(unitcell, "Spin", FractCoord([0, 0], [0.0, 0.0]))
 lattice = make_lattice(unitcell, [n1 0; 0 n2])
 tsym = TranslationSymmetry(lattice)
 psym = project(PointSymmetryDatabase.get(13), [1 0 0; 0 1 0])  # inversion symmetry
@@ -93,20 +93,20 @@ j1 = simplify(j1)
 #         ssic.normal.irrep_index
 #         ssic.normal.irrep_component
 #         k1 = (ssic.normal.irrep_index, ssic.normal.irrep_component)
-        
+
 #         if k1 ∉ nodes
 #             push!(nodes, k1)
 #         end
 #         if !haskey(foo, k1)
-#             foo[k1] = Dict("irrep_index" => k1[1], "irrep_component" => k1[2], 
+#             foo[k1] = Dict("irrep_index" => k1[1], "irrep_component" => k1[2],
 #                            "little_group" => symmetry(ssic.rest.symmetry).hermann_mauguin,
 #                            "children"=> [])
 #         end
-#         push!(foo[k1]["children"], 
+#         push!(foo[k1]["children"],
 #                 Dict("irrep_index" => ssic.rest.irrep_index,
 #                      "irrep_component" => ssic.rest.irrep_component))
 
-        
+
 #     end
 #     bar = [foo[k] for k in nodes]
 #     return bar

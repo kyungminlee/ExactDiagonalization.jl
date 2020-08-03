@@ -23,21 +23,21 @@ HilbertSpace{Tuple{Int64}}(Site{Tuple{Int64}}[Site{Tuple{Int64}}(State{Tuple{Int
 ```
 """
 struct HilbertSpace{QN<:Tuple{Vararg{<:AbstractQuantumNumber}}}<:AbstractHilbertSpace
-  sites::Vector{Site{QN}}
-  bitwidths::Vector{Int}
-  bitoffsets::Vector{Int}
+    sites::Vector{Site{QN}}
+    bitwidths::Vector{Int}
+    bitoffsets::Vector{Int}
 
-  function HilbertSpace(sites::AbstractArray{Site{QN}, 1}) where QN
-    bitwidths = map(bitwidth, sites)
-    bitoffsets = Int[0, cumsum(bitwidths)...]
-    new{QN}(sites, bitwidths, bitoffsets)
-  end
+    function HilbertSpace(sites::AbstractArray{Site{QN}, 1}) where QN
+        bitwidths = map(bitwidth, sites)
+        bitoffsets = Int[0, cumsum(bitwidths)...]
+        new{QN}(sites, bitwidths, bitoffsets)
+    end
 
-  function HilbertSpace{QN}(sites::AbstractArray{Site{QN}, 1}) where QN
-    bitwidths = map(bitwidth, sites)
-    bitoffsets = Int[0, cumsum(bitwidths)...]
-    new{QN}(sites, bitwidths, bitoffsets)
-  end
+    function HilbertSpace{QN}(sites::AbstractArray{Site{QN}, 1}) where QN
+        bitwidths = map(bitwidth, sites)
+        bitoffsets = Int[0, cumsum(bitwidths)...]
+        new{QN}(sites, bitwidths, bitoffsets)
+    end
 end
 
 
@@ -51,14 +51,13 @@ scalartype(arg::Type{<:HilbertSpace}) = Bool
 scalartype(arg::HilbertSpace) = Bool
 
 
-import Base.valtype
 """
     valtype(arg::Type{HilbertSpace{QN}})
 
 Returns the `valtype` (scalar type) of the given hilbert space type.
 """
-valtype(arg::Type{<:HilbertSpace}) = Bool
-valtype(arg::HilbertSpace) = Bool
+Base.valtype(arg::Type{<:HilbertSpace}) = Bool
+Base.valtype(arg::HilbertSpace) = Bool
 
 
 """
@@ -97,14 +96,13 @@ julia> bitwidth(hs)
 bitwidth(hs::HilbertSpace) = hs.bitoffsets[end]
 
 
-import Base.==
-function (==)(lhs::HilbertSpace{Q1}, rhs::HilbertSpace{Q2}) where {Q1, Q2}
-  return lhs.sites == rhs.sites
+function Base.:(==)(lhs::HilbertSpace{Q1}, rhs::HilbertSpace{Q2}) where {Q1, Q2}
+    return lhs.sites == rhs.sites
 end
 
 
 function get_bitmask(hs::HilbertSpace, isite::Integer, binary_type::Type{BR}=UInt)::BR where {BR<:Unsigned}
-  return make_bitmask(hs.bitoffsets[isite+1], hs.bitoffsets[isite], BR)
+    return make_bitmask(hs.bitoffsets[isite+1], hs.bitoffsets[isite], BR)
 end
 
 
@@ -112,15 +110,15 @@ end
     quantum_number_sectors
 """
 function quantum_number_sectors(hs::HilbertSpace{QN})::Vector{QN} where QN
-  qns = Set{QN}([tuplezero(QN)])
-  for site in hs.sites
-    qns_next = Set{QN}()
-    for state in site.states, q in qns
-      push!(qns_next, q .+ state.quantum_number)
+    qns = Set{QN}([tuplezero(QN)])
+    for site in hs.sites
+        qns_next = Set{QN}()
+        for state in site.states, q in qns
+            push!(qns_next, q .+ state.quantum_number)
+        end
+        qns = qns_next
     end
-    qns = qns_next
-  end
-  return sort(collect(qns))
+    return sort(collect(qns))
 end
 
 
@@ -128,18 +126,23 @@ end
     get_quantum_number
 """
 function get_quantum_number(hs::HilbertSpace{QN}, binrep::BR) where {QN, BR}
-  return mapreduce(identity, tupleadd,
-      let i = get_state_index(hs, binrep, isite)
-        site.states[i].quantum_number
-      end
-      for (isite, site) in enumerate(hs.sites))
+    return mapreduce(
+        identity,
+        tupleadd,
+        let i = get_state_index(hs, binrep, isite)
+            site.states[i].quantum_number
+        end
+            for (isite, site) in enumerate(hs.sites)
+    )
 end
 
 
 function get_quantum_number(hs::HilbertSpace{QN}, indexarray::AbstractArray{I, 1}) where {QN, I<:Integer}
-  return mapreduce(identity, tupleadd,
-      site.states[indexarray[isite]].quantum_number
-      for (isite, site) in enumerate(hs.sites)
+    return mapreduce(
+        identity,
+        tupleadd,
+        site.states[indexarray[isite]].quantum_number
+            for (isite, site) in enumerate(hs.sites)
     )
 end
 
@@ -160,17 +163,17 @@ CartesianIndex(2, 2)
 ```
 """
 function extract(hs::HilbertSpace{QN}, binrep::BR)::CartesianIndex where {QN, BR<:Unsigned}
-  out = Int[]
-  for (isite, site) in enumerate(hs.sites)
-    @inbounds mask = make_bitmask(hs.bitwidths[isite], BR)
-    index = Int(binrep & mask) + 1
-    @boundscheck if !(1 <= index <= length(site.states))
-      throw(BoundsError(1:length(site.states), index))
+    out = Int[]
+    for (isite, site) in enumerate(hs.sites)
+        @inbounds mask = make_bitmask(hs.bitwidths[isite], BR)
+        index = Int(binrep & mask) + 1
+        @boundscheck if !(1 <= index <= length(site.states))
+            throw(BoundsError(1:length(site.states), index))
+        end
+        push!(out, index)
+        binrep = binrep >> hs.bitwidths[isite]
     end
-    push!(out, index)
-    binrep = binrep >> hs.bitwidths[isite]
-  end
-  return CartesianIndex(out...)
+    return CartesianIndex(out...)
 end
 
 
@@ -191,18 +194,22 @@ julia> compress(hs, CartesianIndex(2,2))
 0x0000000000000003
 ```
 """
-function compress(hs::HilbertSpace{QN}, indexarray::CartesianIndex, binary_type::Type{BR}=UInt) where {QN, BR<:Unsigned}
-  if length(indexarray) != length(hs.sites)
-    throw(ArgumentError("length of indexarray should be the number of sites"))
-  end
-  binrep = zero(BR)
-  for (isite, site) in enumerate(hs.sites)
-    @boundscheck if !(1 <= indexarray[isite] <= dimension(site))
-      throw(BoundsError(1:dimension(site), indexarray[isite]))
+function compress(
+    hs::HilbertSpace{QN},
+    indexarray::CartesianIndex,
+    binary_type::Type{BR}=UInt
+) where {QN, BR<:Unsigned}
+    if length(indexarray) != length(hs.sites)
+        throw(ArgumentError("length of indexarray should be the number of sites"))
     end
-    binrep |= (BR(indexarray[isite] - 1) << hs.bitoffsets[isite] )
-  end
-  return binrep
+    binrep = zero(BR)
+    for (isite, site) in enumerate(hs.sites)
+        @boundscheck if !(1 <= indexarray[isite] <= dimension(site))
+            throw(BoundsError(1:dimension(site), indexarray[isite]))
+        end
+        binrep |= (BR(indexarray[isite] - 1) << hs.bitoffsets[isite] )
+    end
+    return binrep
 end
 
 
@@ -213,12 +220,17 @@ Update the binary representation of a basis state
 by changing the state at site `isite` to a new local state specified by
 `new_state_index`.
 """
-@inline function update(hs::HilbertSpace, binrep::BR, isite::Integer, new_state_index::Integer) where {BR<:Unsigned}
-  @boundscheck if !(1 <= new_state_index <= dimension(hs.sites[isite]))
-    throw(BoundsError(1:dimension(hs.sites[isite]), new_state_index))
-  end
-  mask = make_bitmask(hs.bitoffsets[isite+1], hs.bitoffsets[isite], BR)
-  return (binrep & (~mask)) | (BR(new_state_index-1) << hs.bitoffsets[isite])
+@inline function update(
+    hs::HilbertSpace,
+    binrep::BR,
+    isite::Integer,
+    new_state_index::Integer
+) where {BR<:Unsigned}
+    @boundscheck if !(1 <= new_state_index <= dimension(hs.sites[isite]))
+        throw(BoundsError(1:dimension(hs.sites[isite]), new_state_index))
+    end
+    mask = make_bitmask(hs.bitoffsets[isite+1], hs.bitoffsets[isite], BR)
+    return (binrep & (~mask)) | (BR(new_state_index-1) << hs.bitoffsets[isite])
 end
 
 
@@ -229,7 +241,7 @@ Get the *index of* the local state at site `isite` for the basis state
 represented by `binrep`.
 """
 function get_state_index(hs::HilbertSpace, binrep::BR, isite::Integer) where {BR<:Unsigned}
-  return Int((binrep >> hs.bitoffsets[isite]) & make_bitmask(hs.bitwidths[isite], BR)) + 1
+    return Int((binrep >> hs.bitoffsets[isite]) & make_bitmask(hs.bitwidths[isite], BR)) + 1
 end
 
 
@@ -240,7 +252,7 @@ Get the local state at site `isite` for the basis state
 represented by `binrep`. Returns an object of type `State`
 """
 function get_state(hs::HilbertSpace, binrep::BR, isite::Integer) where {BR<:Unsigned}
-  return hs.sites[isite].states[get_state_index(hs, binrep, isite)]
+    return hs.sites[isite].states[get_state_index(hs, binrep, isite)]
 end
 
 
@@ -263,7 +275,6 @@ end
 # end
 
 
-import Base.keys
-function keys(hs::HilbertSpace{QN}) where QN
-  return CartesianIndices(((1:length(site.states) for site in hs.sites)...,))
+function Base.keys(hs::HilbertSpace{QN}) where QN
+    return CartesianIndices(((1:length(site.states) for site in hs.sites)...,))
 end

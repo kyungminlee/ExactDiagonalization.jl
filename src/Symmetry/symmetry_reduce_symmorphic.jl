@@ -8,12 +8,14 @@ Symmetry-reduce the HilbertSpaceRepresentation using translation group (single t
 
 """
 function symmetry_reduce_serial(
-        hsr::HilbertSpaceRepresentation{QN, BR, DT},
-        ssic::SymmorphicIrrepComponent{<:SymmetryEmbedding{<:TranslationSymmetry},
-                                       <:SymmetryEmbedding{<:PointSymmetry}},
-        ::Type{ComplexType}=ComplexF64;
-        tol::Real=Base.rtoldefault(Float64)
-        ) where {QN, BR, DT, ComplexType<:Complex}
+    hsr::HilbertSpaceRepresentation{QN, BR, DT},
+    ssic::SymmorphicIrrepComponent{
+        <:SymmetryEmbedding{<:TranslationSymmetry},
+        <:SymmetryEmbedding{<:PointSymmetry}
+    },
+    ::Type{ComplexType}=ComplexF64;
+    tol::Real=Base.rtoldefault(Float64)
+) where {QN, BR, DT, ComplexType<:Complex}
 
     HSR = HilbertSpaceRepresentation{QN, BR, DT}
 
@@ -27,13 +29,20 @@ function symmetry_reduce_serial(
     tsym_group_size = group_order(ssic.normal.symmetry)
     @assert length(tsym_symops_and_amplitudes) == tsym_group_size
 
-    psym_symops_and_amplitudes = [(x, conj(y)) for (x, y) in get_irrep_iterator(ssic.rest) if !isapprox(y, zero(y); atol=tol)]
+    psym_symops_and_amplitudes = [
+        (x, conj(y))
+            for (x, y) in get_irrep_iterator(ssic.rest)
+                if !isapprox(y, zero(y); atol=tol)
+    ]
     psym_subgroup_size = length(psym_symops_and_amplitudes)
     @assert psym_subgroup_size <= group_order(ssic.rest.symmetry)
 
-    symops_and_amplitudes = [(p*t, ϕp*ϕt)
-        for (t, ϕt) in tsym_symops_and_amplitudes #if !isapprox(ϕt, zero(ϕt); atol=tol)
-        for (p, ϕp) in psym_symops_and_amplitudes if !isapprox(ϕp, zero(ϕp); atol=tol)
+    symops_and_amplitudes = [
+        (p*t, ϕp*ϕt)
+            for (t, ϕt) in tsym_symops_and_amplitudes
+                #if !isapprox(ϕt, zero(ϕt); atol=tol)
+            for (p, ϕp) in psym_symops_and_amplitudes
+                if !isapprox(ϕp, zero(ϕp); atol=tol)
     ]
     subgroup_size = tsym_group_size * psym_subgroup_size
     @assert length(symops_and_amplitudes) == subgroup_size
@@ -104,9 +113,19 @@ function symmetry_reduce_serial(
         basis_mapping_index[ivec_p_prime] = ivec_r
     end
 
-    return ReducedHilbertSpaceRepresentation{HSR, SymmorphicIrrepComponent{SymmetryEmbedding{TranslationSymmetry}, SymmetryEmbedding{PointSymmetry}}, BR, ComplexType}(
-                hsr, ssic, reduced_basis_list,
-                basis_mapping_index, basis_mapping_amplitude)
+    RHSR = ReducedHilbertSpaceRepresentation{
+        HSR,
+        SymmorphicIrrepComponent{
+            SymmetryEmbedding{TranslationSymmetry},
+            SymmetryEmbedding{PointSymmetry}
+        },
+        BR,
+        ComplexType
+    }
+    return RHSR(
+        hsr, ssic, reduced_basis_list,
+        basis_mapping_index, basis_mapping_amplitude
+    )
 end
 
 
@@ -119,12 +138,14 @@ Symmetry-reduce the HilbertSpaceRepresentation using translation group (multi-th
 
 """
 function symmetry_reduce_parallel(
-        hsr::HilbertSpaceRepresentation{QN, BR, DT},
-        ssic::SymmorphicIrrepComponent{<:SymmetryEmbedding{<:TranslationSymmetry},
-                                       <:SymmetryEmbedding{<:PointSymmetry}},
-        ::Type{ComplexType}=ComplexF64;
-        tol::Real=Base.rtoldefault(Float64)
-        ) where {QN, BR, DT, ComplexType<:Complex}
+    hsr::HilbertSpaceRepresentation{QN, BR, DT},
+    ssic::SymmorphicIrrepComponent{
+        <:SymmetryEmbedding{<:TranslationSymmetry},
+        <:SymmetryEmbedding{<:PointSymmetry}
+    },
+    ::Type{ComplexType}=ComplexF64;
+    tol::Real=Base.rtoldefault(Float64)
+) where {QN, BR, DT, ComplexType<:Complex}
 
     HSR = HilbertSpaceRepresentation{QN, BR, DT}
     @debug "BEGIN symmetry_reduce_parallel"
@@ -147,13 +168,14 @@ function symmetry_reduce_parallel(
     psym_subgroup_size = length(psym_symops_and_amplitudes)
     @assert psym_subgroup_size <= group_order(ssic.rest.symmetry)
 
-    symops_and_amplitudes = [(p*t, ϕp*ϕt)
-        for (t, ϕt) in tsym_symops_and_amplitudes #if !isapprox(ϕt, zero(ϕt); atol=tol)
-        for (p, ϕp) in psym_symops_and_amplitudes if !isapprox(ϕp, zero(ϕp); atol=tol)
+    symops_and_amplitudes = [
+        (p*t, ϕp*ϕt)
+            for (t, ϕt) in tsym_symops_and_amplitudes #if !isapprox(ϕt, zero(ϕt); atol=tol)
+            for (p, ϕp) in psym_symops_and_amplitudes if !isapprox(ϕp, zero(ϕp); atol=tol)
     ]
     subgroup_size = tsym_group_size * psym_subgroup_size
     @assert length(symops_and_amplitudes) == subgroup_size
-    
+
     size_estimate = n_basis ÷ max(1, subgroup_size - 1)
     @debug "Estimate for the reduced Hilbert space dimension: $size_estimate"
 
@@ -215,7 +237,7 @@ function symmetry_reduce_parallel(
         end # for i
         (!compatible) && continue
         local_basis_states[id, 1] = bvec
-                
+
         push!(local_reduced_basis_list[id], bvec)
 
         empty!(local_basis_amplitudes[id])
@@ -267,7 +289,17 @@ function symmetry_reduce_parallel(
     @debug "Collected basis lookup (offdiagonal)"
 
     @debug "END symmetry_reduce_parallel"
-    return ReducedHilbertSpaceRepresentation{HSR, SymmorphicIrrepComponent{SymmetryEmbedding{TranslationSymmetry}, SymmetryEmbedding{PointSymmetry}}, BR, ComplexType}(
-                hsr, ssic, reduced_basis_list,
-                basis_mapping_index, basis_mapping_amplitude)
+    RHSR = ReducedHilbertSpaceRepresentation{
+        HSR,
+        SymmorphicIrrepComponent{
+            SymmetryEmbedding{TranslationSymmetry},
+            SymmetryEmbedding{PointSymmetry}
+        },
+        BR,
+        ComplexType
+    }
+    return RHSR(
+        hsr, ssic, reduced_basis_list,
+        basis_mapping_index, basis_mapping_amplitude
+    )
 end

@@ -15,8 +15,8 @@ using Arpack
 =#
 function make_triangular_lattice(shape::AbstractMatrix{<:Integer})
     latticevectors = [1 -0.5; 0 0.5*sqrt(3.0)];
-    unitcell = make_unitcell(latticevectors, OrbitalType=String)
-    addorbital!(unitcell, "A", carte2fract(unitcell, [0.0, 0.0]))
+    unitcell = make_unitcell(latticevectors, SiteType=String)
+    addsite!(unitcell, "A", carte2fract(unitcell, [0.0, 0.0]))
     nnbondtypes = [ [1, 0], [1, 1], [0, 1] ]
     nnnbondtypes = [ [ 2, 1], [ 1, 2], [-1, 1] ]
 
@@ -37,16 +37,16 @@ function make_triangular_lattice(shape::AbstractMatrix{<:Integer})
             R_col, r_col = orthocube.wrap(r_row .+ colvec)
             roworb_super = ("A", r_row)
             colorb_super = ("A", r_col)
-            irow = get(supercell.orbitalindices, roworb_super, -1)
-            icol = get(supercell.orbitalindices, colorb_super, -1)
+            irow = get(supercell.siteindices, roworb_super, -1)
+            icol = get(supercell.siteindices, colorb_super, -1)
             push!(nnbonds, ((irow, icol), R_col))
         end
         for colvec in nnnbondtypes
             R_col, r_col = orthocube.wrap(r_row .+ colvec)
             roworb_super = ("A", r_row)
             colorb_super = ("A", r_col)
-            irow = get(supercell.orbitalindices, roworb_super, -1)
-            icol = get(supercell.orbitalindices, colorb_super, -1)
+            irow = get(supercell.siteindices, roworb_super, -1)
+            icol = get(supercell.siteindices, colorb_super, -1)
             push!(nnnbonds, ((irow, icol), R_col))
         end
     end
@@ -68,7 +68,7 @@ shape = [  3  3; -3  6]  # 27
 
 trilat = make_triangular_lattice(shape)
 
-n_sites = numorbital(trilat.lattice.supercell)
+n_sites = numsite(trilat.lattice.supercell)
 @show n_sites
 
 (hs, σ) = ExactDiagonalization.Toolkit.spin_half_system(n_sites)
@@ -98,4 +98,3 @@ end
 println("dimension:", dimensions)
 println("total dimension: ", sum(dimensions))
 println("max dimension: ", maximum(dimensions))
-

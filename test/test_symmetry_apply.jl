@@ -6,8 +6,8 @@ using ExactDiagonalization.Toolkit: pauli_matrix
 
 @testset "symmetry_apply" begin
 
-  unitcell = make_unitcell(1.0; OrbitalType=String)
-  addorbital!(unitcell, "Spin", FractCoord([0], [0.0]))
+  unitcell = make_unitcell(1.0; SiteType=String)
+  addsite!(unitcell, "Spin", FractCoord([0], [0.0]))
   lattice = make_lattice(unitcell, 4)
 
   # Test State and Site
