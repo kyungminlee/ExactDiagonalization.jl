@@ -40,8 +40,8 @@ println("## Sz=0, each momentum sectors")
 hs_sector = HilbertSpaceSector(hs, 0)
 hs_rep = represent_dict(hs_sector) # Use Dict{UInt, Int} for basis lookup
 
-unitcell = make_unitcell(1.0; OrbitalType=String)
-addorbital!(unitcell, "Spin", FractCoord([0], [0.0]))
+unitcell = make_unitcell(1.0; SiteType=String)
+addsite!(unitcell, "Spin", FractCoord([0], [0.0]))
 lattice = make_lattice(unitcell, 8)
 tsymbed = translation_symmetry_embedding(lattice)
 
