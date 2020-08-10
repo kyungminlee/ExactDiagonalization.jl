@@ -11,8 +11,8 @@ using ExactDiagonalization.Toolkit: pauli_matrix
   tol = Base.rtoldefault(Float64)
 
   n = 4
-  unitcell = make_unitcell(1.0; OrbitalType=String)
-  addorbital!(unitcell, "Spin", FractCoord([0], [0.0]))
+  unitcell = make_unitcell(1.0; SiteType=String)
+  addsite!(unitcell, "Spin", FractCoord([0], [0.0]))
   lattice = make_lattice(unitcell, n)
 
   # Test State and Site
@@ -210,8 +210,8 @@ end # testset RedOp4
 @testset "RedOp7" begin
   # testing complex phase
   n = 7
-  unitcell = make_unitcell(1.0; OrbitalType=String)
-  addorbital!(unitcell, "Spin", FractCoord([0], [0.0]))
+  unitcell = make_unitcell(1.0; SiteType=String)
+  addsite!(unitcell, "Spin", FractCoord([0], [0.0]))
   lattice = make_lattice(unitcell, n)
 
   tol = Base.rtoldefault(Float64)

@@ -50,6 +50,9 @@ end
     @test get_state_index(site1, 0x0000000) == 1
     @test get_state_index(site1, 0x0000001) == 2
 
+    @test_throws BoundsError compress(site1, 10)
+    @test_throws BoundsError get_state_index(site1, 0x000000F)
+
     @test [i for i in eachindex(site1)] == [1,2]
     @test collect(keys(site1)) == [1,2]
   end

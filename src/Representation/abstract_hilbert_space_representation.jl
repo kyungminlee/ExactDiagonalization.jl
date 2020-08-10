@@ -8,11 +8,11 @@ export scalartype, bintype
 abstract type AbstractHilbertSpaceRepresentation{S<:Number} end
 
 
-import Base.valtype
-
 scalartype(lhs::AbstractHilbertSpaceRepresentation{S}) where S = S
-valtype(lhs::AbstractHilbertSpaceRepresentation{S}) where S = S
-bintype(lhs::AbstractHilbertSpaceRepresentation{S}) where S = bintype(typeof(lhs))::DataType
+Base.valtype(lhs::AbstractHilbertSpaceRepresentation{S}) where S = S
+bintype(lhs::AbstractHilbertSpaceRepresentation{S}) where S = bintype(typeof(lhs))
 
 
-bitwidth(lhs::AbstractHilbertSpaceRepresentation{S}) where S = bitwidth(basespace(lhs))::Int
+function bitwidth(lhs::AbstractHilbertSpaceRepresentation{S}) where S
+    return bitwidth(basespace(lhs))
+end

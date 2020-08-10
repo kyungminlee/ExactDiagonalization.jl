@@ -230,6 +230,18 @@ using ExactDiagonalization.Toolkit: pauli_matrix
           # add to the previous (do not overwrite)
           APP!(out1, state, opr)
           @test !isapprox(out0, out1, atol=1E-6)
+
+          let
+            state_long = rand(ComplexF64, dim+1)
+            @test_throws DimensionMismatch APP!(out1, state_long, opr)
+            @test_throws DimensionMismatch APP!(out1, opr, state_long)
+          end
+
+          let
+            out_long = rand(ComplexF64, dim+1)
+            @test_throws DimensionMismatch APP!(out_long, state, opr)
+            @test_throws DimensionMismatch APP!(out_long, opr, state)
+          end
         end
       end
 

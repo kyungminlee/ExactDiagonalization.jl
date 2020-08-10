@@ -8,10 +8,11 @@ Symmetry-reduce the HilbertSpaceRepresentation using translation group.
 
 """
 function symmetry_reduce(
-        hsr::HilbertSpaceRepresentation{QN, BR, DT},
-        ssic::AbstractSymmetryIrrepComponent,
-        complex_type::Type{ComplexType}=ComplexF64;
-        tol::Real=Base.rtoldefault(Float64)) where {QN, BR, DT, ComplexType<:Complex}
+    hsr::HilbertSpaceRepresentation{QN, BR, DT},
+    ssic::AbstractSymmetryIrrepComponent,
+    complex_type::Type{ComplexType}=ComplexF64;
+    tol::Real=Base.rtoldefault(Float64)
+) where {QN, BR, DT, ComplexType<:Complex}
     symred = Threads.nthreads() == 1 ? symmetry_reduce_serial : symmetry_reduce_parallel
     return symred(hsr, ssic, ComplexType; tol=tol)
 end
@@ -25,23 +26,23 @@ Simply throw away components that don't fit.
 function symmetry_reduce(
     rhsr::ReducedHilbertSpaceRepresentation{HSR, SIC, BR, C},
     large_vector::AbstractVector{Si}
-  ) where {HSR, SIC, BR, C, Si<:Number}
-  if length(large_vector) != dimension(rhsr.parent)
-    throw(DimensionMismatch("Dimension of the input vector should match the larger representation"))
-  end
-  So = promote_type(C, Si)
-  small_vector = zeros(So, dimension(rhsr))
-
-  # basis mapping
-  # (i_p | i_r | ampl) indicates : U_(p, r) = ampl
-  for (i_p, i_r) in enumerate(rhsr.basis_mapping_index)
-    if i_r > 0
-      ampl = rhsr.basis_mapping_amplitude[i_p]
-      # H_r = U† H U
-      small_vector[i_r] += conj(ampl) * large_vector[i_p]
+) where {HSR, SIC, BR, C, Si<:Number}
+    if length(large_vector) != dimension(rhsr.parent)
+        throw(DimensionMismatch("Dimension of the input vector should match the larger representation"))
     end
-  end
-  return small_vector
+    So = promote_type(C, Si)
+    small_vector = zeros(So, dimension(rhsr))
+
+    # basis mapping
+    # (i_p | i_r | ampl) indicates : U_(p, r) = ampl
+    for (i_p, i_r) in enumerate(rhsr.basis_mapping_index)
+        if i_r > 0
+            ampl = rhsr.basis_mapping_amplitude[i_p]
+            # H_r = U† H U
+            small_vector[i_r] += conj(ampl) * large_vector[i_p]
+        end
+    end
+    return small_vector
 end
 
 
@@ -66,18 +67,18 @@ raw"""
 function symmetry_unreduce(
     rhsr::ReducedHilbertSpaceRepresentation{HSR, SIC, BR, C},
     small_vector::AbstractVector{Si}
-  ) where {HSR, SIC, BR, C, Si<:Number}
-  if length(small_vector) != dimension(rhsr)
-    throw(DimensionMismatch("Dimension of the input vector should match the reduced representation"))
-  end
-  So = promote_type(C, Si)
-  large_vector = zeros(So, dimension(rhsr.parent))
-  for (i_p, i_r) in enumerate(rhsr.basis_mapping_index)
-    if i_r > 0
-      ampl = rhsr.basis_mapping_amplitude[i_p]
-      # H_r = U† H U
-      large_vector[i_p] += ampl * small_vector[i_r]
+) where {HSR, SIC, BR, C, Si<:Number}
+    if length(small_vector) != dimension(rhsr)
+        throw(DimensionMismatch("Dimension of the input vector should match the reduced representation"))
     end
-  end
-  return large_vector
+    So = promote_type(C, Si)
+    large_vector = zeros(So, dimension(rhsr.parent))
+    for (i_p, i_r) in enumerate(rhsr.basis_mapping_index)
+        if i_r > 0
+            ampl = rhsr.basis_mapping_amplitude[i_p]
+            # H_r = U† H U
+            large_vector[i_p] += ampl * small_vector[i_r]
+        end
+    end
+    return large_vector
 end
