@@ -1,15 +1,15 @@
 export symmetry_apply
 export isinvariant
 
-import TightBindingLattice.AbstractSymmetryOperationEmbedding
+import TightBindingLattice.AbstractSpaceSymmetryOperationEmbedding
 import TightBindingLattice.SymmetryEmbedding
 
-## AbstractSymmetryOperationEmbedding
+## AbstractSpaceSymmetryOperationEmbedding
 
 ### HilbertSpaceSector
 function symmetry_apply(
     hss::HilbertSpaceSector{QN},
-    symop::AbstractSymmetryOperationEmbedding,
+    symop::AbstractSpaceSymmetryOperationEmbedding,
     args...;
     kwargs...
 ) where {QN}
@@ -18,7 +18,7 @@ end
 
 function isinvariant(
     hss::HilbertSpaceSector{QN},
-    symop::AbstractSymmetryOperationEmbedding,
+    symop::AbstractSpaceSymmetryOperationEmbedding,
     args...;
     kwargs...
 ) where {QN}
@@ -47,7 +47,7 @@ end
 ### generic symmetry operations for NullOperator and SumOperator
 function symmetry_apply(
     hs::HilbertSpace{QN},
-    symop::AbstractSymmetryOperationEmbedding,
+    symop::AbstractSpaceSymmetryOperationEmbedding,
     op::NullOperator
 ) where {QN}
     return op
@@ -55,7 +55,7 @@ end
 
 function symmetry_apply(
     hs::HilbertSpace{QN},
-    symop::AbstractSymmetryOperationEmbedding,
+    symop::AbstractSpaceSymmetryOperationEmbedding,
     op::SumOperator{S, BR}
 ) where {QN, S<:Number, BR<:Unsigned}
     terms = collect(symmetry_apply(hs, symop, t) for t in op.terms)
@@ -95,7 +95,7 @@ end
 ## isinvariant
 function isinvariant(
     hs::HilbertSpace{QN},
-    symop::AbstractSymmetryOperationEmbedding,
+    symop::AbstractSpaceSymmetryOperationEmbedding,
     op::AbstractOperator
 ) where {QN}
     return simplify(op - symmetry_apply(hs, symop, op)) == NullOperator()
