@@ -1,6 +1,4 @@
-# Examples
-
-## S=1/2 Heisenberg Chain
+# Example 1: S=1/2 Heisenberg Chain
 
 ```@example
 using SparseArrays
