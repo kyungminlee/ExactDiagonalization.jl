@@ -8,7 +8,7 @@ import LinearAlgebra
 """
     struct SparseState{Scalar<:Number, BR}
 
-Represents a row vector. Free.
+Represents a vector in unrestricted Hilbert space.
 """
 mutable struct SparseState{Scalar<:Number, BR}
     components::Dict{BR, Scalar}
@@ -22,6 +22,10 @@ mutable struct SparseState{Scalar<:Number, BR}
 
     function SparseState(components::Dict{BR, Scalar}) where {Scalar, BR}
         return new{Scalar, BR}(components)
+    end
+
+    function SparseState(components::Pair{BR, Scalar}...) where {Scalar, BR}
+        return new{Scalar, BR}(Dict{BR, Scalar}(components))
     end
 
     function SparseState{Scalar, BR}(binrep::BR) where {Scalar, BR}
@@ -56,6 +60,11 @@ function Base.setindex!(
 end
 
 
+"""
+    scalartype([state or type of state])
+
+Return the scalar type of the state.
+"""
 scalartype(::SparseState{Scalar, BR}) where {Scalar, BR} = Scalar
 scalartype(::Type{SparseState{Scalar, BR}}) where {Scalar, BR} = Scalar
 

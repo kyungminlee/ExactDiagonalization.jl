@@ -9,14 +9,18 @@ and the Hilbert space for whole system can be constructed by taking the tensor p
 
 A [`Site`](@ref) can be constructed out of a set of [`State`](@ref).
 For example,
-```julia
-spinsite = Site{Int}([State{Int}("Up", 1), State{Int}("Dn", -1)])
+```julia-repl
+julia> spinsite = Site([State("Up", 1), State("Dn", -1)])
+Site{Tuple{Int64}}(State{Tuple{Int64}}[State{Tuple{Int64}}("Up", (1,)), State{Tuple{Int64}}("Dn", (-1,))])
 ```
 constructs a two-state site with spin-half degrees of freedom.
-The type parameter `Int` is the type of the Abelian quantum number, which, in this case, is $2S_z$.
-Each basis vector is represented as a (0-based) binary number,
-corresponding to their order in the constructor.
-For the example above, the up-state is represented by a `0` and the down-state is represented by a `1`.
+The type parameter `Tuple{Int}` represents the type of Abelian quantum number.
+which is is $2S_z$ in this case.
+When there are more than one conserved quantum numbers, they can be combined:
+e.g. `Tuple{Int, Int}`, to represent the charge and total $S_z$, for example.
+Each basis vector is represented as a binary number,
+corresponding to their order in the constructor (0-based).
+For the example above, the up-state is represented as `0` and the down-state is represented as `1`.
 
 ## HilbertSpace
 
@@ -35,15 +39,24 @@ where each `Site` occupies a fixed location and width. e.g.
        ⋮
 |↓↓↓↓⟩ = |1111⟩
 ```
+The number of bits assigned for each site is determined by `Int(ceil(log2(length(site.states)))`, and can be accessed by [`bitwidth`](@ref).
 
 ## HilbertSpaceSector
 
-A sub Hilbert space, in terms of the Abelian quantum number, can be constructed
-using [`HilbertSpaceSector`](@ref), by specifying the value of the quantum number
+A subspace of the whole Hilbert space, in terms of the Abelian quantum number, can be constructed using [`HilbertSpaceSector`](@ref), by specifying the value of the quantum number as an integer if the Hilbert space has a single integral quantum number,
 ```julia
 hilbert_space_sector = HilbertSpaceSector(hilbert_space, 0)
 ```
-or a set of quantum number values, if you need to for whatever reason
+or as a tuple
 ```julia
-hilbert_space_sector = HilbertSpaceSector(hilbert_space, [0,2,4])
+hilbert_space_sector = HilbertSpaceSector(hilbert_space, (0,))
 ```
+You can also allow more than one quantum number values, if you need to for whatever reason
+```julia
+hilbert_space_sector = HilbertSpaceSector(hilbert_space, [(0,), (2,), (4,)])
+```
+or more shortly,
+```julia
+hilbert_space_sector = HilbertSpaceSector(hilbert_space, [0, 2, 4])
+```
+This example creates a subspace whose quantum numbers can be one of 0, 2, and 4.

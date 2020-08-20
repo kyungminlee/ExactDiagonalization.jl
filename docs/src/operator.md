@@ -1,5 +1,9 @@
 # Operator
 
+`ExactDiagonalization.jl` uses operators in the "projector" representation.
+
+
+
 ## Operator Types
 
 ### NullOperator

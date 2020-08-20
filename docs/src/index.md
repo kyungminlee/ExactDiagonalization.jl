@@ -28,9 +28,9 @@ of the Hilbert spaces as 𝐂ⁿ (or 𝐑ⁿ), and of operators as n×n matrices
 First you need to create a Hilbert space representation:
 1. Define `State`s, and `Site`s
 1. Define the `HilbertSpace`
-1. If there is quantum number, use that to define `HilbertSpaceSector`
+1. If there are quantum numbers, use them to define `HilbertSpaceSector`
 1. Define `HilbertSpaceRepresentation` and construct basis set
-1. If there is translation symmetry, use that to define `ReducedHilbertSpaceRepresentation`
+1. If there is space symmetry, translation or point or both, use that to define `ReducedHilbertSpaceRepresentation`
 
 And then you can create operator representation using the Hilbert space representation from above:
 1. Define `Operator`s

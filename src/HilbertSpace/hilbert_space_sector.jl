@@ -14,19 +14,39 @@ struct HilbertSpaceSector{QN<:Tuple{Vararg{<:AbstractQuantumNumber}}}<:AbstractH
     parent::HilbertSpace{QN}
     allowed_quantum_numbers::Set{QN}
 
+    """
+        HilbertSpaceSector(parent::HilbertSpace{QN}) where QN
+    """
     function HilbertSpaceSector(parent::HilbertSpace{QN}) where QN
         sectors = quantum_number_sectors(parent)
         return new{QN}(parent, Set(sectors))
     end
 
+    """
+        HilbertSpaceSector(parent::HilbertSpace{QN}, allowed::Integer) where {QN<:Tuple{<:Integer}}
+    """
     function HilbertSpaceSector(parent::HilbertSpace{QN}, allowed::Integer) where {QN<:Tuple{<:Integer}}
         sectors = Set{QN}(quantum_number_sectors(parent))
         return new{QN}(parent, intersect(sectors, Set([(allowed,)])))
     end
 
+    """
+        HilbertSpaceSector(parent::HilbertSpace{QN}, allowed::QN) where QN
+    """
     function HilbertSpaceSector(parent::HilbertSpace{QN}, allowed::QN) where QN
         sectors = Set{QN}(quantum_number_sectors(parent))
         return new{QN}(parent, intersect(sectors, Set([allowed])))
+    end
+
+    """
+        HilbertSpaceSector(parent::HilbertSpace{QN}, allowed::Union{AbstractSet{<:Integer}, AbstractVector{<:Integer}}) where QN
+    """
+    function HilbertSpaceSector(
+        parent::HilbertSpace{QN},
+        allowed::Union{AbstractSet{<:Integer}, AbstractVector{<:Integer}}
+    ) where QN
+        sectors = Set{QN}(quantum_number_sectors(parent))
+        return new{QN}(parent, intersect(sectors, Set((x,) for x in allowed)))
     end
 
     function HilbertSpaceSector(
@@ -76,9 +96,7 @@ its parent `HilbertSpace` (with no quantum number restriction).
 """
 basespace(hss::HilbertSpaceSector{QN}) where QN = basespace(hss.parent)::HilbertSpace{QN}
 
-
-bitwidth(hss::HilbertSpaceSector) = bitwidth(basespace(hss))
-
+#bitwidth(hss::HilbertSpaceSector) = bitwidth(basespace(hss))
 
 function Base.:(==)(lhs::HilbertSpaceSector{Q1}, rhs::HilbertSpaceSector{Q2}) where {Q1, Q2}
     return (
@@ -89,6 +107,7 @@ end
 
 
 for fname in [
+    :bitwidth,
     :get_bitmask,
     :quantum_number_sectors,
     :get_quantum_number,
@@ -99,6 +118,11 @@ for fname in [
     :get_state,
 ]
     @eval begin
+        """
+            $($fname)(hss::HilbertSpaceSector, args...;kwargs...)
+
+        Call `$($fname)` with basespace of `hss`.
+        """
         @inline $fname(hss::HilbertSpaceSector, args...;kwargs...) = $fname(hss.parent, args...; kwargs...)
     end
 end

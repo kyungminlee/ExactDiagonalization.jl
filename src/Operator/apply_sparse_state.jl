@@ -3,7 +3,7 @@ export apply!
 
 
 """
-    apply!
+    apply!(out, nullop, psi)
 
 Apply operator to `psi` and add it to `out`.
 """
