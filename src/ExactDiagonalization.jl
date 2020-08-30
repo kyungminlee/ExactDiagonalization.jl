@@ -11,7 +11,7 @@ using SparseArrays
 #end
 
 # workaround?
-import TightBindingLattice.dimension
+import LatticeTools.dimension
 
 include("util.jl")
 include("frozensortedarray.jl")

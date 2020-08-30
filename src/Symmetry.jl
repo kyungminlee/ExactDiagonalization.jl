@@ -1,4 +1,4 @@
-using TightBindingLattice
+using LatticeTools
 
 include("Symmetry/symmetry_apply.jl")
 

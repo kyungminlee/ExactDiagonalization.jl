@@ -1,8 +1,8 @@
 export symmetry_apply
 export isinvariant
 
-import TightBindingLattice.AbstractSpaceSymmetryOperationEmbedding
-import TightBindingLattice.SymmetryEmbedding
+import LatticeTools.AbstractSpaceSymmetryOperationEmbedding
+import LatticeTools.SymmetryEmbedding
 
 ## AbstractSpaceSymmetryOperationEmbedding
 

@@ -1,7 +1,7 @@
 using Test
 using ExactDiagonalization
 
-using TightBindingLattice
+using LatticeTools
 using ExactDiagonalization.Toolkit: pauli_matrix
 
 @testset "symmetry_apply" begin

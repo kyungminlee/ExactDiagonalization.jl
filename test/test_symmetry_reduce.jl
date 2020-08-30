@@ -2,7 +2,7 @@ using Test
 using ExactDiagonalization
 
 using LinearAlgebra
-using TightBindingLattice
+using LatticeTools
 using ExactDiagonalization.Toolkit: pauli_matrix
 
 @testset "symmetry_reduce" begin
