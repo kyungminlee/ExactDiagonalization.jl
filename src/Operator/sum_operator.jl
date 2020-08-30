@@ -7,7 +7,7 @@ export bintype
 
 Represents a sum of pure operators.
 
-# Members
+# Fields
 - `terms::Vector{PureOperator{Scalar,BR}}`
 """
 struct SumOperator{Scalar<:Number, BR<:Unsigned} <:AbstractOperator{Scalar}

@@ -1,7 +1,7 @@
 using SparseArrays
 using LinearAlgebra
 using ExactDiagonalization
-using TightBindingLattice
+using LatticeTools
 using MinimalPerfectHash
 
 @show  Threads.nthreads()

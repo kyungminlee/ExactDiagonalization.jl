@@ -2,7 +2,7 @@ using Test
 using SparseArrays
 using LinearAlgebra
 using ExactDiagonalization
-using TightBindingLattice
+using LatticeTools
 using MinimalPerfectHash
 using Printf
 

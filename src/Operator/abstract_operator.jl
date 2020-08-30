@@ -7,6 +7,11 @@ export bintype
 import LinearAlgebra
 
 
+"""
+    AbstractOperator{S<:Number}
+
+Represent an abstract operator in Hilbert space.
+"""
 abstract type AbstractOperator{S<:Number} end
 
 

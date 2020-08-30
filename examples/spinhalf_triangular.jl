@@ -1,6 +1,6 @@
 using LinearAlgebra
 using ExactDiagonalization
-using TightBindingLattice
+using LatticeTools
 using Arpack
 
 #=
@@ -21,7 +21,7 @@ function make_triangular_lattice(shape::AbstractMatrix{<:Integer})
     nnnbondtypes = [ [ 2, 1], [ 1, 2], [-1, 1] ]
 
     lattice = make_lattice(unitcell, shape)
-    orthocube = lattice.orthocube
+    hypercube = lattice.hypercube
     supercell = lattice.supercell
     tsym = TranslationSymmetry(lattice)
     psym = little_symmetry(tsym, PointSymmetryDatabase.find2d("6mm"))
@@ -34,7 +34,7 @@ function make_triangular_lattice(shape::AbstractMatrix{<:Integer})
 
     for r_row in lattice.bravais_coordinates
         for colvec in nnbondtypes
-            R_col, r_col = orthocube.wrap(r_row .+ colvec)
+            R_col, r_col = hypercube.wrap(r_row .+ colvec)
             roworb_super = ("A", r_row)
             colorb_super = ("A", r_col)
             irow = get(supercell.siteindices, roworb_super, -1)
@@ -42,7 +42,7 @@ function make_triangular_lattice(shape::AbstractMatrix{<:Integer})
             push!(nnbonds, ((irow, icol), R_col))
         end
         for colvec in nnnbondtypes
-            R_col, r_col = orthocube.wrap(r_row .+ colvec)
+            R_col, r_col = hypercube.wrap(r_row .+ colvec)
             roworb_super = ("A", r_row)
             colorb_super = ("A", r_col)
             irow = get(supercell.siteindices, roworb_super, -1)

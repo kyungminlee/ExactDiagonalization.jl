@@ -1,15 +1,15 @@
 export symmetry_apply
 export isinvariant
 
-import TightBindingLattice.AbstractSpaceSymmetryOperationEmbedding
-import TightBindingLattice.SymmetryEmbedding
+import LatticeTools.AbstractSpaceSymmetryOperationEmbedding
+import LatticeTools.SymmetryEmbedding
 
 ## AbstractSpaceSymmetryOperationEmbedding
 
 ### HilbertSpaceSector
 function symmetry_apply(
     hss::HilbertSpaceSector{QN},
-    symop::AbstractSpaceSymmetryOperationEmbedding,
+    symop::AbstractSymmetryOperationEmbedding,
     args...;
     kwargs...
 ) where {QN}
@@ -18,7 +18,7 @@ end
 
 function isinvariant(
     hss::HilbertSpaceSector{QN},
-    symop::AbstractSpaceSymmetryOperationEmbedding,
+    symop::AbstractSymmetryOperationEmbedding,
     args...;
     kwargs...
 ) where {QN}

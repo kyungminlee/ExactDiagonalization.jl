@@ -13,7 +13,8 @@ Currently only supports Translation group (i.e. Abelian group).
 struct ReducedHilbertSpaceRepresentation{
     HSR<:HilbertSpaceRepresentation,
     SIC<:AbstractSymmetryIrrepComponent,
-    BR, C<:Complex
+    BR,
+    C<:Complex
 }<:AbstractHilbertSpaceRepresentation{C}
     parent::HSR
     symmetry_irrep_component::SIC

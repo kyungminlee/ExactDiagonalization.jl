@@ -1,6 +1,4 @@
-# Examples
-
-## S=1/2 Heisenberg Chain
+# Example 1: S=1/2 Heisenberg Chain
 
 ```@example
 using SparseArrays
@@ -8,7 +6,7 @@ using LinearAlgebra
 using Arpack
 using Plots
 
-using TightBindingLattice
+using LatticeTools
 using ExactDiagonalization
 
 println("# S=1/2 Heisenberg Chain")

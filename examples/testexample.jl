@@ -3,7 +3,7 @@ using LinearAlgebra
 using Arpack
 using Plots
 
-using TightBindingLattice
+using LatticeTools
 using ExactDiagonalization
 
 println("# S=1/2 Heisenberg Chain")
