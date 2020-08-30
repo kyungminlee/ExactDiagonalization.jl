@@ -9,7 +9,7 @@ import TightBindingLattice.SymmetryEmbedding
 ### HilbertSpaceSector
 function symmetry_apply(
     hss::HilbertSpaceSector{QN},
-    symop::AbstractSpaceSymmetryOperationEmbedding,
+    symop::AbstractSymmetryOperationEmbedding,
     args...;
     kwargs...
 ) where {QN}
@@ -18,7 +18,7 @@ end
 
 function isinvariant(
     hss::HilbertSpaceSector{QN},
-    symop::AbstractSpaceSymmetryOperationEmbedding,
+    symop::AbstractSymmetryOperationEmbedding,
     args...;
     kwargs...
 ) where {QN}
