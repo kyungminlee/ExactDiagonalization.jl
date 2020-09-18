@@ -108,6 +108,27 @@ function splitrange(range::AbstractVector{<:Integer}, b::Integer)
 end
 
 
+function compress(bitwidths::AbstractVector{<:Integer}, data::AbstractVector{<:Integer}, ::Type{BR}) where {BR<:Unsigned}
+    n = length(bitwidths)
+    @boundscheck if length(data) != n
+        throw(ArgumentError("lengths of bitwidths and data have to match ($(length(bitwidths)) != $(length(data)))"))
+    end
+    bitoffsets = [0, cumsum(bitwidths)...]
+    @boundscheck if bitoffsets[end] > sizeof(BR) * 8
+        throw(ArgumentError("type $BR too small to represent data. Need $(bitoffsets[end]) bits."))
+    end
+
+    out = zero(BR)
+    for i in 1:n
+        @boundscheck if data[i] < 0 || data[i] >= (1<<bitwidths[i])
+            throw(ArgumentError("value $(data[i]) too large to be represented with $(bitwidths[i]) bits."))
+        end
+        out |= BR(data) << bitoffsets[i]
+    end
+    return out
+end
+
+
 # # Not used (as of 2020.04.21)
 # export elmax, elmin
 # export elmaximum, elminimum
