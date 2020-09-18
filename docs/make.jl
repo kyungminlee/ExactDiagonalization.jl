@@ -24,4 +24,4 @@ makedocs(
     ]
   )
 
-deploydocs(repo="github.com/kyungminlee/ExactDiagonalization.jl.git")
+deploydocs(repo="github.com/kyungminlee/ExactDiagonalization.jl.git", devbranch = "dev")

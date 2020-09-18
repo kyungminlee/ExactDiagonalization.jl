@@ -16,7 +16,7 @@ basis_lookup  :: DictType
 struct HilbertSpaceRepresentation{
     HS<:AbstractHilbertSpace,
     BR<:Unsigned,
-    DictType<:AbstractDict{BR, <:Int}
+    DictType<:AbstractDict{BR, <:Integer}
 }<:AbstractHilbertSpaceRepresentation{Bool}
 
     hilbert_space::HS
