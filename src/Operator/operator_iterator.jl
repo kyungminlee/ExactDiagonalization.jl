@@ -2,6 +2,15 @@ export get_row_iterator
 export get_column_iterator
 export get_element
 
+export getiterator
+
+function getiterator(op::AbstractOperator, brow::BR, ::Colon) where {BR<:Unsigned}
+    return get_row_iterator(op, brow)
+end
+
+function getiterator(op::AbstractOperator, ::Colon, bcol::BR) where {BR<:Unsigned}
+    return get_column_iterator(op, bcol)
+end
 
 """
     get_row_iterator(op, br)
@@ -21,7 +30,6 @@ Returns an iterator over the elements of the column corresponding to bit represe
 function get_column_iterator(nullop::NullOperator, bcol::BR) where {BR<:Unsigned}
     return ((zero(UInt8) => false) for i in 1:0)
 end
-
 
 function get_row_iterator(pureop::PureOperator{S, BR}, brow::BR2) where {S, BR<:Unsigned, BR2<:Unsigned}
     match::Bool = (brow & pureop.bitmask) == pureop.bitrow
