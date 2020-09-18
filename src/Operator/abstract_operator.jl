@@ -36,7 +36,9 @@ Base.valtype(lhs::AbstractOperator{S}) where S = S
 bintype(lhs::AbstractOperator{S}) where S = bintype(typeof(lhs))::DataType
 
 
-Base.:(-)(lhs::AbstractOperator{S1}, rhs::AbstractOperator{S2}) where {S1, S2} = (lhs) + (-rhs)
+Base.:(-)(lhs::AbstractOperator, rhs) = (lhs) + (-rhs)
+Base.:(-)(lhs, rhs::AbstractOperator) = (lhs) + (-rhs)
+
 Base.:(+)(op::AbstractOperator{S}) where S = op
 
 
