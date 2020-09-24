@@ -1,7 +1,7 @@
 export HilbertSpace
 export quantum_number_sectors, get_quantum_number, extract, compress, update, get_state, get_state_index
 export get_bitmask
-export bitwidth
+export bitwidth, bitoffset
 export scalartype
 export qntype
 export basespace
@@ -95,6 +95,9 @@ julia> bitwidth(hs)
 """
 bitwidth(hs::HilbertSpace) = hs.bitoffsets[end]
 
+bitwidth(hs::HilbertSpace, isite::Integer) = hs.bitwidths[isite]
+
+bitoffset(hs::HilbertSpace, isite::Integer) = hs.bitoffsets[isite]
 
 function Base.:(==)(lhs::HilbertSpace{Q1}, rhs::HilbertSpace{Q2}) where {Q1, Q2}
     return lhs.sites == rhs.sites
