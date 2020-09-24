@@ -31,18 +31,25 @@ function symmetry_reduce(
         throw(DimensionMismatch("Dimension of the input vector should match the larger representation"))
     end
     So = promote_type(C, Si)
-    small_vector = zeros(So, dimension(rhsr))
 
     # basis mapping
     # (i_p | i_r | ampl) indicates : U_(p, r) = ampl
-    for (i_p, i_r) in enumerate(rhsr.basis_mapping_index)
+    n_p = length(rhsr.basis_mapping_index)
+    local_small_vectors = [zeros(So, dimension(rhsr)) for tid in 1:Threads.nthreads()]
+    #for (i_p, i_r) in enumerate(rhsr.basis_mapping_index)
+    Threads.@threads for i_p in 1:n_p
+        i_r = rhsr.basis_mapping_index[i_p]
         if i_r > 0
+            tid = Threads.threadid()
             ampl = rhsr.basis_mapping_amplitude[i_p]
             # H_r = U† H U
-            small_vector[i_r] += conj(ampl) * large_vector[i_p]
+            local_small_vectors[tid][i_r] += conj(ampl) * large_vector[i_p]
         end
     end
-    return small_vector
+    for tid in 2:Threads.nthreads()
+        local_small_vectors[1] += local_small_vectors[tid]
+    end
+    return local_small_vectors[1]
 end
 
 
