@@ -10,73 +10,78 @@ export bitwidth
 
 Hilbert space sector.
 """
-struct HilbertSpaceSector{QN<:Tuple{Vararg{<:AbstractQuantumNumber}}}<:AbstractHilbertSpace
-    parent::HilbertSpace{QN}
+struct HilbertSpaceSector{HS<:AbstractHilbertSpace, QN<:Tuple{Vararg{<:AbstractQuantumNumber}}}<:AbstractHilbertSpace{QN}
+    parent::HS
     allowed_quantum_numbers::Set{QN}
 
     """
         HilbertSpaceSector(parent::HilbertSpace{QN}) where QN
     """
-    function HilbertSpaceSector(parent::HilbertSpace{QN}) where QN
+    function HilbertSpaceSector(parent::HS) where {HS<:AbstractHilbertSpace}
+        QN = qntype(HS)
         sectors = quantum_number_sectors(parent)
-        return new{QN}(parent, Set(sectors))
+        return new{HS, QN}(parent, Set(sectors))
     end
 
     """
         HilbertSpaceSector(parent::HilbertSpace{QN}, allowed::Integer) where {QN<:Tuple{<:Integer}}
     """
-    function HilbertSpaceSector(parent::HilbertSpace{QN}, allowed::Integer) where {QN<:Tuple{<:Integer}}
+    function HilbertSpaceSector(parent::HS, allowed::Integer) where {HS<:AbstractHilbertSpace{<:Tuple{<:Integer}}}
+        QN = qntype(HS)
         sectors = Set{QN}(quantum_number_sectors(parent))
-        return new{QN}(parent, intersect(sectors, Set([(allowed,)])))
+        return new{HS, QN}(parent, intersect(sectors, Set([(allowed,)])))
     end
 
     """
         HilbertSpaceSector(parent::HilbertSpace{QN}, allowed::QN) where QN
     """
-    function HilbertSpaceSector(parent::HilbertSpace{QN}, allowed::QN) where QN
+    function HilbertSpaceSector(parent::AbstractHilbertSpace{QN}, allowed::QN) where {QN}
+        HS = typeof(parent)
         sectors = Set{QN}(quantum_number_sectors(parent))
-        return new{QN}(parent, intersect(sectors, Set([allowed])))
+        return new{HS, QN}(parent, intersect(sectors, Set([allowed])))
     end
 
     """
         HilbertSpaceSector(parent::HilbertSpace{QN}, allowed::Union{AbstractSet{<:Integer}, AbstractVector{<:Integer}}) where QN
     """
     function HilbertSpaceSector(
-        parent::HilbertSpace{QN},
+        parent::AbstractHilbertSpace{QN},
         allowed::Union{AbstractSet{<:Integer}, AbstractVector{<:Integer}}
-    ) where QN
+    ) where {QN}
+        HS = typeof(parent)
         sectors = Set{QN}(quantum_number_sectors(parent))
-        return new{QN}(parent, intersect(sectors, Set((x,) for x in allowed)))
+        return new{HS, QN}(parent, intersect(sectors, Set((x,) for x in allowed)))
     end
 
     function HilbertSpaceSector(
-        parent::HilbertSpace{QN},
+        parent::AbstractHilbertSpace{QN},
         allowed::Union{AbstractSet{QN}, AbstractVector{QN}}
     ) where QN
+        HS = typeof(parent)
         sectors = Set{QN}(quantum_number_sectors(parent))
-        return new{QN}(parent, intersect(sectors, Set(allowed)))
+        return new{HS, QN}(parent, intersect(sectors, Set(allowed)))
     end
 end
 
 
 """
-    scalartype(arg::Type{HilbertSpaceSector{QN}})
+    scalartype(arg::Type{HilbertSpaceSector{HS, QN}})
 
 Returns the scalar type of the given hilbert space sector type.
 For HilbertSpaceSector{QN}, it is always `Bool`.
 """
-scalartype(arg::Type{HilbertSpaceSector{QN}}) where QN = Bool
-scalartype(arg::HilbertSpaceSector{QN}) where QN = Bool
+scalartype(arg::Type{HilbertSpaceSector{HS, QN}}) where {HS, QN} = Bool
+scalartype(arg::HilbertSpaceSector{HS, QN}) where {HS, QN} = Bool
 
 
 """
-    valtype(arg::Type{HilbertSpaceSector{QN}})
+    valtype(arg::Type{HilbertSpaceSector{HS, QN}})
 
 Returns the `valtype` (scalar type) of the given hilbert space sector type.
 For HilbertSpaceSector{QN}, it is always `Bool`.
 """
-Base.valtype(arg::Type{HilbertSpaceSector{QN}}) where QN = Bool
-Base.valtype(arg::HilbertSpaceSector{QN}) where QN = Bool
+Base.valtype(arg::Type{HilbertSpaceSector{HS, QN}}) where {HS, QN} = Bool
+Base.valtype(arg::HilbertSpaceSector{HS, QN}) where {HS, QN} = Bool
 
 
 """
@@ -84,8 +89,8 @@ Base.valtype(arg::HilbertSpaceSector{QN}) where QN = Bool
 
 Returns the quantum number type of the given hilbert space sector type.
 """
-qntype(arg::Type{HilbertSpaceSector{QN}}) where QN = QN
-qntype(arg::HilbertSpaceSector{QN}) where QN = QN
+qntype(arg::Type{HilbertSpaceSector{HS, QN}}) where {HS, QN} = QN
+qntype(arg::HilbertSpaceSector{HS, QN}) where {HS, QN} = QN
 
 
 """
@@ -94,11 +99,11 @@ qntype(arg::HilbertSpaceSector{QN}) where QN = QN
 Get the base space of the `HilbertSpaceSector`, which is
 its parent `HilbertSpace` (with no quantum number restriction).
 """
-basespace(hss::HilbertSpaceSector{QN}) where QN = basespace(hss.parent)::HilbertSpace{QN}
+basespace(hss::HilbertSpaceSector{HS, QN}) where {HS, QN} = basespace(hss.parent)::HS
 
 #bitwidth(hss::HilbertSpaceSector) = bitwidth(basespace(hss))
 
-function Base.:(==)(lhs::HilbertSpaceSector{Q1}, rhs::HilbertSpaceSector{Q2}) where {Q1, Q2}
+function Base.:(==)(lhs::HilbertSpaceSector{HS, Q1}, rhs::HilbertSpaceSector{HS, Q2}) where {HS, Q1, Q2}
     return (
         basespace(lhs) == basespace(rhs) &&
         lhs.allowed_quantum_numbers == rhs.allowed_quantum_numbers

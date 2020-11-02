@@ -22,7 +22,7 @@ julia> hs = HilbertSpace([spin_site, spin_site])
 HilbertSpace{Tuple{Int64}}(Site{Tuple{Int64}}[Site{Tuple{Int64}}(State{Tuple{Int64}}[State{Tuple{Int64}}("Up", (1,)), State{Tuple{Int64}}("Dn", (-1,))]), Site{Tuple{Int64}}(State{Tuple{Int64}}[State{Tuple{Int64}}("Up", (1,)), State{Tuple{Int64}}("Dn", (-1,))])], [1, 1], [0, 1, 2])
 ```
 """
-struct HilbertSpace{QN<:Tuple{Vararg{<:AbstractQuantumNumber}}}<:AbstractHilbertSpace
+struct HilbertSpace{QN<:Tuple{Vararg{<:AbstractQuantumNumber}}}<:AbstractHilbertSpace{QN}
     sites::Vector{Site{QN}}
     bitwidths::Vector{Int}
     bitoffsets::Vector{Int}

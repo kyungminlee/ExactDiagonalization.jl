@@ -39,10 +39,10 @@ struct HilbertSpaceRepresentation{
     end
 
     function HilbertSpaceRepresentation(
-        hilbert_space_sector::HilbertSpaceSector{QN},
+        hilbert_space_sector::HilbertSpaceSector{HS, QN},
         basis_list::AbstractVector{BR},
         basis_lookup::DictType
-    ) where {QN, BR<:Unsigned, DictType<:AbstractDict{BR, <:Int}}
+    ) where {HS, QN, BR<:Unsigned, DictType<:AbstractDict{BR, <:Int}}
         if sizeof(BR)*8 <= bitwidth(hilbert_space_sector)
             # equality added such that the MSB checks overflow
             throw(ArgumentError(
@@ -50,7 +50,9 @@ struct HilbertSpaceRepresentation{
                 " (need $(bitwidth(hilbert_space_sector)) bits)"
             ))
         end
-        return new{HilbertSpace{QN}, BR, DictType}(hilbert_space_sector.parent, basis_list, basis_lookup)
+        hilbert_space = basespace(hilbert_space_sector)
+        HS_T = typeof(hilbert_space)
+        return new{HS_T, BR, DictType}(hilbert_space, basis_list, basis_lookup)
     end
 end
 
@@ -105,7 +107,7 @@ end
 
 Generate a basis for the `HilbertSpaceSector`.
 """
-function hs_get_basis_list(hss::HilbertSpaceSector{QN}, binary_type::Type{BR}=UInt)::Vector{BR} where {QN, BR<:Unsigned}
+function hs_get_basis_list(hss::HilbertSpaceSector{HS, QN}, binary_type::Type{BR}=UInt)::Vector{BR} where {HS, QN, BR<:Unsigned}
     hs = hss.parent
     if sizeof(BR) * 8 <= bitwidth(hs)
         throw(ArgumentError("type $(BR) not enough to represent the hilbert space (need $(bitwidth(hs)) bits)"))

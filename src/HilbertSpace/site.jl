@@ -66,7 +66,7 @@ julia> using ExactDiagonalization
 julia> site = Site([State("Up", 1), State("Dn", -1)]);
 ```
 """
-struct Site{QN<:Tuple{Vararg{<:AbstractQuantumNumber}}}<:AbstractHilbertSpace
+struct Site{QN<:Tuple{Vararg{<:AbstractQuantumNumber}}}<:AbstractHilbertSpace{QN}
     states::Vector{State{QN}}
     Site(states::AbstractVector{State{QN}}) where QN = new{QN}(states)
 end

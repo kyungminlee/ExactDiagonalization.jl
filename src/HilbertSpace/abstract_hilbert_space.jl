@@ -1,10 +1,11 @@
+export AbstractQuantumNumber
 export AbstractHilbertSpace
-abstract type AbstractHilbertSpace end
+export AbstractSiteType
+
 
 ## TODO: Think about this
-export AbstractQuantumNumber
 AbstractQuantumNumber = Integer
 
-export AbstractSiteType
+abstract type AbstractHilbertSpace{QN<:Tuple{Vararg{<:AbstractQuantumNumber}}} end
 
 abstract type AbstractSiteType end
