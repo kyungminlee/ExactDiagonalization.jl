@@ -156,7 +156,7 @@ using ExactDiagonalization.Toolkit: pauli_matrix
       hsr = represent(hss)
       p = SitePermutation([2,3,4,5,6,7,1])
       #translation_group = TranslationGroup(p)
-      @test symmetry_apply(hs, p, 0b0000001) == 0b0000010
+      @test symmetry_apply(hs, p, 0b0000001) == (0b0000010, true)
 
       tsym = TranslationSymmetry(lattice)
       tsymbed = embed(lattice, tsym)
@@ -172,7 +172,7 @@ using ExactDiagonalization.Toolkit: pauli_matrix
       hss = HilbertSpaceSector(hs, -5)
       hsr = represent(hss)
       p = SitePermutation([2,3,4,5,6,7,1])
-      @test symmetry_apply(hs, p, 0b0000001) == 0b0000010
+      @test symmetry_apply(hs, p, 0b0000001) == (0b0000010, true)
 
       tsym = TranslationSymmetry(lattice)
       tsymbed = embed(lattice, tsym)

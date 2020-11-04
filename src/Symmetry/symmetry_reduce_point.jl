@@ -37,7 +37,7 @@ function symmetry_reduce_serial(
     sizehint!(basis_amplitudes, subgroup_size + subgroup_size ÷ 2)
 
     @assert all(isapprox(abs(y), one(abs(y))) for (_, y) in symops_and_amplitudes)
-    is_identity = [isapprox(y, one(y); atol=tol) for (_, y) in symops_and_amplitudes]
+    #is_identity = [isapprox(y, one(y); atol=tol) for (_, y) in symops_and_amplitudes]
 
     for ivec_p in 1:n_basis
         visited[ivec_p] && continue
@@ -46,11 +46,12 @@ function symmetry_reduce_serial(
         compatible = true
         for i in 2:subgroup_size
             (symop, _) = symops_and_amplitudes[i]
-            bvec_prime = symmetry_apply(hsr.hilbert_space, symop, bvec)
+            bvec_prime, sgn = symmetry_apply(hsr.hilbert_space, symop, bvec)
             if bvec_prime < bvec
                 compatible = false
                 break
-            elseif bvec_prime == bvec && !is_identity[i]
+            #elseif bvec_prime == bvec && !is_identity[i]
+            elseif bvec_prime == bvec && !isapprox(symops_and_amplitudes[i][2] * sgn, one(ComplexType); atol=tol)
                 compatible = false
                 break
             end
@@ -166,7 +167,7 @@ function symmetry_reduce_parallel(
     end
 
     @assert all(isapprox(abs(y), one(abs(y))) for (_, y) in symops_and_amplitudes)
-    is_identity = [isapprox(y, one(y); atol=tol) for (_, y) in symops_and_amplitudes]
+    #is_identity = [isapprox(y, one(y); atol=tol) for (_, y) in symops_and_amplitudes]
 
     @debug "Starting reduction (parallel)"
     Threads.@threads for itemp in 1:n_basis
@@ -182,11 +183,12 @@ function symmetry_reduce_parallel(
         compatible = true
         for i in 2:subgroup_size
             (symop, _) = symops_and_amplitudes[i]
-            bvec_prime = symmetry_apply(hsr.hilbert_space, symop, bvec)
+            bvec_prime, sgn = symmetry_apply(hsr.hilbert_space, symop, bvec)
             if bvec_prime < bvec
                 compatible = false
                 break
-            elseif bvec_prime == bvec && !is_identity[i]
+            #elseif bvec_prime == bvec && !is_identity[i]
+            elseif bvec_prime == bvec && !isapprox(symops_and_amplitudes[i][2] * sgn, one(ComplexType); atol=tol)
                 compatible = false
                 break
             end
