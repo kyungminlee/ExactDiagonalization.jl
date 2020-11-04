@@ -33,11 +33,11 @@ function symmetry_reduce_serial(
     visited = falses(n_basis)
 
     basis_states = Vector{BR}(undef, group_size)  # recomputed for every bvec
+    basis_phases = ones(ComplexType, group_size)
     basis_amplitudes = Dict{BR, ComplexType}()
     sizehint!(basis_amplitudes, group_size + group_size ÷ 2)
 
     @assert all(isapprox(abs(y), one(abs(y))) for (_, y) in symops_and_amplitudes)
-    #is_identity = [isapprox(y, one(y); atol=tol) for (_, y) in symops_and_amplitudes]
 
     for ivec_p in 1:n_basis
         visited[ivec_p] && continue
@@ -45,17 +45,17 @@ function symmetry_reduce_serial(
 
         compatible = true
         for i in 2:group_size
-            (symop, _) = symops_and_amplitudes[i]
+            (symop, ampl) = symops_and_amplitudes[i]
             bvec_prime, sgn = symmetry_apply(hsr.hilbert_space, symop, bvec)
             if bvec_prime < bvec
                 compatible = false
                 break
-            #elseif bvec_prime == bvec && !is_identity[i]
-            elseif bvec_prime == bvec && !isapprox(symops_and_amplitudes[i][2] * sgn, one(ComplexType); atol=tol)
+            elseif bvec_prime == bvec && !isapprox(ampl * sgn, one(ComplexType); atol=tol)
                 compatible = false
                 break
             end
             basis_states[i] = bvec_prime
+            basis_phases[i] = ampl * sgn
         end # for i
         (!compatible) && continue
         basis_states[1] = bvec
@@ -64,9 +64,8 @@ function symmetry_reduce_serial(
 
         empty!(basis_amplitudes)
         for i in 1:group_size
-            (_, ampl) = symops_and_amplitudes[i]
             bvec_prime = basis_states[i]
-            basis_amplitudes[bvec_prime] = ampl
+            basis_amplitudes[bvec_prime] = basis_phases[i]
             # No need to add amplitudes.
             # if bvec_prime is the same, ampl is the same, and similarly for all other elements
         end
@@ -151,6 +150,7 @@ function symmetry_reduce_parallel(
     visited = zeros(UInt8, n_basis) # use UInt8 rather than Bool for thread safety
 
     local_basis_states = Matrix{BR}(undef, (nthreads, group_size))
+    local_basis_phases = ones(ComplexType, (nthreads, group_size))
     local_basis_amplitudes = Vector{Dict{BR, ComplexType}}(undef, nthreads)
     for id in 1:nthreads
         local_basis_amplitudes[id] = Dict{BR, ComplexType}()
@@ -171,7 +171,6 @@ function symmetry_reduce_parallel(
     end
 
     @assert all(isapprox(abs(y), one(abs(y))) for (_, y) in symops_and_amplitudes)
-    #is_identity = [isapprox(y, one(y); atol=tol) for (_, y) in symops_and_amplitudes]
 
     @debug "Starting reduction (parallel)"
     Threads.@threads for itemp in 1:n_basis
@@ -186,17 +185,17 @@ function symmetry_reduce_parallel(
         # (2) its star is smaller than the representation
         compatible = true
         for i in 2:group_size
-            (symop, _) = symops_and_amplitudes[i]
+            (symop, ampl) = symops_and_amplitudes[i]
             bvec_prime, sgn = symmetry_apply(hsr.hilbert_space, symop, bvec)
             if bvec_prime < bvec
                 compatible = false
                 break
-            elseif bvec_prime == bvec && !isapprox(symops_and_amplitudes[i][2] * sgn, one(ComplexType); atol=tol)
-            #elseif bvec_prime == bvec && !is_identity[i]
+            elseif bvec_prime == bvec && !isapprox(ampl * sgn, one(ComplexType); atol=tol)
                 compatible = false
                 break
             end
             local_basis_states[id, i] = bvec_prime
+            local_basis_phases[id, i] = ampl * sgn
         end # for i
         (!compatible) && continue
         local_basis_states[id, 1] = bvec
@@ -205,9 +204,8 @@ function symmetry_reduce_parallel(
 
         empty!(local_basis_amplitudes[id])
         for i in 1:group_size
-            (_, ampl) = symops_and_amplitudes[i]
             bvec_prime = local_basis_states[id, i]
-            local_basis_amplitudes[id][bvec_prime] = ampl # Same bvec_prime, same p.
+            local_basis_amplitudes[id][bvec_prime] = local_basis_phases[id, i] # Same bvec_prime, same p.
         end
         inv_norm = inv(sqrt(float(length(local_basis_amplitudes[id]))))
         for (bvec_prime, amplitude) in local_basis_amplitudes[id]
