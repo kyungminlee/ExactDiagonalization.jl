@@ -56,10 +56,10 @@ struct HilbertSpaceRepresentation{
     # end
 
     function HilbertSpaceRepresentation(
-        hilbert_space::HS,
+        hilbert_space::AbstractHilbertSpace,
         basis_list::AbstractVector{BR},
         basis_lookup::DictType
-    ) where {HS, BR<:Unsigned, DictType<:AbstractDict{BR, <:Int}}
+    ) where {BR<:Unsigned, DictType<:AbstractDict{BR, <:Int}}
         if sizeof(BR)*8 <= bitwidth(hilbert_space)
             # equality added such that the MSB checks overflow
             throw(ArgumentError(
@@ -67,7 +67,9 @@ struct HilbertSpaceRepresentation{
                 " (need $(bitwidth(hilbert_space)) bits)"
             ))
         end
-        return new{HS, BR, DictType}(hilbert_space, basis_list, basis_lookup)
+        hs = basespace(hilbert_space)
+        HS = typeof(hs)
+        return new{HS, BR, DictType}(hs, basis_list, basis_lookup)
     end
 end
 
