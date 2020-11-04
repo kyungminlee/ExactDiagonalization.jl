@@ -3,6 +3,7 @@ export AbstractOperatorRepresentation
 export spacetype, operatortype
 export bintype
 export get_space
+export get_operator
 export dimension, bitwidth
 export get_row, get_column
 export sparse_serial, sparse_parallel
