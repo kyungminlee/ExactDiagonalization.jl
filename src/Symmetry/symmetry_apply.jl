@@ -74,7 +74,7 @@ function symmetry_apply(
     for (i, j) in enumerate(permutation.permutation.map)
         out |= ( (bitrep >> hs.bitoffsets[i]) & make_bitmask(hs.bitwidths[i]) ) << hs.bitoffsets[j]
     end
-    return out
+    return (out, true)
 end
 
 
@@ -84,9 +84,9 @@ function symmetry_apply(
     permutation::SitePermutation,
     op::PureOperator{S, BR}
 ) where {QN, S<:Number, BR<:Unsigned}
-    bm = symmetry_apply(hs, permutation, op.bitmask)
-    br = symmetry_apply(hs, permutation, op.bitrow)
-    bc = symmetry_apply(hs, permutation, op.bitcol)
+    bm, _ = symmetry_apply(hs, permutation, op.bitmask)
+    br, _ = symmetry_apply(hs, permutation, op.bitrow)
+    bc, _ = symmetry_apply(hs, permutation, op.bitcol)
     am = op.amplitude
     return PureOperator{S, BR}(bm, br, bc, am)
 end
