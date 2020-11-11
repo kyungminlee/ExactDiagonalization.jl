@@ -55,6 +55,14 @@ end
 bintype(lhs::Type{PureOperator{S, BR}}) where {S, BR} = BR
 
 
+Base.zero(::Type{PureOperator{S, BR}}) where {S, BR} = PureOperator{S, BR}(zero(BR), zero(BR), zero(BR), zero(S))
+Base.zero(::PureOperator{S, BR}) where {S, BR} = PureOperator{S, BR}(zero(BR), zero(BR), zero(BR), zero(S))
+Base.one(::Type{PureOperator{S, BR}}) where {S, BR} = PureOperator{S, BR}(zero(BR), zero(BR), zero(BR), one(S))
+Base.one(::PureOperator{S, BR}) where {S, BR} = PureOperator{S, BR}(zero(BR), zero(BR), zero(BR), one(S))
+
+Base.iszero(x::PureOperator) = iszero(x.amplitude)
+
+
 # === 1/6 (In)equality ===
 
 function Base.:(==)(lhs::PureOperator{S1, BR}, rhs::PureOperator{S2, BR}) where {S1, S2, BR}

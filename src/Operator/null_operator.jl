@@ -31,13 +31,15 @@ Base.:(+)(lhs::NullOperator, rhs::AbstractOperator) = rhs
 
 Base.:(==)(lhs::NullOperator, rhs::NullOperator) = true
 
+Base.zero(::Type{NullOperator}) = NullOperator()
+Base.zero(::NullOperator) = NullOperator()
+Base.iszero(::NullOperator) = true
 
 Base.real(arg::NullOperator) = arg
 Base.imag(arg::NullOperator) = arg
 Base.conj(arg::NullOperator) = arg
 Base.transpose(arg::NullOperator) = arg
 Base.adjoint(arg::NullOperator) = arg
-
 
 # null operator is less than any other operators
 Base.isless(lhs::NullOperator, rhs::NullOperator) = false
