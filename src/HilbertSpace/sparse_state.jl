@@ -85,14 +85,15 @@ end
 function Base.isapprox(
     lhs::SparseState{S1, BR},
     rhs::SparseState{S2, BR};
-    atol::Real=Base.rtoldefault(Float64),
-    rtol::Real=Base.rtoldefault(Float64),
+    atol::Real=0,
+    rtol::Real=Base.rtoldefault(real(S1), real(S2), atol),
+    nans::Bool=false,
 ) where {S1, S2, BR}
     all_keys = union(keys(lhs.components), keys(rhs.components))
     for k in all_keys
         lv = get(lhs.components, k, zero(S1))
         rv = get(rhs.components, k, zero(S2))
-        if !isapprox(lv, rv; atol=atol, rtol=rtol)
+        if !isapprox(lv, rv; atol=atol, rtol=rtol, nans=nans)
             return false
         end
     end
