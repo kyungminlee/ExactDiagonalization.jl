@@ -371,7 +371,6 @@ function apply_parallel!(
     elseif length(state) != ncols
         throw(DimensionMismatch("state has length $(length(state)) != dimension $(ncols)"))
     end
-
     Threads.@threads for irow in 1:nrows
         for (icol::Int, amplitude::S) in get_row_iterator(opr, irow)
             if 1 <= icol <= ncols
@@ -403,7 +402,6 @@ function apply_parallel!(
     elseif length(state) != nrows
         throw(DimensionMismatch("state has length $(length(state)) != dimension $(nrows)"))
     end
-
     Threads.@threads for icol in 1:ncols
         for (irow::Int, amplitude::S) in get_column_iterator(opr, icol)
             if 1 <= irow <= nrows
