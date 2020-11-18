@@ -52,7 +52,7 @@ struct PureOperator{Scalar<:Number, BR<:Unsigned} <:AbstractOperator{Scalar}
 end
 
 
-bintype(lhs::Type{PureOperator{S, BR}}) where {S, BR} = BR
+bintype(::Type{PureOperator{S, BR}}) where {S, BR} = BR
 
 
 Base.zero(::Type{PureOperator{S, BR}}) where {S, BR} = PureOperator{S, BR}(zero(BR), zero(BR), zero(BR), zero(S))

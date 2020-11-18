@@ -24,9 +24,9 @@ struct ReducedHilbertSpaceRepresentation{
 end
 
 
-Base.valtype(arg::Type{ReducedHilbertSpaceRepresentation{HSR, SIC, BR, C}}) where {HSR, SIC, BR, C} = C
-scalartype(arg::Type{ReducedHilbertSpaceRepresentation{HSR, SIC, BR, C}}) where {HSR, SIC, BR, C} = C
-bintype(arg::Type{ReducedHilbertSpaceRepresentation{HSR, SIC, BR, C}}) where {HSR, SIC, BR, C} = BR
+Base.valtype(::Type{ReducedHilbertSpaceRepresentation{HSR, SIC, BR, C}}) where {HSR, SIC, BR, C} = C
+scalartype(::Type{ReducedHilbertSpaceRepresentation{HSR, SIC, BR, C}}) where {HSR, SIC, BR, C} = C
+bintype(::Type{ReducedHilbertSpaceRepresentation{HSR, SIC, BR, C}}) where {HSR, SIC, BR, C} = BR
 
 
 basespace(lhs::ReducedHilbertSpaceRepresentation) = basespace(lhs.parent)

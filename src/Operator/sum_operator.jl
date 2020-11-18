@@ -23,7 +23,7 @@ struct SumOperator{Scalar<:Number, BR<:Unsigned} <:AbstractOperator{Scalar}
 end
 
 
-bintype(lhs::Type{SumOperator{S, BR}}) where {S, BR} = BR
+bintype(::Type{SumOperator{S, BR}}) where {S, BR} = BR
 
 
 # === 1/6 Equality ===

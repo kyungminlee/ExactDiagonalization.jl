@@ -30,8 +30,8 @@ struct ReducedOperatorRepresentation{
 end
 
 
-spacetype(lhs::Type{ReducedOperatorRepresentation{RHSR, O, S, BR}}) where {RHSR, O, S, BR} = RHSR
-operatortype(lhs::Type{ReducedOperatorRepresentation{RHSR, O, S, BR}}) where {RHSR, O, S, BR} = O
+spacetype(::Type{ReducedOperatorRepresentation{RHSR, O, S, BR}}) where {RHSR, O, S, BR} = RHSR
+operatortype(::Type{ReducedOperatorRepresentation{RHSR, O, S, BR}}) where {RHSR, O, S, BR} = O
 function get_space(lhs::ReducedOperatorRepresentation{RHSR, O, S, BR})::RHSR where {RHSR, O, S, BR}
     return lhs.reduced_hilbert_space_representation
 end

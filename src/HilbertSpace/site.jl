@@ -7,7 +7,7 @@ export compress
 export get_state_index
 
 
-qntype(arg::T) where T = qntype(T)
+qntype(::T) where T = qntype(T)
 
 
 """

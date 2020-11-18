@@ -74,9 +74,9 @@ struct HilbertSpaceRepresentation{
 end
 
 
-Base.valtype(lhs::Type{HilbertSpaceRepresentation{HS, BR, DT}}) where {HS, BR, DT} = Bool
-scalartype(lhs::Type{HilbertSpaceRepresentation{HS, BR, DT}}) where {HS, BR, DT} = Bool
-bintype(lhs::Type{HilbertSpaceRepresentation{HS, BR, DT}}) where {HS, BR, DT} = BR
+Base.valtype(::Type{HilbertSpaceRepresentation{HS, BR, DT}}) where {HS, BR, DT} = Bool
+scalartype(::Type{HilbertSpaceRepresentation{HS, BR, DT}}) where {HS, BR, DT} = Bool
+bintype(::Type{HilbertSpaceRepresentation{HS, BR, DT}}) where {HS, BR, DT} = BR
 
 
 basespace(lhs::HilbertSpaceRepresentation{HS, BR, DT}) where {HS, BR, DT} = lhs.hilbert_space::HS

@@ -36,8 +36,8 @@ function represent(hsr::HSR, op::O) where {HSR<:HilbertSpaceRepresentation, O<:A
 end
 
 
-spacetype(lhs::Type{OperatorRepresentation{HSR, S, O}}) where {HSR, S, O} = HSR
-operatortype(lhs::Type{OperatorRepresentation{HSR, S, O}}) where {HSR, S, O} = O
+spacetype(::Type{OperatorRepresentation{HSR, S, O}}) where {HSR, S, O} = HSR
+operatortype(::Type{OperatorRepresentation{HSR, S, O}}) where {HSR, S, O} = O
 function get_space(lhs::OperatorRepresentation{HSR, S, O})::HSR where {HSR, S, O}
     return lhs.hilbert_space_representation
 end

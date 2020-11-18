@@ -42,31 +42,31 @@ end
 
 
 """
-    scalartype(arg::Type{HilbertSpace{QN}})
+    scalartype(::Type{HilbertSpace{QN}})
 
 Returns the scalar type of the given hilbert space type.
 For HilbertSpace{QN}, it is always `Bool`.
 """
-scalartype(arg::Type{<:HilbertSpace}) = Bool
-scalartype(arg::HilbertSpace) = Bool
+scalartype(::Type{<:HilbertSpace}) = Bool
+scalartype(::HilbertSpace) = Bool
 
 
 """
-    valtype(arg::Type{HilbertSpace{QN}})
+    valtype(::Type{HilbertSpace{QN}})
 
 Returns the `valtype` (scalar type) of the given hilbert space type.
 """
-Base.valtype(arg::Type{<:HilbertSpace}) = Bool
-Base.valtype(arg::HilbertSpace) = Bool
+Base.valtype(::Type{<:HilbertSpace}) = Bool
+Base.valtype(::HilbertSpace) = Bool
 
 
 """
-    qntype(arg::Type{HilbertSpace{QN}})
+    qntype(::Type{HilbertSpace{QN}})
 
 Returns the quantum number type of the given hilbert space type.
 """
-qntype(arg::Type{HilbertSpace{QN}}) where QN = QN
-qntype(arg::HilbertSpace{QN}) where QN = QN
+qntype(::Type{HilbertSpace{QN}}) where QN = QN
+qntype(::HilbertSpace{QN}) where QN = QN
 
 
 """
@@ -200,7 +200,7 @@ julia> compress(hs, CartesianIndex(2,2))
 function compress(
     hs::HilbertSpace{QN},
     indexarray::CartesianIndex,
-    binary_type::Type{BR}=UInt
+    ::Type{BR}=UInt
 ) where {QN, BR<:Unsigned}
     if length(indexarray) != length(hs.sites)
         throw(ArgumentError("length of indexarray should be the number of sites"))

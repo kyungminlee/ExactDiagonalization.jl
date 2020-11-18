@@ -169,7 +169,7 @@ function Base.:(//)(lhs::SparseState{S1, BR}, rhs::S2) where {S1, S2<:Number, BR
 end
 
 
-function Base.convert(type::Type{SparseState{S1, BR}}, obj::SparseState{S2, BR}) where {S1, S2, BR}
+function Base.convert(::Type{SparseState{S1, BR}}, obj::SparseState{S2, BR}) where {S1, S2, BR}
     return SparseState{S1, BR}(Dict{BR, S1}(obj.components))
 end
 

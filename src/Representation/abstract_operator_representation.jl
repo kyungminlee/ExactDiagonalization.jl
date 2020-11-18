@@ -16,14 +16,14 @@ abstract type AbstractOperatorRepresentation{S} <: AbstractMatrix{S} end
 
 ## typetraits
 
-Base.valtype(lhs::Type{<:AbstractOperatorRepresentation{T}}) where T = T
-Base.valtype(lhs::AbstractOperatorRepresentation{T}) where T = T
+Base.valtype(::Type{<:AbstractOperatorRepresentation{T}}) where T = T
+Base.valtype(::AbstractOperatorRepresentation{T}) where T = T
 
-scalartype(lhs::Type{<:AbstractOperatorRepresentation{T}}) where T = T
-scalartype(lhs::AbstractOperatorRepresentation{T}) where T = T
+scalartype(::Type{<:AbstractOperatorRepresentation{T}}) where T = T
+scalartype(::AbstractOperatorRepresentation{T}) where T = T
 
-bintype(lhs::Type{<:AbstractOperatorRepresentation{T}}) where T = bintype(spacetype(lhs))::DataType
-bintype(lhs::AbstractOperatorRepresentation{T}) where T = bintype(typeof(lhs))::DataType
+bintype(lhs::Type{<:AbstractOperatorRepresentation}) = bintype(spacetype(lhs))
+bintype(lhs::AbstractOperatorRepresentation) = bintype(typeof(lhs))
 
 
 # a subclass of AbstractOperatorRepresentation should implement
