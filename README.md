@@ -14,8 +14,8 @@
 
 To install, type the following in Julia's package Pkg REPL-mode:
 ```julia-repl
-(v1.3) pkg> registry add https://github.com/kyungminlee/KyungminLeeRegistry.jl.git
-(v1.3) pkg> add ExactDiagonalization
+(v1.5) pkg> registry add https://github.com/kyungminlee/KyungminLeeRegistry.jl.git
+(v1.5) pkg> add ExactDiagonalization
 ```
 
 [docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
