@@ -21,8 +21,8 @@ To install, type the following in Julia's package Pkg REPL-mode:
 [docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
 [docs-dev-url]: http://kyungminlee.org/ExactDiagonalization.jl/dev
 
-[githubaction-img]: https://github.com/kyungminlee/MathExpr.jl/workflows/Build%20Test%20Submit/badge.svg
-[githubaction-url]: https://github.com/kyungminlee/ExactDiagonalization.jl/actions?query=workflow%3A%22Build+Test+Submit%22
+[githubaction-img]: https://github.com/kyungminlee/MathExpr.jl/workflows/Build/badge.svg
+[githubaction-url]: https://github.com/kyungminlee/ExactDiagonalization.jl/actions?query=workflow%3ABuild
 
 [codecov-img]: https://codecov.io/gh/kyungminlee/ExactDiagonalization.jl/branch/master/graph/badge.svg
 [codecov-url]: https://codecov.io/gh/kyungminlee/ExactDiagonalization.jl
