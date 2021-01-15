@@ -1,9 +1,7 @@
-name: Check packages
-
+name: Build Test Submit
 on: [push, pull_request]
-
 jobs:
-  build_and_test:
+  build_test_submit:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
