@@ -1,8 +1,8 @@
 # ExactDiagonalization.jl
 
-| **Documentation** | **Build Status** | **Code Coverage** |
-|:-----------------:|:----------------:|:-----------------:|
-| [![**STABLE**][docs-stable-img]][docs-stable-url] [![**DEV**][docs-dev-img]][docs-dev-url] | [![Build Status][travis-img]][travis-url] [![Build Status][appveyor-img]][appveyor-url] | [![Code Coverage][codecov-img]][codecov-url] [![Code Coverage][coveralls-img]][coveralls-url] |
+**Documentation**: [![**STABLE**][docs-stable-img]][docs-stable-url] [![**DEV**][docs-dev-img]][docs-dev-url] 
+**Build Status**: [![Build Test Submit][githubaction-img]][githubaction-url]
+**Code Coverage**: [![Code Coverage][codecov-img]][codecov-url]
 
 `ExactDiagonalization.jl` is a library for constructing quantum many-body Hamiltonians. It aims to provide
 - convenient and efficient representation of a generic lattice Hamiltonian and wave function
@@ -21,14 +21,8 @@ To install, type the following in Julia's package Pkg REPL-mode:
 [docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
 [docs-dev-url]: http://kyungminlee.org/ExactDiagonalization.jl/dev
 
-[travis-img]: https://travis-ci.org/kyungminlee/ExactDiagonalization.jl.svg?branch=master
-[travis-url]: https://travis-ci.org/kyungminlee/ExactDiagonalization.jl
-
-[appveyor-img]: https://ci.appveyor.com/api/projects/status/r5270ufhu14imba0?svg=true
-[appveyor-url]: https://ci.appveyor.com/project/kyungminlee/exactdiagonalization-jl
+[githubaction-img]: https://github.com/kyungminlee/MathExpr.jl/workflows/Build%20Test%20Submit/badge.svg
+[githubaction-url]: https://github.com/kyungminlee/ExactDiagonalization.jl/actions?query=workflow%3A%22Build+Test+Submit%22
 
 [codecov-img]: https://codecov.io/gh/kyungminlee/ExactDiagonalization.jl/branch/master/graph/badge.svg
 [codecov-url]: https://codecov.io/gh/kyungminlee/ExactDiagonalization.jl
-
-[coveralls-img]: https://coveralls.io/repos/github/kyungminlee/ExactDiagonalization.jl/badge.svg?branch=master
-[coveralls-url]: https://coveralls.io/github/kyungminlee/ExactDiagonalization.jl?branch=master
