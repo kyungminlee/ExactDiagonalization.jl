@@ -23,7 +23,7 @@ jobs:
           JULIA_NUM_THREADS: "2"
       - name: Submit coverage
         run: |
-          julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(process_folder())'
+          julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder()); Coveralls.submit(process_folder());'
       - name: Documentation
         run: |
           julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
