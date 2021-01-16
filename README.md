@@ -1,10 +1,8 @@
 # ExactDiagonalization.jl
 
-**Documentation**: [![**STABLE**][docs-stable-img]][docs-stable-url] [![**DEV**][docs-dev-img]][docs-dev-url]
-
-**Build Status**: [![Build][githubaction-img]][githubaction-url]
-
-**Code Coverage**: [![Code Coverage][codecov-img]][codecov-url]
+| **Documentation** | **Build Status** | **Code Coverage** |
+|:-----------------:|:----------------:|:-----------------:|
+| [![**STABLE**][docs-stable-img]][docs-stable-url] [![**DEV**][docs-dev-img]][docs-dev-url] | [![Build][githubaction-img]][githubaction-url] | [![Code Coverage][codecov-img]][codecov-url] |
 
 `ExactDiagonalization.jl` is a library for constructing quantum many-body Hamiltonians. It aims to provide
 - convenient and efficient representation of a generic lattice Hamiltonian and wave function
