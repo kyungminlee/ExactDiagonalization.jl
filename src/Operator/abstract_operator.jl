@@ -20,8 +20,8 @@ abstract type AbstractOperator{S<:Number} end
 
 Returns the scalar type of the given AbstractOperator.
 """
-scalartype(lhs::Type{<:AbstractOperator{S}}) where S = S
-scalartype(lhs::AbstractOperator{S}) where S = S
+scalartype(::Type{<:AbstractOperator{S}}) where S = S
+scalartype(::AbstractOperator{S}) where S = S
 
 
 """
@@ -29,8 +29,8 @@ scalartype(lhs::AbstractOperator{S}) where S = S
 
 Returns the `valtype` (scalar type) of the given AbstractOperator.
 """
-Base.valtype(lhs::Type{<:AbstractOperator{S}}) where S = S
-Base.valtype(lhs::AbstractOperator{S}) where S = S
+Base.valtype(::Type{<:AbstractOperator{S}}) where S = S
+Base.valtype(::AbstractOperator{S}) where S = S
 
 
 bintype(lhs::AbstractOperator{S}) where S = bintype(typeof(lhs))::DataType

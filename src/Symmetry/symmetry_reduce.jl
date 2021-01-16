@@ -12,7 +12,7 @@ Symmetry-reduce the HilbertSpaceRepresentation using translation group.
 function symmetry_reduce(
     hsr::HilbertSpaceRepresentation{QN, BR, DT},
     ssic::AbstractSymmetryIrrepComponent,
-    complex_type::Type{ComplexType}=ComplexF64;
+    ::Type{ComplexType}=ComplexF64;
     tol::Real=Base.rtoldefault(Float64)
 ) where {QN, BR, DT, ComplexType<:Complex}
     symred = Threads.nthreads() == 1 ? symmetry_reduce_serial : symmetry_reduce_parallel

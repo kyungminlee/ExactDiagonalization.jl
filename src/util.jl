@@ -4,6 +4,11 @@ export make_bitmask
 export choptol!
 export merge_vec
 
+"""
+    IntegerModulo{N}
+
+Implement Zₙ.
+"""
 struct IntegerModulo{N}
     value::Int
     IntegerModulo{N}(value::Integer) where N = new{N}(mod(value, N))
@@ -25,16 +30,21 @@ Base.:(*)(lhs::IntegerModulo{N}, rhs::IntegerModulo{N}) where N = IntegerModulo{
 Base.:(*)(lhs::IntegerModulo{N}, rhs::Integer) where N = IntegerModulo{N}(lhs.value * rhs)
 Base.:(*)(lhs::Integer, rhs::IntegerModulo{N}) where N = IntegerModulo{N}(lhs * rhs.value)
 
-
 Base.:(==)(lhs::IntegerModulo{N}, rhs::IntegerModulo{N}) where N = lhs.value == rhs.value
 Base.:(==)(lhs::IntegerModulo{N}, rhs::Integer) where N = lhs.value == rhs
 Base.:(==)(lhs::Integer, rhs::IntegerModulo{N}) where N = lhs == rhs.value
 
+tuplelength(::Type{<:NTuple{N, Any}}) where N = N
+tuplelength(::NTuple{N, Any}) where N = N
+
 tupleadd(l::T, r::T) where {T<:Tuple} = l .+ r
-tuplezero(l::Type{T}) where {T<:Tuple} = ((zero(S) for S in T.parameters)...,)
-tupleone(l::Type{T}) where {T<:Tuple} = ((one(S) for S in T.parameters)...,)
-tuplezero(l::T) where {T<:Tuple} = ((zero(S) for S in T.parameters)...,)
-tupleone(l::T) where {T<:Tuple} = ((one(S) for S in T.parameters)...,)
+tuplesubtract(l::T, r::T) where {T<:Tuple} = l .- r
+
+tuplezero(::Type{T}) where {T<:Tuple} = ((zero(S) for S in T.parameters)...,)
+tupleone(::Type{T}) where {T<:Tuple} = ((one(S) for S in T.parameters)...,)
+
+tuplezero(::T) where {T<:Tuple} = ((zero(S) for S in T.parameters)...,)
+tupleone(::T) where {T<:Tuple} = ((one(S) for S in T.parameters)...,)
 
 function make_bitmask(
     msb::Integer,
@@ -84,7 +94,6 @@ function choptol!(d::Dict{K, V}, tol::Real) where {K, V<:Number}
 end
 
 
-
 """
     splitblock
 
@@ -100,6 +109,10 @@ function splitblock(n::Integer, b::Integer)::Vector{Int}
     return blocks
 end
 
+
+"""
+    splitrange
+"""
 function splitrange(range::AbstractVector{<:Integer}, b::Integer)
     nblocks = b
     block_sizes = splitblock(length(range), nblocks)
@@ -108,6 +121,11 @@ function splitrange(range::AbstractVector{<:Integer}, b::Integer)
 end
 
 
+"""
+    compress(bitwidths, data, BR)
+
+Compress data array into a binary integer of type BR.
+"""
 function compress(bitwidths::AbstractVector{<:Integer}, data::AbstractVector{<:Integer}, ::Type{BR}) where {BR<:Unsigned}
     n = length(bitwidths)
     @boundscheck if length(data) != n

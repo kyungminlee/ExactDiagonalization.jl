@@ -60,23 +60,23 @@ using StaticArrays
 
   @testset "isapprox" begin
     ψ1 = SparseState{ComplexF64, UInt}(UInt(0b0010001) => 1.0 + 0.0im)
-    @test isapprox(ψ1, ψ1)
+    @test isapprox(ψ1, ψ1; atol=Base.rtoldefault(Float64))
     let
       ψ2 = copy(ψ1)
       ψ2[UInt(0b0010001)] += 1E-13
-      @test isapprox(ψ1, ψ2)
+      @test isapprox(ψ1, ψ2; atol=Base.rtoldefault(Float64))
       @test ψ1 != ψ2
     end
     let
       ψ2 = copy(ψ1)
       ψ2[UInt(0b0000000)] = 0
-      @test isapprox(ψ1, ψ2)
+      @test isapprox(ψ1, ψ2; atol=Base.rtoldefault(Float64))
       @test ψ1 != ψ2
     end
     let
       ψ2 = copy(ψ1)
       ψ2[UInt(0b0010001)] += 1000.0
-      @test !isapprox(ψ1, ψ2)
+      @test !isapprox(ψ1, ψ2; atol=Base.rtoldefault(Float64))
     end
   end
 
@@ -162,12 +162,12 @@ using StaticArrays
       @test norm(ψ0) == 0.0
 
       ψ = SparseState{ComplexF64, UInt}(UInt(0b0000) => 3.0 + 4.0im)
-      @test isapprox(norm(ψ), 5.0)
+      @test isapprox(norm(ψ), 5.0; atol=Base.rtoldefault(Float64))
       ψ2 = normalize(ψ)
-      @test isapprox(ψ2, SparseState{ComplexF64, UInt}(UInt(0b0000) => 0.6 + 0.8im))
+      @test isapprox(ψ2, SparseState{ComplexF64, UInt}(UInt(0b0000) => 0.6 + 0.8im); atol=Base.rtoldefault(Float64))
 
-      @test isapprox(normalize!(ψ), ψ2)
-      @test isapprox(ψ, ψ2)
+      @test isapprox(normalize!(ψ), ψ2; atol=Base.rtoldefault(Float64))
+      @test isapprox(ψ, ψ2; atol=Base.rtoldefault(Float64))
     end
   end # unary
 

@@ -23,7 +23,7 @@ struct SumOperator{Scalar<:Number, BR<:Unsigned} <:AbstractOperator{Scalar}
 end
 
 
-bintype(lhs::Type{SumOperator{S, BR}}) where {S, BR} = BR
+bintype(::Type{SumOperator{S, BR}}) where {S, BR} = BR
 
 
 # === 1/6 Equality ===
@@ -49,31 +49,13 @@ Base.adjoint(arg::SumOperator{S, BR}) where {S, BR} = SumOperator{S, BR}(adjoint
 
 # === 3/6 Scalar Operators ===
 
-function Base.:(-)(arg::SumOperator{S, BR}) where {S, BR}
-    return SumOperator{S, BR}(-arg.terms)
-end
+Base.:(-)(arg::SumOperator) = SumOperator(-arg.terms)
 
-
-function Base.:(*)(lhs::S1, rhs::SumOperator{S2, BR}) where {S1<:Number, S2<:Number, BR}
-    return SumOperator(lhs .* rhs.terms)
-end
-
-function Base.:(*)(lhs::SumOperator{S1, BR}, rhs::S2) where {S1<:Number, S2<:Number, BR}
-    return SumOperator(lhs.terms .* rhs)
-end
-
-function Base.:(\)(lhs::S1, rhs::SumOperator{S2, BR}) where {S1<:Number, S2<:Number, BR}
-    return SumOperator(lhs .\ rhs.terms)
-end
-
-function Base.:(/)(lhs::SumOperator{S1, BR}, rhs::S2) where {S1<:Number, S2<:Number, BR}
-    return SumOperator(lhs.terms ./ rhs)
-end
-
-function Base.:(//)(lhs::SumOperator{S1, BR}, rhs::S2) where {S1<:Number, S2<:Number, BR}
-    return SumOperator(lhs.terms .// rhs)
-end
-
+Base.:(*)(lhs::Number, rhs::SumOperator) = SumOperator(lhs .* rhs.terms)
+Base.:(*)(lhs::SumOperator, rhs::Number) = SumOperator(lhs.terms .* rhs)
+Base.:(\)(lhs::Number, rhs::SumOperator) = SumOperator(lhs .\ rhs.terms)
+Base.:(/)(lhs::SumOperator, rhs::Number) = SumOperator(lhs.terms ./ rhs)
+Base.:(//)(lhs::SumOperator, rhs::Number) = SumOperator(lhs.terms .// rhs)
 
 # === 4/6 Operator Products ===
 
@@ -121,12 +103,12 @@ end
 
 # === 6/6 Conversion ===
 
-function Base.promote_rule(lhs::Type{SumOperator{S1, B1}}, rhs::Type{SumOperator{S2, B2}}) where {S1, S2, B1, B2}
+function Base.promote_rule(::Type{SumOperator{S1, B1}}, ::Type{SumOperator{S2, B2}}) where {S1, S2, B1, B2}
     S3 = promote_type(S1, S2)
     B3 = promote_type(B1, B2)
     return SumOperator{S3, B3}
 end
 
-function Base.convert(type::Type{SumOperator{S1, B1}}, obj::SumOperator{S2, B2}) where {S1, S2, B1, B2}
+function Base.convert(::Type{SumOperator{S1, B1}}, obj::SumOperator{S2, B2}) where {S1, S2, B1, B2}
     return SumOperator{S1, B1}([convert(PureOperator{S1, B1}, t) for t in obj.terms])
 end

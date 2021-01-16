@@ -3,16 +3,16 @@ export product_state
 function product_state(
     hs::HilbertSpace,
     local_states::AbstractVector,
-    binary_type::Type{BR}=UInt
+    ::Type{BR}=UInt
 ) where BR
-    return product_state(hs, (local_states...,), binary_type)
+    return product_state(hs, (local_states...,), BR)
 end
 
 
 function product_state(
     hs::HilbertSpace,
     local_states::Tuple{Vararg{<:AbstractVector{<:Number}}},
-    binary_type::Type{BR}=UInt
+    ::Type{BR}=UInt
 ) where BR
     n_sites = length(hs.sites)
     if length(local_states) != n_sites

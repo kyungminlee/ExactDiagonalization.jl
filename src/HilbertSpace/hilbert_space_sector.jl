@@ -70,8 +70,8 @@ end
 Returns the scalar type of the given hilbert space sector type.
 For HilbertSpaceSector{QN}, it is always `Bool`.
 """
-scalartype(arg::Type{HilbertSpaceSector{HS, QN}}) where {HS, QN} = Bool
-scalartype(arg::HilbertSpaceSector{HS, QN}) where {HS, QN} = Bool
+scalartype(::Type{HilbertSpaceSector{HS, QN}}) where {HS, QN} = Bool
+scalartype(::HilbertSpaceSector{HS, QN}) where {HS, QN} = Bool
 
 
 """
@@ -80,8 +80,8 @@ scalartype(arg::HilbertSpaceSector{HS, QN}) where {HS, QN} = Bool
 Returns the `valtype` (scalar type) of the given hilbert space sector type.
 For HilbertSpaceSector{QN}, it is always `Bool`.
 """
-Base.valtype(arg::Type{HilbertSpaceSector{HS, QN}}) where {HS, QN} = Bool
-Base.valtype(arg::HilbertSpaceSector{HS, QN}) where {HS, QN} = Bool
+Base.valtype(::Type{HilbertSpaceSector{HS, QN}}) where {HS, QN} = Bool
+Base.valtype(::HilbertSpaceSector{HS, QN}) where {HS, QN} = Bool
 
 
 """
@@ -89,8 +89,8 @@ Base.valtype(arg::HilbertSpaceSector{HS, QN}) where {HS, QN} = Bool
 
 Returns the quantum number type of the given hilbert space sector type.
 """
-qntype(arg::Type{HilbertSpaceSector{HS, QN}}) where {HS, QN} = QN
-qntype(arg::HilbertSpaceSector{HS, QN}) where {HS, QN} = QN
+qntype(::Type{HilbertSpaceSector{HS, QN}}) where {HS, QN} = QN
+qntype(::HilbertSpaceSector{HS, QN}) where {HS, QN} = QN
 
 
 """

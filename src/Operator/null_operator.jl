@@ -9,7 +9,7 @@ A null operator, i.e. 0.
 struct NullOperator<:AbstractOperator{Bool} end
 
 
-bintype(lhs::Type{NullOperator}) = UInt8
+bintype(::Type{<:NullOperator}) = UInt8
 
 
 Base.:(-)(op::NullOperator) = op
