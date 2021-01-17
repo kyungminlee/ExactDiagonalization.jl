@@ -48,8 +48,9 @@ using ExactDiagonalization.Toolkit: pauli_matrix
     show(devnull, MIME("text/plain"), rhsr)  # make sure it doesn't crash
   end
 
-  @testset "RHSR-new" begin #TODO: rename
-    rhsr = symmetry_reduce_serial_new(hsr, IrrepComponent(tsymbed, 1, 1))
+  @testset "RHSR-new implementation" begin #TODO: rename
+    symops_and_amplitudes = make_symmetrizer(get_irrep_iterator(IrrepComponent(tsymbed, 1, 1)))
+    rhsr = symmetry_reduce_serial(hsr, symops_and_amplitudes)
     @test scalartype(rhsr) === ComplexF64
     @test scalartype(typeof(rhsr)) === ComplexF64
     @test valtype(rhsr) === ComplexF64
@@ -59,6 +60,18 @@ using ExactDiagonalization.Toolkit: pauli_matrix
     @test dimension(rhsr) <= 2^n
     @test bitwidth(rhsr) == n
     show(devnull, MIME("text/plain"), rhsr)  # make sure it doesn't crash  
+
+    rhsr = symmetry_reduce_parallel(hsr, symops_and_amplitudes)
+    @test scalartype(rhsr) === ComplexF64
+    @test scalartype(typeof(rhsr)) === ComplexF64
+    @test valtype(rhsr) === ComplexF64
+    @test valtype(typeof(rhsr)) === ComplexF64
+    @test bintype(rhsr) === UInt
+    @test bintype(typeof(rhsr)) === UInt
+    @test dimension(rhsr) <= 2^n
+    @test bitwidth(rhsr) == n
+    show(devnull, MIME("text/plain"), rhsr)  # make sure it doesn't crash  
+
   end
 
   j1_rep = represent(hsr, j1)
