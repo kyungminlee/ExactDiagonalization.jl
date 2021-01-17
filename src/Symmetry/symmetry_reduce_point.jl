@@ -93,12 +93,11 @@ function symmetry_reduce_serial(
 
     RHSR = ReducedHilbertSpaceRepresentation{
         HSR,
-        IrrepComponent{SymmetryEmbedding{PointSymmetry}},
         BR,
         ComplexType
     }
     return RHSR(
-        hsr, psic, reduced_basis_list,
+        hsr, reduced_basis_list,
         basis_mapping_index, basis_mapping_amplitude
     )
 end
@@ -250,12 +249,11 @@ function symmetry_reduce_parallel(
     @debug "END symmetry_reduce_parallel"
     RHSR = ReducedHilbertSpaceRepresentation{
         HSR,
-        IrrepComponent{SymmetryEmbedding{PointSymmetry}},
         BR,
         ComplexType
     }
     return RHSR(
-        hsr, psic, reduced_basis_list,
+        hsr, reduced_basis_list,
         basis_mapping_index, basis_mapping_amplitude,
     )
 end

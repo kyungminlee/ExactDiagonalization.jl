@@ -5,6 +5,8 @@ using Suppressor
 using LinearAlgebra
 using SparseArrays
 
+using LatticeTools
+
 using ExactDiagonalization.Toolkit: pauli_matrix
 
 @testset "RedRep4" begin
@@ -44,6 +46,19 @@ using ExactDiagonalization.Toolkit: pauli_matrix
     @test dimension(rhsr) <= 2^n
     @test bitwidth(rhsr) == n
     show(devnull, MIME("text/plain"), rhsr)  # make sure it doesn't crash
+  end
+
+  @testset "RHSR-new" begin #TODO: rename
+    rhsr = symmetry_reduce_serial_new(hsr, IrrepComponent(tsymbed, 1, 1))
+    @test scalartype(rhsr) === ComplexF64
+    @test scalartype(typeof(rhsr)) === ComplexF64
+    @test valtype(rhsr) === ComplexF64
+    @test valtype(typeof(rhsr)) === ComplexF64
+    @test bintype(rhsr) === UInt
+    @test bintype(typeof(rhsr)) === UInt
+    @test dimension(rhsr) <= 2^n
+    @test bitwidth(rhsr) == n
+    show(devnull, MIME("text/plain"), rhsr)  # make sure it doesn't crash  
   end
 
   j1_rep = represent(hsr, j1)
