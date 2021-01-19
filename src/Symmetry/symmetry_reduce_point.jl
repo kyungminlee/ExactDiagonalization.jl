@@ -47,6 +47,8 @@ function symmetry_reduce_serial(
         for i in 2:subgroup_size
             (symop, ampl) = symops_and_amplitudes[i]
             bvec_prime, sgn = symmetry_apply(hsr.hilbert_space, symop, bvec)
+            # following is a false argument. visited not marked if not compatible.
+            # ==> @assert bvec_prime >= bvec # basis_list is ordered, and loop is in increasing order of ivec_p
             if bvec_prime < bvec
                 compatible = false
                 break

@@ -3,21 +3,6 @@ export make_symmetrizer
 
 using LatticeTools
 
-# moved to LatticeTools.jl
-# function make_symmetrizer(irrep_iterators...; tol::Real=Base.rtoldefault(Float64))
-#     nested_symops_and_amplitude_list = [
-#         [(x, y) for (x, y) in irrep_iterator if !isapprox(y, zero(y); atol=tol)]
-#             for irrep_iterator in irrep_iterators
-#     ]
-#     symops_and_amplitudes = [
-#         (prod(reverse([op for (op, amp) in elems])), prod(amp for (op, amp) in elems))
-#             for elems in Iterators.product(nested_symops_and_amplitude_list...)
-#             # elems has the form of ((s, phis), (t, phit), (p, phit), ...)
-#             # we want the resulting element to be (p*t*s, ϕp*ϕt*ϕs). the phase commutes, while operations do not necessarily. 
-#     ]
-#     return symops_and_amplitudes
-# end
-
 
 function symmetry_reduce(
     hsr::HilbertSpaceRepresentation{QN, BR, DT},
@@ -79,7 +64,6 @@ function symmetry_reduce_serial(
             if bvec_prime < bvec
                 compatible = false
                 break
-            #elseif bvec_prime == bvec && !is_identity[i]
             elseif bvec_prime == bvec && !isapprox(ampl * sgn, one(ScalarType); atol=tol)
                 compatible = false
                 break
@@ -122,10 +106,7 @@ function symmetry_reduce_serial(
     end
 
     RHSR = ReducedHilbertSpaceRepresentation{HSR, BR, ScalarType}
-    return RHSR(
-        hsr, reduced_basis_list,
-        basis_mapping_index, basis_mapping_amplitude
-    )
+    return RHSR(hsr, reduced_basis_list, basis_mapping_index, basis_mapping_amplitude)
 end
 
 
@@ -190,7 +171,6 @@ function symmetry_reduce_parallel(
     end
 
     @assert all(isapprox(abs(y), one(abs(y))) for (_, y) in symops_and_amplitudes)
-    #is_identity = [isapprox(y, one(y); atol=tol) for (_, y) in symops_and_amplitudes]
 
     @debug "Starting reduction (parallel)"
     Threads.@threads for itemp in 1:n_basis
@@ -210,7 +190,6 @@ function symmetry_reduce_parallel(
             if bvec_prime < bvec
                 compatible = false
                 break
-            #elseif bvec_prime == bvec && !is_identity[i]
             elseif bvec_prime == bvec && !isapprox(ampl * sgn, one(ScalarType); atol=tol)
                 compatible = false
                 break
