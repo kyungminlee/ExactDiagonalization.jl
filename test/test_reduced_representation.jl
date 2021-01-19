@@ -30,26 +30,54 @@ using ExactDiagonalization.Toolkit: pauli_matrix
   hsr = represent(HilbertSpaceSector(hs, 0))
   tsym = TranslationSymmetry(lattice)
   tsymbed = embed(lattice, tsym)
+  psym = project(PointSymmetryDatabase.get3d(2), [1 0 0;])
+  psymbed = embed(lattice, psym)
   # translation_group = TranslationGroup([Permutation([2,3,4,1])])
   # @test isinvariant(hs, translation_group, j1)
   # @test isinvariant(HilbertSpaceSector(hs, 0), translation_group, j1)
 
   @testset "RHSR" begin
     #rhsr = symmetry_reduce(hsr, translation_group, [0//1])
-    rhsr = symmetry_reduce(hsr, IrrepComponent(tsymbed, 2, 1))
-    @test scalartype(rhsr) === ComplexF64
-    @test scalartype(typeof(rhsr)) === ComplexF64
-    @test valtype(rhsr) === ComplexF64
-    @test valtype(typeof(rhsr)) === ComplexF64
-    @test bintype(rhsr) === UInt
-    @test bintype(typeof(rhsr)) === UInt
-    @test dimension(rhsr) <= 2^n
-    @test bitwidth(rhsr) == n
-    show(devnull, MIME("text/plain"), rhsr)  # make sure it doesn't crash
+    for symred in [symmetry_reduce, symmetry_reduce_serial, symmetry_reduce_parallel]
+      rhsr = symred(hsr, IrrepComponent(tsymbed, 2, 1))
+      @test scalartype(rhsr) === ComplexF64
+      @test scalartype(typeof(rhsr)) === ComplexF64
+      @test valtype(rhsr) === ComplexF64
+      @test valtype(typeof(rhsr)) === ComplexF64
+      @test bintype(rhsr) === UInt
+      @test bintype(typeof(rhsr)) === UInt
+      @test dimension(rhsr) <= 2^n
+      @test bitwidth(rhsr) == n
+      show(devnull, MIME("text/plain"), rhsr)  # make sure it doesn't crash
+
+      rhsr = symred(hsr, IrrepComponent(psymbed, 2, 1))
+      @test scalartype(rhsr) === ComplexF64
+      @test scalartype(typeof(rhsr)) === ComplexF64
+      @test valtype(rhsr) === ComplexF64
+      @test valtype(typeof(rhsr)) === ComplexF64
+      @test bintype(rhsr) === UInt
+      @test bintype(typeof(rhsr)) === UInt
+      @test dimension(rhsr) <= 2^n
+      @test bitwidth(rhsr) == n
+      show(devnull, MIME("text/plain"), rhsr)  # make sure it doesn't crash
+    end
   end
 
   @testset "RHSR-new implementation" begin #TODO: rename
     symops_and_amplitudes = collect(get_irrep_iterator(IrrepComponent(tsymbed, 2, 1)))
+    for symred in [symmetry_reduce, symmetry_reduce_serial, symmetry_reduce_parallel]
+      rhsr = symred(hsr, symops_and_amplitudes)
+      @test scalartype(rhsr) === ComplexF64
+      @test scalartype(typeof(rhsr)) === ComplexF64
+      @test valtype(rhsr) === ComplexF64
+      @test valtype(typeof(rhsr)) === ComplexF64
+      @test bintype(rhsr) === UInt
+      @test bintype(typeof(rhsr)) === UInt
+      @test dimension(rhsr) <= 2^n
+      @test bitwidth(rhsr) == n
+      show(devnull, MIME("text/plain"), rhsr)  # make sure it doesn't crash  
+    end
+    symops_and_amplitudes = collect(get_irrep_iterator(IrrepComponent(psymbed, 2, 1)))
     for symred in [symmetry_reduce, symmetry_reduce_serial, symmetry_reduce_parallel]
       rhsr = symred(hsr, symops_and_amplitudes)
       @test scalartype(rhsr) === ComplexF64
