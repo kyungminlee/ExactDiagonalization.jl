@@ -3,6 +3,8 @@
 export GlobalBitFlip
 export symmetry_apply
 
+import LatticeTools
+
 struct GlobalBitFlip <: AbstractSymmetryOperation
     value::Bool
     GlobalBitFlip() = new(false)
