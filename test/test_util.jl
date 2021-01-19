@@ -12,6 +12,14 @@ using ExactDiagonalization
         @test make_bitmask(5, 3) == 0b11000
     end
 
+    @testset "compress" begin
+        bitwidth = [2, 3, 1, 2]
+        @test compress(bitwidth, [1,2,0,1], UInt) == UInt(0b01_0_010_01)
+        @test_throws ArgumentError compress([1,2,3], [1,2,3,4], UInt)
+        @test_throws ArgumentError compress([8,8,8,8], [1,1,1,1], UInt8)
+        @test_throws ArgumentError compress([1,1,1], [99, 1,1], UInt)
+    end
+
     @testset "merge_vec" begin
         let
             a = Int[1,5,7,8]
@@ -119,6 +127,10 @@ using ExactDiagonalization
         @test ED.tuplezero(t1) ==  (0, 0, 0)
 
         @test ED.tupleadd((1.0, 2, 3.0 + 4im), (5.0, 6, 7.0 + 8.0im)) === (6.0, 8, 10.0 + 12.0im)
+        @test ED.tuplesubtract((1.0, 2, 3.0 + 4im), (5.0, 6, 7.0 + 8.0im)) === (-4.0, -4, -4.0 - 4.0im)
+
+        @test ED.tuplelength((1, 'B', "γ")) == 3
+        @test ED.tuplelength(typeof((1,'B', "γ"))) == 3
     end
 end
 
