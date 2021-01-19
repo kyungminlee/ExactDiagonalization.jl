@@ -16,6 +16,8 @@ LatticeTools.isidentity(arg::GlobalBitFlip) = !arg.value
 Base.:(*)(lhs::GlobalBitFlip, rhs::SitePermutation) = DirectProductOperation(lhs, rhs)
 Base.:(*)(lhs::SitePermutation, rhs::GlobalBitFlip) = DirectProductOperation(lhs, rhs)
 
+Base.:(==)(lhs::GlobalBitFlip, rhs::GlobalBitFlip) = lhs.value == rhs.value
+
 function symmetry_apply(
     hs::HilbertSpace,
     op::GlobalBitFlip,
