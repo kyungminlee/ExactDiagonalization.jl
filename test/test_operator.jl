@@ -21,6 +21,12 @@ using StaticArrays
     @test bintype(typeof(nop)) <: Unsigned
   end
 
+  @testset "zero" begin
+    @test zero(NullOperator) == NullOperator()
+    @test zero(nop) == NullOperator()
+    @test iszero(nop)
+  end
+
   @testset "unary" begin
     @test -nop == nop
     @test +nop == nop
