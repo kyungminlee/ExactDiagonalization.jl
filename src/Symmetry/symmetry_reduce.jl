@@ -93,7 +93,7 @@ function symmetry_reduce!(
     rhsr::ReducedHilbertSpaceRepresentation{HSR, BR, C},
     large_vector::AbstractVector{Si}
 ) where {HSR, BR, C, Si<:Number, So<:Number}
-    symred = Threads.nthreads() == 1 ? symmetry_reduce_serial : symmetry_reduce_parallel
+    symred = Threads.nthreads() == 1 ? symmetry_reduce_serial! : symmetry_reduce_parallel!
     return symred(out, rhsr, large_vector)
 end
 
@@ -147,7 +147,7 @@ function symmetry_reduce_parallel!(
         end
     end
     for tid in 1:Threads.nthreads()
-        @inbounds out += view(local_small_vectors, :, tid)
+        @inbounds out[:] += view(local_small_vectors, :, tid)
     end
     return out
 end

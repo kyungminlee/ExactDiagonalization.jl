@@ -70,8 +70,23 @@ using ExactDiagonalization.Toolkit: pauli_matrix
 
       sv = rand(ComplexF64, dimension(rhsr))
       lv = symmetry_unreduce(rhsr, sv)
+
       sv2 = symmetry_reduce(rhsr, lv)
       @test isapprox(sv, sv2; atol=tol)
+      sv3 = symmetry_reduce_serial(rhsr, lv)
+      @test isapprox(sv, sv3; atol=tol)
+      sv4 = symmetry_reduce_parallel(rhsr, lv)
+      @test isapprox(sv, sv4; atol=tol)
+
+      sv5 = zero(sv4)
+      @test sv5 === symmetry_reduce!(sv5, rhsr, lv)
+      @test isapprox(sv, sv5; atol=tol)
+      sv6 = zero(sv4)
+      @test sv6 === symmetry_reduce_serial!(sv6, rhsr, lv)
+      @test isapprox(sv, sv6; atol=tol)
+      sv7 = zero(sv4)
+      @test sv7 === symmetry_reduce_parallel!(sv7, rhsr, lv)
+      @test isapprox(sv, sv7; atol=tol)
     end
 
     #                               0011,   0101,   0110,   1001,   1010,   1100
