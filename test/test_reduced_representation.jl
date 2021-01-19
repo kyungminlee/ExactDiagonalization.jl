@@ -36,7 +36,7 @@ using ExactDiagonalization.Toolkit: pauli_matrix
 
   @testset "RHSR" begin
     #rhsr = symmetry_reduce(hsr, translation_group, [0//1])
-    rhsr = symmetry_reduce(hsr, IrrepComponent(tsymbed, 1, 1))
+    rhsr = symmetry_reduce(hsr, IrrepComponent(tsymbed, 2, 1))
     @test scalartype(rhsr) === ComplexF64
     @test scalartype(typeof(rhsr)) === ComplexF64
     @test valtype(rhsr) === ComplexF64
@@ -49,7 +49,7 @@ using ExactDiagonalization.Toolkit: pauli_matrix
   end
 
   @testset "RHSR-new implementation" begin #TODO: rename
-    symops_and_amplitudes = collect(get_irrep_iterator(IrrepComponent(tsymbed, 1, 1)))
+    symops_and_amplitudes = collect(get_irrep_iterator(IrrepComponent(tsymbed, 2, 1)))
     for symred in [symmetry_reduce, symmetry_reduce_serial, symmetry_reduce_parallel]
       rhsr = symred(hsr, symops_and_amplitudes)
       @test scalartype(rhsr) === ComplexF64
