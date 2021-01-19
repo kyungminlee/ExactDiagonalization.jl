@@ -194,7 +194,8 @@ function hs_get_basis_list(hss::HilbertSpaceSector{HS, QN}, binary_type::Type{BR
         sector_basis_list, new_sector_basis_list = new_sector_basis_list, sector_basis_list
     end
 
-    basis_list::Vector{BR} = let
+    # basis_list::Vector{BR} = let
+    basis_list = let
         basis_list = BR[]
         sector_basis_list::Dict{QN, Vector{BR}} = sector_basis_list
 
