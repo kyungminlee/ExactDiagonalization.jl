@@ -9,3 +9,6 @@ include("Symmetry/symmetry_reduce.jl")
 include("Symmetry/symmetry_reduce_translation.jl")
 include("Symmetry/symmetry_reduce_point.jl")
 include("Symmetry/symmetry_reduce_symmorphic.jl")
+include("Symmetry/symmetry_reduce_generic.jl")
+
+include("Symmetry/bitflipsymmetry.jl")

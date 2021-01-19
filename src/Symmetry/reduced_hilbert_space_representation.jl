@@ -12,21 +12,20 @@ Currently only supports Translation group (i.e. Abelian group).
 """
 struct ReducedHilbertSpaceRepresentation{
     HSR<:HilbertSpaceRepresentation,
-    SIC<:AbstractSymmetryIrrepComponent,
     BR,
     C<:Complex
 }<:AbstractHilbertSpaceRepresentation{C}
     parent::HSR
-    symmetry_irrep_component::SIC
+    #symmetry_irrep_component::SIC
     basis_list::Vector{BR}
     basis_mapping_index::Vector{Int} # has size of parent dimension. each index item contains index at reduced basis, or -1 if not included
     basis_mapping_amplitude::Vector{C}
 end
 
 
-Base.valtype(::Type{ReducedHilbertSpaceRepresentation{HSR, SIC, BR, C}}) where {HSR, SIC, BR, C} = C
-scalartype(::Type{ReducedHilbertSpaceRepresentation{HSR, SIC, BR, C}}) where {HSR, SIC, BR, C} = C
-bintype(::Type{ReducedHilbertSpaceRepresentation{HSR, SIC, BR, C}}) where {HSR, SIC, BR, C} = BR
+Base.valtype(::Type{ReducedHilbertSpaceRepresentation{HSR, BR, C}}) where {HSR, BR, C} = C
+scalartype(::Type{ReducedHilbertSpaceRepresentation{HSR, BR, C}}) where {HSR, BR, C} = C
+bintype(::Type{ReducedHilbertSpaceRepresentation{HSR, BR, C}}) where {HSR, BR, C} = BR
 
 
 basespace(lhs::ReducedHilbertSpaceRepresentation) = basespace(lhs.parent)

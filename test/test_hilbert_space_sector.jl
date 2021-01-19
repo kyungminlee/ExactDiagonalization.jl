@@ -19,6 +19,9 @@ using StaticArrays
       @test HilbertSpaceSector(hs) == HilbertSpaceSector(hs, [(-4,), (-2,), (0,), (2,), (4,)])
       @test HilbertSpaceSector(hs) != HilbertSpaceSector(hs, (0,))
 
+      @test HilbertSpaceSector(hs, [0, 2]) == HilbertSpaceSector(hs, [(0,), (2,)])
+      @test HilbertSpaceSector(hs, Set([0, 2])) == HilbertSpaceSector(hs, [(0,), (2,)])
+
       hss = HilbertSpaceSector(hs, (0,))
       @test scalartype(hss) === Bool
       @test scalartype(typeof(hss)) === Bool

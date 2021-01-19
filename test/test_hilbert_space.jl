@@ -148,6 +148,15 @@ end
 
     @test hs.bitoffsets[end] == 2 + 2 + 1 + 2
     @test bitwidth(hs) == 2 + 2 + 1 + 2
+    @test bitwidth(hs, 1) == 2
+    @test bitwidth(hs, 2) == 2
+    @test bitwidth(hs, 3) == 1
+    @test bitwidth(hs, 4) == 2
+    @test bitoffset(hs, 1) == 0
+    @test bitoffset(hs, 2) == 2
+    @test bitoffset(hs, 3) == 4
+    @test bitoffset(hs, 4) == 5
+    @test get_bitmask(hs) == 0b1111111
     @test get_bitmask(hs, 1) == 0b0000011
     @test get_bitmask(hs, 2) == 0b0001100
     @test get_bitmask(hs, 3) == 0b0010000

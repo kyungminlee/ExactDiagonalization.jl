@@ -27,18 +27,18 @@ Reduce a large vector into the reduced hilbert space representation.
 Simply throw away components that don't fit.
 """
 function symmetry_reduce(
-    rhsr::ReducedHilbertSpaceRepresentation{HSR, SIC, BR, C},
+    rhsr::ReducedHilbertSpaceRepresentation{HSR, BR, C},
     large_vector::AbstractVector{Si}
-) where {HSR, SIC, BR, C, Si<:Number}
+) where {HSR, BR, C, Si<:Number}
     symred = Threads.nthreads() == 1 ? symmetry_reduce_serial : symmetry_reduce_parallel
     return symred(rhsr, large_vector)
 end
 
 
 function symmetry_reduce_serial(
-    rhsr::ReducedHilbertSpaceRepresentation{HSR, SIC, BR, C},
+    rhsr::ReducedHilbertSpaceRepresentation{HSR, BR, C},
     large_vector::AbstractVector{Si}
-) where {HSR, SIC, BR, C, Si<:Number}
+) where {HSR, BR, C, Si<:Number}
     if length(large_vector) != dimension(rhsr.parent)
         throw(DimensionMismatch("Dimension of the input vector should match the larger representation"))
     end
@@ -57,9 +57,9 @@ end
 
 
 function symmetry_reduce_parallel(
-    rhsr::ReducedHilbertSpaceRepresentation{HSR, SIC, BR, C},
+    rhsr::ReducedHilbertSpaceRepresentation{HSR, BR, C},
     large_vector::AbstractVector{Si}
-) where {HSR, SIC, BR, C, Si<:Number}
+) where {HSR, BR, C, Si<:Number}
     if length(large_vector) != dimension(rhsr.parent)
         throw(DimensionMismatch("Dimension of the input vector should match the larger representation"))
     end
@@ -90,9 +90,9 @@ Adds and not overwrites.
 """
 function symmetry_reduce!(
     out::AbstractVector{So},
-    rhsr::ReducedHilbertSpaceRepresentation{HSR, SIC, BR, C},
+    rhsr::ReducedHilbertSpaceRepresentation{HSR, BR, C},
     large_vector::AbstractVector{Si}
-) where {HSR, SIC, BR, C, Si<:Number, So<:Number}
+) where {HSR, BR, C, Si<:Number, So<:Number}
     symred = Threads.nthreads() == 1 ? symmetry_reduce_serial : symmetry_reduce_parallel
     return symred(out, rhsr, large_vector)
 end
@@ -100,9 +100,9 @@ end
 
 function symmetry_reduce_serial!(
     out::AbstractVector{So},
-    rhsr::ReducedHilbertSpaceRepresentation{HSR, SIC, BR, C},
+    rhsr::ReducedHilbertSpaceRepresentation{HSR, BR, C},
     large_vector::AbstractVector{Si}
-) where {HSR, SIC, BR, C, Si<:Number, So<:Number}
+) where {HSR, BR, C, Si<:Number, So<:Number}
     if length(large_vector) != dimension(rhsr.parent)
         throw(DimensionMismatch("Dimension of the input vector should match the larger representation"))
     end
@@ -124,9 +124,9 @@ end
 
 function symmetry_reduce_parallel!(
     out::AbstractVector{So},
-    rhsr::ReducedHilbertSpaceRepresentation{HSR, SIC, BR, C},
+    rhsr::ReducedHilbertSpaceRepresentation{HSR, BR, C},
     large_vector::AbstractVector{Si},
-) where {HSR, SIC, BR, C, Si<:Number, So<:Number}
+) where {HSR, BR, C, Si<:Number, So<:Number}
     if length(large_vector) != dimension(rhsr.parent)
         throw(DimensionMismatch("Dimension of the input vector should match the larger representation"))
     end
@@ -206,9 +206,9 @@ raw"""
 ```
 """
 function symmetry_unreduce(
-    rhsr::ReducedHilbertSpaceRepresentation{HSR, SIC, BR, C},
+    rhsr::ReducedHilbertSpaceRepresentation{HSR, BR, C},
     small_vector::AbstractVector{Si}
-) where {HSR, SIC, BR, C, Si<:Number}
+) where {HSR, BR, C, Si<:Number}
     if length(small_vector) != dimension(rhsr)
         throw(DimensionMismatch("Dimension of the input vector should match the reduced representation"))
     end
