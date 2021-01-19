@@ -31,6 +31,9 @@ using StaticArrays
 
     ψ5 = SparseState{ComplexF64, UInt}(Dict(UInt(0b0000001) => 2.0, UInt(0b0010001) => 3.0 ))
     @test ψ5.components == Dict(UInt(0x11) => 3.0 + 0.0im, UInt(0x1) => 2.0 + 0.0im)
+
+    ψ6 = SparseState(UInt(0b0000001) => 2.0, UInt(0b0010001) => 3.0)
+    @test ψ6.components == Dict(UInt(0x11) => 3.0 + 0.0im, UInt(0x1) => 2.0 + 0.0im)
   end
 
   @testset "type" begin
