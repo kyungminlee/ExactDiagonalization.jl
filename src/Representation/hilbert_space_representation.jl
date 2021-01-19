@@ -194,18 +194,12 @@ function hs_get_basis_list(hss::HilbertSpaceSector{HS, QN}, binary_type::Type{BR
         sector_basis_list, new_sector_basis_list = new_sector_basis_list, sector_basis_list
     end
 
-    # basis_list::Vector{BR} = let
-    basis_list = let
-        basis_list = BR[]
-        sector_basis_list::Dict{QN, Vector{BR}} = sector_basis_list
-
-        qs = collect(keys(sector_basis_list))
-        for q in qs
-            states = pop!(sector_basis_list, q)
-            basis_list = merge_vec(basis_list, states)
-            GC.gc()
-        end
-        basis_list
+    basis_list = BR[]
+    qs = collect(keys(sector_basis_list))
+    for q in qs
+        states = pop!(sector_basis_list, q)
+        basis_list = merge_vec(basis_list, states)
+        GC.gc()
     end
     @assert issorted(basis_list)
     return basis_list
