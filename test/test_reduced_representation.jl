@@ -49,7 +49,7 @@ using ExactDiagonalization.Toolkit: pauli_matrix
   end
 
   @testset "RHSR-new implementation" begin #TODO: rename
-    symops_and_amplitudes = make_symmetrizer(get_irrep_iterator(IrrepComponent(tsymbed, 1, 1)))
+    symops_and_amplitudes = collect(get_irrep_iterator(IrrepComponent(tsymbed, 1, 1)))
     rhsr = symmetry_reduce_serial(hsr, symops_and_amplitudes)
     @test scalartype(rhsr) === ComplexF64
     @test scalartype(typeof(rhsr)) === ComplexF64
