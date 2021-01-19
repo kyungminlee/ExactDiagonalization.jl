@@ -1,27 +1,29 @@
 export symmetry_reduce_serial, symmetry_reduce_parallel
 export make_symmetrizer
 
+using LatticeTools
 
-function make_symmetrizer(irrep_iterators...; tol::Real=Base.rtoldefault(Float64))
-    nested_symops_and_amplitude_list = [
-        [(x, conj(y)) for (x, y) in irrep_iterator if !isapprox(y, zero(y); atol=tol)]
-            for irrep_iterator in irrep_iterators
-    ]
-    symops_and_amplitudes = [
-        (prod(reverse([op for (op, amp) in elems])), prod(amp for (op, amp) in elems))
-            for elems in Iterators.product(nested_symops_and_amplitude_list...)
-            # elems has the form of ((s, phis), (t, phit), (p, phit), ...)
-            # we want the resulting element to be (p*t*s, ϕp*ϕt*ϕs). the phase commutes, while operations do not necessarily. 
-    ]
-    return symops_and_amplitudes
-end
+# moved to LatticeTools.jl
+# function make_symmetrizer(irrep_iterators...; tol::Real=Base.rtoldefault(Float64))
+#     nested_symops_and_amplitude_list = [
+#         [(x, y) for (x, y) in irrep_iterator if !isapprox(y, zero(y); atol=tol)]
+#             for irrep_iterator in irrep_iterators
+#     ]
+#     symops_and_amplitudes = [
+#         (prod(reverse([op for (op, amp) in elems])), prod(amp for (op, amp) in elems))
+#             for elems in Iterators.product(nested_symops_and_amplitude_list...)
+#             # elems has the form of ((s, phis), (t, phit), (p, phit), ...)
+#             # we want the resulting element to be (p*t*s, ϕp*ϕt*ϕs). the phase commutes, while operations do not necessarily. 
+#     ]
+#     return symops_and_amplitudes
+# end
 
 
 function symmetry_reduce(
     hsr::HilbertSpaceRepresentation{QN, BR, DT},
-    symops_and_amplitudes::AbstractVector{Tuple{SitePermutation, ScalarType}};
+    symops_and_amplitudes::AbstractVector{Tuple{OperationType, ScalarType}};
     tol::Real=Base.rtoldefault(real(ScalarType))
-) where {QN, BR, DT, ScalarType<:Number}
+) where {QN, BR, DT, OperationType<:AbstractSymmetryOperation, ScalarType<:Number}
     symred = Threads.nthreads() == 1 ? symmetry_reduce_serial : symmetry_reduce_parallel
     return symred(hsr, symops_and_amplitudes; tol=tol)
 end
@@ -39,9 +41,9 @@ symmetry_reduce_serial(
 """
 function symmetry_reduce_serial(
     hsr::HilbertSpaceRepresentation{QN, BR, DT},
-    symops_and_amplitudes::AbstractVector{Tuple{SitePermutation, ScalarType}};
+    symops_and_amplitudes::AbstractVector{Tuple{OperationType, ScalarType}};
     tol::Real=Base.rtoldefault(real(ScalarType))
-) where {QN, BR, DT, ScalarType<:Number}
+) where {QN, BR, DT, OperationType<:AbstractSymmetryOperation, ScalarType<:Number}
     HSR = HilbertSpaceRepresentation{QN, BR, DT}
 
     n_basis = length(hsr.basis_list)
@@ -83,7 +85,7 @@ function symmetry_reduce_serial(
                 break
             end
             basis_states[i] = bvec_prime
-            basis_phases[i] = ampl * sgn
+            basis_phases[i] = conj(ampl * sgn)
         end # for i
         (!compatible) && continue
         basis_states[1] = bvec
@@ -135,9 +137,9 @@ Symmetry-reduce the HilbertSpaceRepresentation using translation group (multi-th
 """
 function symmetry_reduce_parallel(
     hsr::HilbertSpaceRepresentation{QN, BR, DT},
-    symops_and_amplitudes::AbstractVector{Tuple{SitePermutation, ScalarType}};
+    symops_and_amplitudes::AbstractVector{Tuple{OperationType, ScalarType}};
     tol::Real=Base.rtoldefault(Float64)
-) where {QN, BR, DT, ScalarType<:Number}
+    ) where {QN, BR, DT, OperationType<:AbstractSymmetryOperation, ScalarType<:Number}
 
     HSR = HilbertSpaceRepresentation{QN, BR, DT}
     @debug "BEGIN symmetry_reduce_parallel"
@@ -214,7 +216,7 @@ function symmetry_reduce_parallel(
                 break
             end
             local_basis_states[id, i] = bvec_prime
-            local_basis_phases[id, i] = ampl * sgn
+            local_basis_phases[id, i] = conj(ampl * sgn)
         end # for i
         (!compatible) && continue
         local_basis_states[id, 1] = bvec
