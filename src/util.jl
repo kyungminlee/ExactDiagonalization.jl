@@ -59,7 +59,7 @@ function make_bitmask(msb::Integer, lsb::Integer, binary_type::Type{BR}=UInt) wh
     return mask ⊻ submask
 end
 
-function merge_vec(x::Vector{T}, y::Vector{T})::Vector{T} where {T}
+function merge_vec(x::AbstractVector{T}, y::AbstractVector{T})::Vector{T} where {T}
     (nx, ny) = (1, 1)
     z = T[]
     sizehint!(z, length(x) + length(y))
