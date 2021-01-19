@@ -318,7 +318,8 @@ end
   # j1 = sum(σ[i, j] * σ[mod(i, n) + 1 , j] for i in 1:n, j in [:x, :y, :z])
   # j2 = sum(σ[i, j] * σ[mod(i+1, n) + 1 , j] for i in 1:n, j in [:x, :y, :z])
 
-  hsr = represent(HilbertSpaceSector(hs, 0))
+  # hsr = represent(HilbertSpaceSector(hs, 0))
+  hsr = represent(hs)
   tsym = TranslationSymmetry(lattice)
   tsymbed = embed(lattice, tsym)
   psym = PointSymmetryDatabase.get2d(6)
