@@ -141,7 +141,7 @@ function compress(bitwidths::AbstractVector{<:Integer}, data::AbstractVector{<:I
         @boundscheck if data[i] < 0 || data[i] >= (1<<bitwidths[i])
             throw(ArgumentError("value $(data[i]) too large to be represented with $(bitwidths[i]) bits."))
         end
-        out |= BR(data) << bitoffsets[i]
+        out |= BR(data[i]) << bitoffsets[i]
     end
     return out
 end
