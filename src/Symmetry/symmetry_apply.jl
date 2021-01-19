@@ -1,7 +1,7 @@
 export symmetry_apply
 export isinvariant
 
-import LatticeTools.AbstractSpaceSymmetryOperationEmbedding
+# import LatticeTools.AbstractSpaceSymmetryOperationEmbedding
 import LatticeTools.SymmetryEmbedding
 
 ## AbstractSpaceSymmetryOperationEmbedding
@@ -9,7 +9,7 @@ import LatticeTools.SymmetryEmbedding
 ### HilbertSpaceSector
 function symmetry_apply(
     hss::HilbertSpaceSector{QN},
-    symop::AbstractSymmetryOperationEmbedding,
+    symop::AbstractSymmetryOperation,
     args...;
     kwargs...
 ) where {QN}
@@ -18,7 +18,7 @@ end
 
 function isinvariant(
     hss::HilbertSpaceSector{QN},
-    symop::AbstractSymmetryOperationEmbedding,
+    symop::AbstractSymmetryOperation,
     args...;
     kwargs...
 ) where {QN}
@@ -47,7 +47,7 @@ end
 ### generic symmetry operations for NullOperator and SumOperator
 function symmetry_apply(
     hs::HilbertSpace{QN},
-    symop::AbstractSpaceSymmetryOperationEmbedding,
+    symop::AbstractSymmetryOperation,
     op::NullOperator
 ) where {QN}
     return op
@@ -55,11 +55,25 @@ end
 
 function symmetry_apply(
     hs::HilbertSpace{QN},
-    symop::AbstractSpaceSymmetryOperationEmbedding,
+    symop::AbstractSymmetryOperation,
     op::SumOperator{S, BR}
 ) where {QN, S<:Number, BR<:Unsigned}
     terms = collect(symmetry_apply(hs, symop, t) for t in op.terms)
     return SumOperator{S, BR}(terms)
+end
+
+function symmetry_apply(
+    hs::HilbertSpace{QN},
+    dop::DirectProductOperation,
+    bitrep::BR
+) where {QN, BR<:Unsigned}
+    # assumption is that the operations commute.
+    sign = 1
+    for op in reverse(dop.operations)  # (ABC)(ψ) = A(B(C(ψ)))
+        bitrep, v = symmetry_apply(hs, op, bitrep)
+        sign *= v
+    end
+    return (bitrep, sign)
 end
 
 
@@ -74,7 +88,7 @@ function symmetry_apply(
     for (i, j) in enumerate(permutation.permutation.map)
         out |= ( (bitrep >> hs.bitoffsets[i]) & make_bitmask(hs.bitwidths[i]) ) << hs.bitoffsets[j]
     end
-    return (out, true)
+    return (out, 1)
 end
 
 
@@ -95,7 +109,7 @@ end
 ## isinvariant
 function isinvariant(
     hs::HilbertSpace{QN},
-    symop::AbstractSpaceSymmetryOperationEmbedding,
+    symop::AbstractSymmetryOperation,
     op::AbstractOperator
 ) where {QN}
     return simplify(op - symmetry_apply(hs, symop, op)) == NullOperator()
