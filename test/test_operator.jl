@@ -486,6 +486,16 @@ end
       sop2 = SumOperator{ComplexF64, UInt}([pop3, pop4])
       @test sop + sop2 == SumOperator{ComplexF64, UInt}([pop1, pop2, pop3, pop4])
       @test sop - sop2 == SumOperator{ComplexF64, UInt}([pop1, pop2,-pop3,-pop4])
+
+      @test pop1 + 3 == SumOperator{Float64, UInt}([pop1, PureOperator{Float64, UInt}(0x0, 0x0, 0x0, 3)])
+      @test 3 + pop1 == SumOperator{Float64, UInt}([PureOperator{Float64, UInt}(0x0, 0x0, 0x0, 3), pop1])
+      @test sop + 3 == SumOperator{ComplexF64, UInt}([pop1, pop2, PureOperator{ComplexF64, UInt}(0x0, 0x0, 0x0, 3)])
+      @test 3 + sop == SumOperator{ComplexF64, UInt}([PureOperator{ComplexF64, UInt}(0x0, 0x0, 0x0, 3), pop1, pop2])
+
+      @test pop1 - 3 == SumOperator{Float64, UInt}([pop1, PureOperator{Float64, UInt}(0x0, 0x0, 0x0, -3)])
+      @test 3 - pop1 == SumOperator{Float64, UInt}([PureOperator{Float64, UInt}(0x0, 0x0, 0x0, 3), -pop1])
+      @test sop - 3 == SumOperator{ComplexF64, UInt}([pop1, pop2, PureOperator{ComplexF64, UInt}(0x0, 0x0, 0x0, -3)])
+      @test 3 - sop == SumOperator{ComplexF64, UInt}([PureOperator{ComplexF64, UInt}(0x0, 0x0, 0x0, 3), -pop1, -pop2])
     end
 
     @testset "product" begin
