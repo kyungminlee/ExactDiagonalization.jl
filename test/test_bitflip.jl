@@ -15,6 +15,9 @@ using ExactDiagonalization
     @test b1 * b0 == b1
     @test b1 * b1 == b0
 
+    @test isidentity(b0)
+    @test !isidentity(b1)
+
     @testset "HilbertSpace" begin
         hs, pauli = ExactDiagonalization.Toolkit.spin_half_system(4)
         p = SitePermutation([2,3,4,1])
