@@ -361,7 +361,26 @@ end
     @test sop1 == sop3
   end
 
-  @testset "sym" begin
+  @testset "one/zero" begin
+    p0 = zero(PureOperator{Float64, UInt})
+    @test p0.amplitude == 0
+    p0 = zero(p0)
+    @test p0.amplitude == 0
+    p1 = one(PureOperator{Float64, UInt})
+    @test p1.amplitude == 1
+    @test p1.bitmask == 0x0
+    @test p1.bitrow == 0x0
+    @test p1.bitcol == 0x0
+    p1 = one(p0)
+    @test p1.amplitude == 1
+    @test p1.bitmask == 0x0
+    @test p1.bitrow == 0x0
+    @test p1.bitcol == 0x0
+    @test iszero(p0)
+    @test !iszero(p1)
+  end
+
+  @testset "symmetric/Hermitian" begin
     pop1 = PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0000, 1.0)
     pop2 = PureOperator{Float64, UInt}(0b0010, 0b0010, 0b0010, 2.0)
     sop1 = SumOperator{Float64, UInt}([pop1, pop2])
