@@ -7,6 +7,8 @@ export dimension, bitwidth
 export get_row, get_column
 export sparse_serial, sparse_parallel
 
+export apply!, apply_serial!, apply_parallel!
+
 
 """
     AbstractOperatorRepresentation{S}
@@ -260,11 +262,8 @@ function apply!(
     opr::AbstractOperatorRepresentation{S},
     state::AbstractVector{S2}
 ) where {S, S1<:Number, S2<:Number}
-    if Threads.nthreads() == 1
-        return apply_serial!(out, opr, state)
-    else
-        return apply_parallel!(out, opr, state)
-    end
+    a! = Threads.nthreads() == 1 ? apply_serial! : apply_parallel!
+    return a!(out, opr, state)
 end
 
 
@@ -281,11 +280,8 @@ function apply!(
     state::AbstractVector{S2},
     opr::AbstractOperatorRepresentation{S}
 ) where {S, S1<:Number, S2<:Number}
-    if Threads.nthreads() == 1
-        return apply_serial!(out, state, opr)
-    else
-        return apply_parallel!(out, state, opr)
-    end
+    a! = Threads.nthreads() == 1 ? apply_serial! : apply_parallel!
+    return a!(out, state, opr)
 end
 
 
