@@ -100,6 +100,27 @@ function Base.:(+)(lhs::SumOperator{S1, BR}, rhs::SumOperator{S2, BR}) where {S1
     return SumOperator{S3, BR}(PureOperator{S3, BR}[lhs.terms..., rhs.terms...])
 end
 
+# with number
+
+function Base.:(+)(lhs::S1, rhs::PureOperator{S2, BR}) where {S1<:Number, S2<:Number, BR}
+    S = promote_type(S1, S2)
+    return SumOperator{S, BR}(PureOperator{S, BR}[lhs*one(PureOperator{S, BR}), rhs])
+end
+
+function Base.:(+)(lhs::PureOperator{S1, BR}, rhs::S2) where {S1<:Number, S2<:Number, BR}
+    S = promote_type(S1, S2)
+    return SumOperator{S, BR}(PureOperator{S, BR}[lhs, rhs*one(PureOperator{S, BR})])
+end
+
+function Base.:(+)(lhs::SumOperator{S1, BR}, rhs::S2) where {S1, S2<:Number, BR}
+    S3 = promote_type(S1, S2)
+    return SumOperator{S3, BR}(PureOperator{S3, BR}[lhs.terms..., rhs*one(PureOperator{S3, BR})])
+end
+
+function Base.:(+)(lhs::S1, rhs::SumOperator{S2, BR}) where {S1<:Number, S2, BR}
+    S3 = promote_type(S1, S2)
+    return SumOperator{S3, BR}(PureOperator{S3, BR}[lhs*one(PureOperator{S3, BR}), rhs.terms...])
+end
 
 # === 6/6 Conversion ===
 
