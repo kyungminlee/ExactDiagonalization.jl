@@ -104,8 +104,12 @@ function Base.:(==)(lhs::HilbertSpace{Q1}, rhs::HilbertSpace{Q2}) where {Q1, Q2}
 end
 
 
-function get_bitmask(hs::HilbertSpace, isite::Integer, binary_type::Type{BR}=UInt)::BR where {BR<:Unsigned}
+function get_bitmask(hs::HilbertSpace, isite::Integer, ::Type{BR}=UInt)::BR where {BR<:Unsigned}
     return make_bitmask(hs.bitoffsets[isite+1], hs.bitoffsets[isite], BR)
+end
+
+function get_bitmask(hs::HilbertSpace, ::Type{BR}=UInt)::BR where {BR<:Unsigned}
+    return make_bitmask(bitwidth(hs), BR)
 end
 
 
