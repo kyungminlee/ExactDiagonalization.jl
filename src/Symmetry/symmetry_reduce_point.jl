@@ -15,8 +15,6 @@ function symmetry_reduce_serial(
 ) where {QN, BR, DT, ComplexType<:Complex}
     @warn "Method deprecated. use simpler symmetry_reduce functions that takes symops_and_amplitudes as input"
 
-    HSR = HilbertSpaceRepresentation{QN, BR, DT}
-
     n_basis = length(hsr.basis_list)
 
     basis_mapping_representative = Vector{Int}(undef, n_basis)
@@ -94,15 +92,9 @@ function symmetry_reduce_serial(
         basis_mapping_index[ivec_p_prime] = ivec_r
     end
 
-    RHSR = ReducedHilbertSpaceRepresentation{
-        HSR,
-        BR,
-        ComplexType
-    }
-    return RHSR(
-        hsr, reduced_basis_list,
-        basis_mapping_index, basis_mapping_amplitude
-    )
+    HSR = HilbertSpaceRepresentation{QN, BR, DT}
+    RHSR = ReducedHilbertSpaceRepresentation{HSR, BR, ComplexType}
+    return RHSR(hsr, reduced_basis_list, basis_mapping_index, basis_mapping_amplitude)
 end
 
 
