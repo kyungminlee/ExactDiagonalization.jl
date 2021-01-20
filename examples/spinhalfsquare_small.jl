@@ -2,7 +2,6 @@ using SparseArrays
 using LinearAlgebra
 using ExactDiagonalization
 using LatticeTools
-using MinimalPerfectHash
 
 @show  Threads.nthreads()
 
@@ -205,6 +204,56 @@ let
             append!(alleigenvalues2, eigvals(Hermitian(m)))
             append!(alleigenvalues3, eigvals(Hermitian(m2)))
         end # for tsym_irrep_index
+    end
+    sort!(alleigenvalues2)
+    sort!(alleigenvalues3)
+
+    @show length(alleigenvalues2)
+    @show length(alleigenvalues3)
+    @show norm(alleigenvalues1 - alleigenvalues2)
+    @show norm(alleigenvalues1 - alleigenvalues3)
+end
+
+
+
+## Use all three
+
+println("## Translation AND Point AND BitFlip Symmetry")
+let
+    alleigenvalues2 = Float64[]
+    alleigenvalues3 = Float64[]
+    for qn in quantum_number_sectors(hs)
+        hss = HilbertSpaceSector(hs, qn)
+        hssr = represent_dict(hss);
+        for tsic in get_irrep_components(tsymbed)
+            tsym_irrep = collect(get_irrep_iterator(tsic))
+            psymbed_little = little_symmetry(tsic, psymbed)
+            for psic in get_irrep_components(psymbed_little)
+                psym_irrep = collect(get_irrep_iterator(psic))
+                if qn[1] == 0
+                    for flip_irrep in [ [(BitFlipSymmetry(false), 1), (BitFlipSymmetry(true), 1)],
+                                        [(BitFlipSymmetry(false), 1), (BitFlipSymmetry(true), -1)] ]
+                        irrep = make_product_irrep(flip_irrep, tsym_irrep, psym_irrep)                            
+                        rhssr = symmetry_reduce_serial(hssr, irrep)
+                        rhssr2 = symmetry_reduce_parallel(hssr, irrep)
+                        dimension(rhssr) == 0 && continue
+                        m = Matrix(represent(rhssr, j1))
+                        m2 = Matrix(represent(rhssr2, j1))
+                        append!(alleigenvalues2, eigvals(Hermitian(m)))
+                        append!(alleigenvalues3, eigvals(Hermitian(m2)))
+                    end
+                else
+                    irrep = make_product_irrep(tsym_irrep, psym_irrep)
+                    rhssr = symmetry_reduce_serial(hssr, irrep)
+                    rhssr2 = symmetry_reduce_parallel(hssr, irrep)
+                    dimension(rhssr) == 0 && continue
+                    m = Matrix(represent(rhssr, j1))
+                    m2 = Matrix(represent(rhssr2, j1))
+                    append!(alleigenvalues2, eigvals(Hermitian(m)))
+                    append!(alleigenvalues3, eigvals(Hermitian(m2)))                        
+                end
+            end
+        end
     end
     sort!(alleigenvalues2)
     sort!(alleigenvalues3)
