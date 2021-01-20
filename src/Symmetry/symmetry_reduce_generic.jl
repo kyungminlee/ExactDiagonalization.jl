@@ -24,7 +24,9 @@ function symmetry_reduce_serial(
     symops_and_amplitudes::AbstractArray{Tuple{OperationType, ScalarType}};
     tol::Real=Base.rtoldefault(real(ScalarType))
 ) where {QN, BR, DT, OperationType<:AbstractSymmetryOperation, ScalarType<:Number}
-    HSR = HilbertSpaceRepresentation{QN, BR, DT}
+    if !all(isapprox(abs(y), one(abs(y))) for (_, y) in symops_and_amplitudes)
+        throw(ArgumentError("all amplitudes need to have norm 1"))
+    end
 
     n_basis = length(hsr.basis_list)
 
@@ -32,8 +34,9 @@ function symmetry_reduce_serial(
     fill!(basis_mapping_representative, -1)
     basis_mapping_amplitude = zeros(ScalarType, n_basis)
     subgroup_size = length(symops_and_amplitudes)
-    # @assert prod(length(x) for x in nested_symops_and_amplitude_list) == subgroup_size
     size_estimate = n_basis ÷ max(1, subgroup_size - 1)
+
+    inv_norm_cache = [inv(sqrt(float(i))) for i in 1:subgroup_size]
 
     reduced_basis_list = BR[]
     sizehint!(reduced_basis_list, size_estimate)
@@ -44,9 +47,6 @@ function symmetry_reduce_serial(
     basis_phases = ones(ScalarType, subgroup_size)
     basis_amplitudes = Dict{BR, ScalarType}()
     sizehint!(basis_amplitudes, subgroup_size + subgroup_size ÷ 2)
-
-    @assert all(isapprox(abs(y), one(abs(y))) for (_, y) in symops_and_amplitudes)
-    #is_identity = [isapprox(y, one(y); atol=tol) for (_, y) in symops_and_amplitudes]
 
     for ivec_p in 1:n_basis
         visited[ivec_p] && continue
@@ -76,7 +76,7 @@ function symmetry_reduce_serial(
             bvec_prime = basis_states[i]
             basis_amplitudes[bvec_prime] = basis_phases[i]
         end
-        inv_norm = inv(sqrt(float(length(basis_amplitudes))))
+        inv_norm = inv_norm_cache[length(basis_amplitudes)]
         for (bvec_prime, amplitude) in basis_amplitudes
             ivec_p_prime = hsr.basis_lookup[bvec_prime]
             visited[ivec_p_prime] = true
@@ -100,6 +100,7 @@ function symmetry_reduce_serial(
         basis_mapping_index[ivec_p_prime] = ivec_r
     end
 
+    HSR = HilbertSpaceRepresentation{QN, BR, DT}
     RHSR = ReducedHilbertSpaceRepresentation{HSR, BR, ScalarType}
     return RHSR(hsr, reduced_basis_list, basis_mapping_index, basis_mapping_amplitude)
 end
@@ -115,10 +116,11 @@ function symmetry_reduce_parallel(
     hsr::HilbertSpaceRepresentation{QN, BR, DT},
     symops_and_amplitudes::AbstractArray{Tuple{OperationType, ScalarType}};
     tol::Real=Base.rtoldefault(Float64)
-    ) where {QN, BR, DT, OperationType<:AbstractSymmetryOperation, ScalarType<:Number}
-
-    HSR = HilbertSpaceRepresentation{QN, BR, DT}
+) where {QN, BR, DT, OperationType<:AbstractSymmetryOperation, ScalarType<:Number}
     @debug "BEGIN symmetry_reduce_parallel"
+    if !all(isapprox(abs(y), one(abs(y))) for (_, y) in symops_and_amplitudes)
+        throw(ArgumentError("all amplitudes need to have norm 1"))
+    end
 
     n_basis = length(hsr.basis_list)
     @debug "Original Hilbert space dimension: $n_basis"
@@ -134,6 +136,8 @@ function symmetry_reduce_parallel(
 
     size_estimate = n_basis ÷ max(1, subgroup_size - 1)
     @debug "Estimate for the reduced Hilbert space dimension: $size_estimate"
+
+    inv_norm_cache = [inv(sqrt(float(i))) for i in 1:subgroup_size]
 
     nthreads = Threads.nthreads()
     local_reduced_basis_list = Vector{Vector{BR}}(undef, nthreads)
@@ -199,11 +203,10 @@ function symmetry_reduce_parallel(
 
         empty!(local_basis_amplitudes[id])
         for i in 1:subgroup_size
-            #(_, ampl) = symops_and_amplitudes[i]
             bvec_prime = local_basis_states[id, i]
             local_basis_amplitudes[id][bvec_prime] = local_basis_phases[id, i] # Same bvec_prime, same p.
         end
-        inv_norm = inv(sqrt(float(length(local_basis_amplitudes[id]))))
+        inv_norm = inv_norm_cache[length(local_basis_amplitudes[id])]        
         for (bvec_prime, amplitude) in local_basis_amplitudes[id]
             ivec_p_prime = hsr.basis_lookup[bvec_prime]
             visited[ivec_p_prime] = 0x1
@@ -246,9 +249,7 @@ function symmetry_reduce_parallel(
     @debug "Collected basis lookup (offdiagonal)"
 
     @debug "END symmetry_reduce_parallel"
+    HSR = HilbertSpaceRepresentation{QN, BR, DT}
     RHSR = ReducedHilbertSpaceRepresentation{HSR, BR, ScalarType}
-    return RHSR(
-        hsr, reduced_basis_list,
-        basis_mapping_index, basis_mapping_amplitude
-    )
+    return RHSR(hsr, reduced_basis_list, basis_mapping_index, basis_mapping_amplitude)
 end
