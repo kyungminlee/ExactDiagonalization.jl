@@ -85,10 +85,18 @@ for (qn,) in quantum_number_sectors(hs)
     hss = HilbertSpaceSector(hs, qn)
     hssr = represent_dict(hss)
     for ssic in get_irrep_components(trilat.space_symmetry_embedding)
-        rhssr = symmetry_reduce_parallel(hssr, ssic)
         if qn == 0
-            push!(dimensions, dimension(rhssr))
+            for z2_irrep in [
+                [(GlobalBitFlip(false), 1), (GlobalBitFlip(true), 1)],
+                [(GlobalBitFlip(false), 1), (GlobalBitFlip(true), -1)],
+            ]
+                irrep_iter = make_product_irrep(z2_irrep, get_irrep_iterator(ssic))
+                rhssr = symmetry_reduce_parallel(hssr, irrep_iter)
+                push!(dimensions, dimension(rhssr))
+            end
         else
+            irrep_iter = make_product_irrep(get_irrep_iterator(ssic))
+            rhssr = symmetry_reduce_parallel(hssr, irrep_iter)
             push!(dimensions, dimension(rhssr))
             push!(dimensions, dimension(rhssr))
         end
