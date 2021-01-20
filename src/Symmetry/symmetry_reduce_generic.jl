@@ -15,14 +15,9 @@ end
 
 
 """
-    symmetry_reduce_serial
+    symmetry_reduce_serial(hilbert_space_representation, symops_and_amplitudes; tol=√ϵ)
 
-The irreps have to follow certain order:
-```julia
-symmetry_reduce_serial(
-    hilbert_space_representation,
-)
-```
+The irreps have to follow certain order.
 """
 function symmetry_reduce_serial(
     hsr::HilbertSpaceRepresentation{QN, BR, DT},
