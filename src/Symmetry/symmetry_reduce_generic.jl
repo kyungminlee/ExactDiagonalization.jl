@@ -6,7 +6,7 @@ using LatticeTools
 
 function symmetry_reduce(
     hsr::HilbertSpaceRepresentation{QN, BR, DT},
-    symops_and_amplitudes::AbstractVector{Tuple{OperationType, ScalarType}};
+    symops_and_amplitudes::AbstractArray{Tuple{OperationType, ScalarType}};
     tol::Real=Base.rtoldefault(real(ScalarType))
 ) where {QN, BR, DT, OperationType<:AbstractSymmetryOperation, ScalarType<:Number}
     symred = Threads.nthreads() == 1 ? symmetry_reduce_serial : symmetry_reduce_parallel
@@ -26,7 +26,7 @@ symmetry_reduce_serial(
 """
 function symmetry_reduce_serial(
     hsr::HilbertSpaceRepresentation{QN, BR, DT},
-    symops_and_amplitudes::AbstractVector{Tuple{OperationType, ScalarType}};
+    symops_and_amplitudes::AbstractArray{Tuple{OperationType, ScalarType}};
     tol::Real=Base.rtoldefault(real(ScalarType))
 ) where {QN, BR, DT, OperationType<:AbstractSymmetryOperation, ScalarType<:Number}
     HSR = HilbertSpaceRepresentation{QN, BR, DT}
@@ -118,7 +118,7 @@ Symmetry-reduce the HilbertSpaceRepresentation using translation group (multi-th
 """
 function symmetry_reduce_parallel(
     hsr::HilbertSpaceRepresentation{QN, BR, DT},
-    symops_and_amplitudes::AbstractVector{Tuple{OperationType, ScalarType}};
+    symops_and_amplitudes::AbstractArray{Tuple{OperationType, ScalarType}};
     tol::Real=Base.rtoldefault(Float64)
     ) where {QN, BR, DT, OperationType<:AbstractSymmetryOperation, ScalarType<:Number}
 
