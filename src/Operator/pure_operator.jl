@@ -28,7 +28,7 @@ struct PureOperator{Scalar<:Number, BR<:Unsigned} <:AbstractOperator{Scalar}
     bitcol::BR
     amplitude::Scalar
 
-    function PureOperator{S, BR}(bitmask, bitrow, bitcol, amplitude::S) where {S, BR}
+    function PureOperator{S, BR}(bitmask::Unsigned, bitrow::Unsigned, bitcol::Unsigned, amplitude::Number) where {S, BR}
         if (~bitmask) & bitrow != zero(BR)
             throw(ArgumentError("every bit of bitrow not in bitmask should be set to zero"))
         elseif (~bitmask) & bitcol != zero(BR)

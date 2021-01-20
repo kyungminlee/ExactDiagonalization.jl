@@ -59,7 +59,7 @@ function make_bitmask(msb::Integer, lsb::Integer, binary_type::Type{BR}=UInt) wh
     return mask ⊻ submask
 end
 
-function merge_vec(x::Vector{T}, y::Vector{T})::Vector{T} where {T}
+function merge_vec(x::AbstractVector{T}, y::AbstractVector{T})::Vector{T} where {T}
     (nx, ny) = (1, 1)
     z = T[]
     sizehint!(z, length(x) + length(y))
@@ -141,7 +141,7 @@ function compress(bitwidths::AbstractVector{<:Integer}, data::AbstractVector{<:I
         @boundscheck if data[i] < 0 || data[i] >= (1<<bitwidths[i])
             throw(ArgumentError("value $(data[i]) too large to be represented with $(bitwidths[i]) bits."))
         end
-        out |= BR(data) << bitoffsets[i]
+        out |= BR(data[i]) << bitoffsets[i]
     end
     return out
 end

@@ -21,6 +21,12 @@ using StaticArrays
     @test bintype(typeof(nop)) <: Unsigned
   end
 
+  @testset "zero" begin
+    @test zero(NullOperator) == NullOperator()
+    @test zero(nop) == NullOperator()
+    @test iszero(nop)
+  end
+
   @testset "unary" begin
     @test -nop == nop
     @test +nop == nop
@@ -300,6 +306,12 @@ end # testset NullOperator
     @test collect(get_column_iterator(pop, 0b0000)) == [0b0010 => 2.0]
     @test collect(get_column_iterator(pop, 0b1111)) == []
     @test get_element(pop, 0b0010, 0b0000) == 2.0
+
+    @test collect(getiterator(pop, 0b0000, :)) == []
+    @test collect(getiterator(pop, 0b0010, :)) == [0b0000 => 2.0]
+    @test collect(getiterator(pop, :, 0b0000)) == [0b0010 => 2.0]
+    @test collect(getiterator(pop, :, 0b1111)) == []
+    # @test get_element(pop, 0b0010, 0b0000) == 2.0
   end
 end
 
@@ -349,7 +361,26 @@ end
     @test sop1 == sop3
   end
 
-  @testset "sym" begin
+  @testset "one/zero" begin
+    p0 = zero(PureOperator{Float64, UInt})
+    @test p0.amplitude == 0
+    p0 = zero(p0)
+    @test p0.amplitude == 0
+    p1 = one(PureOperator{Float64, UInt})
+    @test p1.amplitude == 1
+    @test p1.bitmask == 0x0
+    @test p1.bitrow == 0x0
+    @test p1.bitcol == 0x0
+    p1 = one(p0)
+    @test p1.amplitude == 1
+    @test p1.bitmask == 0x0
+    @test p1.bitrow == 0x0
+    @test p1.bitcol == 0x0
+    @test iszero(p0)
+    @test !iszero(p1)
+  end
+
+  @testset "symmetric/Hermitian" begin
     pop1 = PureOperator{Float64, UInt}(0b0010, 0b0000, 0b0000, 1.0)
     pop2 = PureOperator{Float64, UInt}(0b0010, 0b0010, 0b0010, 2.0)
     sop1 = SumOperator{Float64, UInt}([pop1, pop2])
@@ -455,6 +486,16 @@ end
       sop2 = SumOperator{ComplexF64, UInt}([pop3, pop4])
       @test sop + sop2 == SumOperator{ComplexF64, UInt}([pop1, pop2, pop3, pop4])
       @test sop - sop2 == SumOperator{ComplexF64, UInt}([pop1, pop2,-pop3,-pop4])
+
+      @test pop1 + 3 == SumOperator{Float64, UInt}([pop1, PureOperator{Float64, UInt}(0x0, 0x0, 0x0, 3)])
+      @test 3 + pop1 == SumOperator{Float64, UInt}([PureOperator{Float64, UInt}(0x0, 0x0, 0x0, 3), pop1])
+      @test sop + 3 == SumOperator{ComplexF64, UInt}([pop1, pop2, PureOperator{ComplexF64, UInt}(0x0, 0x0, 0x0, 3)])
+      @test 3 + sop == SumOperator{ComplexF64, UInt}([PureOperator{ComplexF64, UInt}(0x0, 0x0, 0x0, 3), pop1, pop2])
+
+      @test pop1 - 3 == SumOperator{Float64, UInt}([pop1, PureOperator{Float64, UInt}(0x0, 0x0, 0x0, -3)])
+      @test 3 - pop1 == SumOperator{Float64, UInt}([PureOperator{Float64, UInt}(0x0, 0x0, 0x0, 3), -pop1])
+      @test sop - 3 == SumOperator{ComplexF64, UInt}([pop1, pop2, PureOperator{ComplexF64, UInt}(0x0, 0x0, 0x0, -3)])
+      @test 3 - sop == SumOperator{ComplexF64, UInt}([PureOperator{ComplexF64, UInt}(0x0, 0x0, 0x0, 3), -pop1, -pop2])
     end
 
     @testset "product" begin

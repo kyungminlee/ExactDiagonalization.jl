@@ -67,6 +67,8 @@ using ExactDiagonalization.Toolkit: pauli_matrix
 
       @test_throws DimensionMismatch symmetry_unreduce(rhsr, zeros(ComplexF64, dimension(rhsr)+1))
       @test_throws DimensionMismatch symmetry_reduce(rhsr, zeros(ComplexF64, dimension(hsr)+1))
+      @test_throws DimensionMismatch symmetry_reduce_serial(rhsr, zeros(ComplexF64, dimension(hsr)+1))
+      @test_throws DimensionMismatch symmetry_reduce_parallel(rhsr, zeros(ComplexF64, dimension(hsr)+1))
 
       sv = rand(ComplexF64, dimension(rhsr))
       lv = symmetry_unreduce(rhsr, sv)
@@ -87,6 +89,14 @@ using ExactDiagonalization.Toolkit: pauli_matrix
       sv7 = zero(sv4)
       @test sv7 === symmetry_reduce_parallel!(sv7, rhsr, lv)
       @test isapprox(sv, sv7; atol=tol)
+
+      @test_throws DimensionMismatch symmetry_reduce!(zero(sv4), rhsr, Float64[1.0])
+      @test_throws DimensionMismatch symmetry_reduce_serial!(zero(sv4), rhsr, Float64[1.0])
+      @test_throws DimensionMismatch symmetry_reduce_parallel!(zero(sv4), rhsr, Float64[1.0])
+
+      @test_throws DimensionMismatch symmetry_reduce!(zeros(ComplexF64, dimension(rhsr)+1), rhsr, lv)
+      @test_throws DimensionMismatch symmetry_reduce_serial!(zeros(ComplexF64, dimension(rhsr)+1), rhsr, lv)
+      @test_throws DimensionMismatch symmetry_reduce_parallel!(zeros(ComplexF64, dimension(rhsr)+1), rhsr, lv)
     end
 
     #                               0011,   0101,   0110,   1001,   1010,   1100
